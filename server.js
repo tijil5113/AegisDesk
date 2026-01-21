@@ -71,9 +71,9 @@ app.get('/api/music/test', (req, res) => {
 // Static files
 app.use(express.static(__dirname));
 
-// Fallback to index.html or ai-chat.html if direct navigation
+// Fallback to welcome.html as default landing page
 app.get('*', (req, res) => {
-  const target = req.path.endsWith('.html') ? req.path : '/index.html';
+  const target = req.path.endsWith('.html') ? req.path : '/welcome.html';
   res.sendFile(path.join(__dirname, target));
 });
 
