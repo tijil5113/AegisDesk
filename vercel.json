@@ -1,59 +1,19 @@
 {
-  "version": 2,
-  "builds": [
+  "rewrites": [
     {
-      "src": "api/chat.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "api/news.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "api/gnews.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "api/music.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "api/auth.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "api/mail.js",
-      "use": "@vercel/node"
+      "source": "/",
+      "destination": "/welcome.html"
     }
   ],
-  "routes": [
+  "headers": [
     {
-      "src": "/api/chat",
-      "dest": "/api/chat.js"
-    },
-    {
-      "src": "/api/news",
-      "dest": "/api/news.js"
-    },
-    {
-      "src": "/api/gnews",
-      "dest": "/api/gnews.js"
-    },
-    {
-      "src": "/api/music",
-      "dest": "/api/music.js"
-    },
-    {
-      "src": "/api/auth/(.*)",
-      "dest": "/api/auth.js"
-    },
-    {
-      "src": "/api/mail/(.*)",
-      "dest": "/api/mail.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
     }
   ]
 }
