@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress & Analytics - AegisDesk</title>
+    <meta name="theme-color" content="#10b981">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/progress.css">
+</head>
+<body class="progress-page">
+    <div id="progress-app-container" class="progress-container">
+        <!-- Header -->
+        <header class="progress-header" role="banner">
+            <div class="progress-header-left">
+                <button class="progress-back-btn" id="progress-back-btn" aria-label="Close" onclick="window.close()" title="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+                <div class="progress-logo">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg>
+                    <div>
+                        <h1 class="progress-title">Progress & Analytics</h1>
+                        <p class="progress-subtitle">Your Academic Performance</p>
+                    </div>
+                </div>
+            </div>
+            <div class="progress-header-right">
+                <div class="progress-time-range">
+                    <button class="progress-range-btn active" data-range="week">Week</button>
+                    <button class="progress-range-btn" data-range="month">Month</button>
+                    <button class="progress-range-btn" data-range="semester">Semester</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="progress-main" role="main">
+            <!-- Stats Cards -->
+            <div class="progress-stats-grid" id="progress-stats-grid">
+                <!-- Stats cards will be rendered here -->
+            </div>
+
+            <!-- Charts Section -->
+            <div class="progress-charts-section">
+                <div class="progress-chart-card">
+                    <h3 class="progress-chart-title">Assignment Completion Rate</h3>
+                    <div class="progress-chart-container" id="progress-completion-chart">
+                        <!-- Chart will be rendered here -->
+                    </div>
+                </div>
+                <div class="progress-chart-card">
+                    <h3 class="progress-chart-title">Study Time Trends</h3>
+                    <div class="progress-chart-container" id="progress-study-chart">
+                        <!-- Chart will be rendered here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Insights Section -->
+            <div class="progress-insights-section">
+                <h2 class="progress-section-title">AI Insights</h2>
+                <div class="progress-insights-list" id="progress-insights-list">
+                    <!-- AI insights will be rendered here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/apps/student-progress.js" defer></script>
+</body>
+</html>

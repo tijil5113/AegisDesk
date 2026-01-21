@@ -1,0 +1,894 @@
+/* Desktop Icon Carousel - Premium Design */
+
+.desktop-icon-carousel {
+    position: fixed;
+    bottom: 80px;
+    left: 0;
+    right: 0;
+    min-height: 400px;
+    height: auto;
+    z-index: 100;
+    pointer-events: none; /* Will be overridden by children */
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out 2.8s forwards;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 20px;
+}
+
+/* AEGIS DESK Title - Premium Animated Design */
+.desktop-title-container {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    padding: 0 20px;
+    pointer-events: none;
+}
+
+.desktop-title-wrapper {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+}
+
+.desktop-title {
+    font-size: clamp(48px, 8vw, 96px);
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    line-height: 1.1;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    text-transform: uppercase;
+    position: relative;
+    text-shadow: 
+        0 0 15px rgba(99, 102, 241, 0.4),
+        0 0 30px rgba(139, 92, 246, 0.25),
+        0 0 45px rgba(236, 72, 153, 0.15);
+    animation: titleGlow 4s ease-in-out infinite; /* Slower animation for better performance */
+    will-change: text-shadow;
+}
+
+@keyframes titleGlow {
+    0%, 100% {
+        text-shadow: 
+            0 0 15px rgba(99, 102, 241, 0.4),
+            0 0 30px rgba(139, 92, 246, 0.25),
+            0 0 45px rgba(236, 72, 153, 0.15);
+    }
+    50% {
+        text-shadow: 
+            0 0 20px rgba(99, 102, 241, 0.6),
+            0 0 40px rgba(139, 92, 246, 0.4),
+            0 0 60px rgba(236, 72, 153, 0.3);
+    }
+}
+
+.title-letter {
+    display: inline-block;
+    background: linear-gradient(135deg, 
+        #818cf8 0%, 
+        #6366f1 25%, 
+        #8b5cf6 50%, 
+        #ec4899 75%, 
+        #818cf8 100%);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: 
+        letterFloat 4s ease-in-out infinite, /* Slower animation */
+        gradientShift 6s ease infinite; /* Slower gradient */
+    position: relative;
+    transform-origin: center bottom;
+    cursor: default;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* Only transform for performance */
+    will-change: transform;
+    transform: translateZ(0); /* GPU acceleration */
+}
+
+.title-letter:hover {
+    transform: translateY(-12px) scale(1.15) rotate(2deg);
+    filter: brightness(1.2);
+}
+
+.title-letter:nth-child(1) { animation-delay: 0s; }
+.title-letter:nth-child(2) { animation-delay: 0.1s; }
+.title-letter:nth-child(3) { animation-delay: 0.2s; }
+.title-letter:nth-child(4) { animation-delay: 0.3s; }
+.title-letter:nth-child(5) { animation-delay: 0.4s; }
+.title-letter:nth-child(7) { animation-delay: 0.5s; }
+.title-letter:nth-child(8) { animation-delay: 0.6s; }
+.title-letter:nth-child(9) { animation-delay: 0.7s; }
+.title-letter:nth-child(10) { animation-delay: 0.8s; }
+
+@keyframes letterFloat {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    25% {
+        transform: translateY(-8px) rotate(1deg);
+    }
+    75% {
+        transform: translateY(-4px) rotate(-1deg);
+    }
+}
+
+@keyframes gradientShift {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+.title-letter::before {
+    content: attr(data-letter);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, 
+        rgba(129, 140, 248, 0.2) 0%, 
+        rgba(99, 102, 241, 0.2) 50%, 
+        rgba(139, 92, 246, 0.2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: blur(4px); /* Reduced blur for better performance */
+    z-index: -1;
+    animation: letterGlow 3s ease-in-out infinite; /* Slower animation */
+    will-change: opacity, transform;
+    transform: translateZ(0);
+}
+
+@keyframes letterGlow {
+    0%, 100% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}
+
+.title-space {
+    width: 0.3em;
+    display: inline-block;
+}
+
+.desktop-subtitle {
+    margin-top: 16px;
+    position: relative;
+    display: inline-block;
+}
+
+.subtitle-text {
+    font-size: clamp(14px, 2vw, 20px);
+    font-weight: 500;
+    letter-spacing: 0.3em;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    position: relative;
+    z-index: 1;
+    animation: subtitleFade 2s ease-in-out infinite;
+}
+
+@keyframes subtitleFade {
+    0%, 100% {
+        opacity: 0.7;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+.subtitle-underline {
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(99, 102, 241, 0.8) 50%, 
+        transparent 100%);
+    animation: underlineExpand 3s ease-in-out infinite;
+}
+
+@keyframes underlineExpand {
+    0%, 100% {
+        width: 0;
+        opacity: 0;
+    }
+    50% {
+        width: 100%;
+        opacity: 1;
+    }
+}
+
+.title-glow-effect {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120%;
+    height: 150%;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(99, 102, 241, 0.15) 0%,
+        rgba(139, 92, 246, 0.1) 30%,
+        transparent 70%
+    );
+    z-index: 0;
+    animation: glowPulse 4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes glowPulse {
+    0%, 100% {
+        opacity: 0.5;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+}
+
+.title-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+    overflow: hidden;
+    /* Simplified particles for better performance */
+    background-image: 
+        radial-gradient(2px 2px at 20% 30%, rgba(99, 102, 241, 0.25), transparent),
+        radial-gradient(2px 2px at 60% 70%, rgba(139, 92, 246, 0.2), transparent);
+    background-repeat: repeat;
+    background-size: 300px 300px; /* Larger size = fewer repeats = better performance */
+    animation: particleMove 40s linear infinite; /* Slower animation */
+    opacity: 0.3; /* Reduced opacity */
+    will-change: transform;
+    transform: translateZ(0); /* GPU acceleration */
+    contain: layout style paint; /* Performance isolation */
+}
+
+/* Removed ::before pseudo-element for better performance */
+
+@keyframes particleMove {
+    0% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(200px, 200px);
+    }
+}
+
+@keyframes particleFloat {
+    0%, 100% {
+        transform: translateY(0) translateX(0);
+        opacity: 0.6;
+    }
+    25% {
+        transform: translateY(-20px) translateX(10px);
+        opacity: 1;
+    }
+    50% {
+        transform: translateY(-40px) translateX(-10px);
+        opacity: 0.8;
+    }
+    75% {
+        transform: translateY(-20px) translateX(5px);
+        opacity: 1;
+    }
+}
+
+/* Enhanced title entrance animation */
+.desktop-title-container {
+    opacity: 0;
+    animation: titleEntrance 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) 3s forwards;
+}
+
+/* Add shimmer effect on title */
+.desktop-title::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent 100%
+    );
+    animation: titleShimmer 4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes titleShimmer {
+    0% {
+        left: -100%;
+    }
+    50%, 100% {
+        left: 100%;
+    }
+}
+
+/* Simplified filter for better performance */
+.desktop-title {
+    /* Removed multiple drop-shadows - using text-shadow instead for better performance */
+}
+
+@keyframes titleEntrance {
+    0% {
+        opacity: 0;
+        transform: translateY(50px) scale(0.8);
+    }
+    60% {
+        transform: translateY(-10px) scale(1.05);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.carousel-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    padding: 0 80px;
+    margin-top: auto;
+    pointer-events: auto; /* Allow interaction with carousel */
+}
+
+.carousel-track {
+    display: flex;
+    gap: 40px;
+    height: 100%;
+    align-items: center;
+    padding: 0 20px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: auto; /* We control scrolling manually for smooth auto-scroll */
+    scrollbar-width: none; /* Hide scrollbar */
+    -ms-overflow-style: none; /* Hide scrollbar for IE/Edge */
+    will-change: scroll-position;
+    transform: translateZ(0); /* GPU acceleration */
+    contain: layout style; /* Performance isolation */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+.carousel-track::-webkit-scrollbar {
+    display: none; /* Hide scrollbar for Chrome/Safari */
+}
+
+.desktop-icon-item {
+    flex-shrink: 0;
+    width: 140px;
+    height: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    pointer-events: auto;
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-origin: center bottom;
+}
+
+.desktop-icon-item::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    opacity: 0;
+    transition: all 0.4s ease;
+    z-index: -1;
+}
+
+.desktop-icon-item:hover::before {
+    opacity: 1;
+    width: 160px;
+    height: 160px;
+}
+
+.desktop-icon-item:hover {
+    transform: translateY(-15px) scale(1.1);
+}
+
+.desktop-icon-item:active {
+    transform: translateY(-10px) scale(1.05);
+}
+
+.desktop-icon-wrapper {
+    width: 100px;
+    height: 100px;
+    background: rgba(30, 41, 59, 0.8); /* Increased opacity to reduce backdrop-filter dependency */
+    backdrop-filter: blur(10px); /* Reduced blur for better performance */
+    border: 2px solid rgba(99, 102, 241, 0.3);
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                box-shadow 0.3s ease, 
+                background 0.3s ease; /* Specific properties only */
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0 0 0 rgba(99, 102, 241, 0);
+    position: relative;
+    overflow: hidden;
+    will-change: transform;
+    transform: translateZ(0); /* GPU acceleration */
+    contain: layout style paint;
+}
+
+.desktop-icon-item:hover .desktop-icon-wrapper {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: rgba(99, 102, 241, 0.6);
+    box-shadow: 
+        0 16px 48px rgba(99, 102, 241, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 0 40px rgba(99, 102, 241, 0.3);
+    transform: scale(1.05);
+}
+
+.desktop-icon-wrapper::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.1) 50%,
+        transparent 70%
+    );
+    transform: rotate(45deg);
+    transition: all 0.6s ease;
+    opacity: 0;
+}
+
+.desktop-icon-item:hover .desktop-icon-wrapper::after {
+    animation: shimmer 1.5s ease-in-out;
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%) translateY(-100%) rotate(45deg);
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(100%) translateY(100%) rotate(45deg);
+        opacity: 0;
+    }
+}
+
+.desktop-icon-wrapper svg {
+    width: 56px;
+    height: 56px;
+    color: var(--primary-light);
+    filter: drop-shadow(0 2px 8px rgba(99, 102, 241, 0.4));
+    transition: transform 0.3s ease, filter 0.3s ease; /* Specific properties only */
+    z-index: 1;
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+.desktop-icon-item:hover .desktop-icon-wrapper svg {
+    color: var(--primary-light);
+    filter: drop-shadow(0 4px 16px rgba(99, 102, 241, 0.6));
+    transform: scale(1.1) rotate(5deg);
+}
+
+.desktop-icon-name {
+    margin-top: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    text-align: center;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    opacity: 0.9;
+    transition: all 0.3s ease;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.desktop-icon-item:hover .desktop-icon-name {
+    opacity: 1;
+    color: var(--primary-light);
+    transform: translateY(-2px);
+}
+
+.carousel-nav {
+    display: none !important; /* Hide navigation arrows - using auto-scroll instead */
+}
+
+.carousel-nav:hover {
+    background: rgba(99, 102, 241, 0.3);
+    border-color: rgba(99, 102, 241, 0.6);
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+}
+
+.carousel-nav:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.carousel-nav-left {
+    left: 20px;
+}
+
+.carousel-nav-right {
+    right: 20px;
+}
+
+.carousel-nav svg {
+    width: 24px;
+    height: 24px;
+}
+
+.carousel-nav.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Icon Modal - Enlargement Effect */
+.icon-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for zoom compatibility */
+    max-width: 100vw;
+    max-height: 100vh;
+    max-height: 100dvh;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(20px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease-out;
+    overflow: auto;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.icon-modal-overlay.active {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.icon-modal {
+    background: rgba(30, 41, 59, 0.95);
+    backdrop-filter: blur(30px);
+    border: 2px solid rgba(99, 102, 241, 0.5);
+    border-radius: 32px;
+    padding: clamp(24px, 5vw, 48px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(16px, 3vw, 24px);
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(99, 102, 241, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    animation: modalScaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-origin: center;
+    min-width: min(300px, calc(100vw - 40px));
+    max-width: min(500px, calc(100vw - 40px));
+    max-height: min(600px, calc(100vh - 40px));
+    max-height: min(600px, calc(100dvh - 40px));
+    width: auto;
+    box-sizing: border-box;
+    overflow: visible;
+    margin: auto;
+}
+
+@keyframes modalScaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.7) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.icon-modal-icon {
+    width: clamp(80px, 15vw, 120px);
+    height: clamp(80px, 15vw, 120px);
+    min-width: 80px;
+    min-height: 80px;
+    max-width: 120px;
+    max-height: 120px;
+    background: rgba(99, 102, 241, 0.2);
+    backdrop-filter: blur(20px);
+    border: 3px solid rgba(99, 102, 241, 0.4);
+    border-radius: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        0 16px 48px rgba(99, 102, 241, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    animation: iconPulse 2s ease-in-out infinite;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+@keyframes iconPulse {
+    0%, 100% {
+        box-shadow: 
+            0 16px 48px rgba(99, 102, 241, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+    50% {
+        box-shadow: 
+            0 20px 60px rgba(99, 102, 241, 0.6),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+}
+
+.icon-modal-icon svg {
+    width: clamp(48px, 10vw, 64px);
+    height: clamp(48px, 10vw, 64px);
+    min-width: 48px;
+    min-height: 48px;
+    max-width: 64px;
+    max-height: 64px;
+    color: var(--primary-light);
+    filter: drop-shadow(0 4px 16px rgba(99, 102, 241, 0.6));
+    flex-shrink: 0;
+}
+
+.icon-modal-name {
+    font-size: clamp(18px, 4vw, 24px);
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: center;
+    background: linear-gradient(135deg, var(--primary-light), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+
+.icon-modal-actions {
+    display: flex;
+    gap: clamp(12px, 2vw, 16px);
+    margin-top: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.icon-modal-btn {
+    padding: clamp(12px, 2.5vw, 14px) clamp(24px, 5vw, 32px);
+    border-radius: 12px;
+    font-size: clamp(14px, 3vw, 16px);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    min-width: min(120px, calc(50% - 8px));
+    max-width: 200px;
+    flex: 1 1 auto;
+    box-sizing: border-box;
+    white-space: nowrap;
+}
+
+.icon-modal-btn-open {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+}
+
+.icon-modal-btn-open:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.6);
+}
+
+.icon-modal-btn-open:active {
+    transform: translateY(0);
+}
+
+.icon-modal-btn-cancel {
+    background: rgba(15, 23, 42, 0.8);
+    border: 2px solid var(--border);
+    color: var(--text-primary);
+}
+
+.icon-modal-btn-cancel:hover {
+    background: rgba(51, 65, 85, 0.8);
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.icon-modal-btn-cancel:active {
+    transform: translateY(0);
+}
+
+/* Touch/Swipe Indicators */
+.carousel-track {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .desktop-icon-carousel {
+        min-height: 350px;
+        bottom: 70px;
+    }
+    
+    .desktop-title {
+        font-size: clamp(36px, 10vw, 64px);
+        letter-spacing: 0.05em;
+    }
+    
+    .subtitle-text {
+        font-size: clamp(12px, 3vw, 16px);
+        letter-spacing: 0.2em;
+    }
+    
+    .desktop-title-container {
+        margin-bottom: 15px;
+    }
+    
+    .icon-modal {
+        padding: clamp(20px, 4vw, 32px);
+        max-width: calc(100vw - 20px);
+        max-height: calc(100vh - 20px);
+        max-height: calc(100dvh - 20px);
+    }
+    
+    .icon-modal-icon {
+        width: clamp(70px, 20vw, 100px);
+        height: clamp(70px, 20vw, 100px);
+    }
+    
+    .icon-modal-icon svg {
+        width: clamp(40px, 12vw, 56px);
+        height: clamp(40px, 12vw, 56px);
+    }
+    
+    .icon-modal-btn {
+        min-width: calc(50% - 6px);
+        padding: 12px 20px;
+    }
+}
+
+/* Fix for zoom levels - ensure modal is always visible */
+@media (min-resolution: 150dpi) {
+    .icon-modal {
+        max-width: min(450px, calc(100vw - 40px));
+    }
+}
+
+/* Ensure modal fits at any zoom level */
+.icon-modal-overlay {
+    overscroll-behavior: contain;
+}
+
+.icon-modal {
+    position: relative;
+    will-change: transform;
+}
+    
+    .desktop-icon-item {
+        width: 120px;
+        height: 140px;
+    }
+    
+    .desktop-icon-wrapper {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .desktop-icon-wrapper svg {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .carousel-container {
+        padding: 0 60px;
+    }
+    
+    .carousel-nav {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .carousel-nav-left {
+        left: 10px;
+    }
+    
+    .carousel-nav-right {
+        right: 10px;
+    }
+}
+
+/* Smooth scrolling for carousel */
+.carousel-track {
+    scroll-snap-type: x mandatory;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.carousel-track::-webkit-scrollbar {
+    display: none;
+}
+
+.desktop-icon-item {
+    scroll-snap-align: center;
+}

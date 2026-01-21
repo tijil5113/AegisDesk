@@ -38,18 +38,20 @@ class Desktop {
         
         console.log('Desktop initialized successfully');
         
-        // Test search after a short delay to ensure everything is loaded
-        setTimeout(() => {
-            if (this.searchInput) {
-                console.log('Search input is ready');
-                // Test if browserApp is available
-                if (typeof browserApp !== 'undefined') {
-                    console.log('browserApp is available');
-                } else {
-                    console.error('browserApp is NOT available!');
-                }
+        // Use requestAnimationFrame for better performance instead of setTimeout
+        requestAnimationFrame(() => {
+            // Re-setup taskbar after apps are loaded (deferred scripts)
+            // Use a single delayed setup instead of multiple timeouts
+            if (typeof window.requestIdleCallback !== 'undefined') {
+                requestIdleCallback(() => {
+                    this.setupTaskbar();
+                }, { timeout: 2000 });
+            } else {
+                setTimeout(() => {
+                    this.setupTaskbar();
+                }, 1000);
             }
-        }, 500);
+        });
     }
 
     setupAppsMenu() {
@@ -107,13 +109,98 @@ class Desktop {
     }
 
     setupTaskbar() {
-        // Pinned app icons
-        document.querySelectorAll('.taskbar-icon[data-app]').forEach(icon => {
-            icon.addEventListener('click', () => {
-                const appId = icon.dataset.app;
-                this.openApp(appId);
-            });
+        // Pinned app icons - use event delegation for better reliability
+        const taskbar = document.querySelector('.taskbar');
+        if (taskbar) {
+            // Remove old handler if exists
+            if (this.taskbarClickHandler) {
+                taskbar.removeEventListener('click', this.taskbarClickHandler, true);
+            }
+            
+            // Create new handler that walks up DOM tree
+            this.taskbarClickHandler = (e) => {
+                let target = e.target;
+                let icon = null;
+                
+                // Walk up to 10 levels to find the icon
+                for (let i = 0; i < 10 && target && target !== taskbar; i++) {
+                    if (target.classList && target.classList.contains('taskbar-icon') && target.dataset && target.dataset.app) {
+                        icon = target;
+                        break;
+                    }
+                    target = target.parentElement;
+                }
+                
+                if (icon) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const appId = icon.dataset.app;
+                    console.log('🎯 Taskbar icon clicked:', appId);
+                    this.openApp(appId);
+                }
+            };
+            
+            taskbar.addEventListener('click', this.taskbarClickHandler, true); // Use capture phase
+        }
+        
+        // Also attach directly to icons as backup - with better event handling
+        const icons = document.querySelectorAll('.taskbar-icon[data-app]');
+        console.log('🔍 Found', icons.length, 'taskbar icons');
+        
+        icons.forEach((icon, index) => {
+            const appId = icon.dataset.app;
+            console.log(`  Icon ${index + 1}: ${appId}`);
+            
+            // Remove any existing listeners by cloning
+            const iconClone = icon.cloneNode(true);
+            icon.parentNode.replaceChild(iconClone, icon);
+            
+            // Make sure the clone has the data attribute
+            iconClone.setAttribute('data-app', appId);
+            
+            // Add multiple event listeners for maximum compatibility
+            const handleClick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const clickedAppId = iconClone.dataset.app;
+                console.log('🎯 Direct icon click:', clickedAppId);
+                this.openApp(clickedAppId);
+            };
+            
+            // Add listener with capture phase
+            iconClone.addEventListener('click', handleClick, true);
+            // Also add without capture as backup
+            iconClone.addEventListener('click', handleClick, false);
+            // Direct onclick as ultimate fallback
+            iconClone.onclick = handleClick;
+            
+            // Make entire button area clickable
+            iconClone.style.cursor = 'pointer';
+            iconClone.style.userSelect = 'none';
+            iconClone.style.webkitUserSelect = 'none';
+            iconClone.style.position = 'relative';
+            iconClone.style.zIndex = '10';
+            
+            // Make SVG and all children non-interactive so clicks go to button
+            const svg = iconClone.querySelector('svg');
+            if (svg) {
+                svg.style.pointerEvents = 'none';
+                // Also disable pointer events on all SVG children
+                svg.querySelectorAll('*').forEach(child => {
+                    child.style.pointerEvents = 'none';
+                });
+            }
+            
+            // Make label non-interactive
+            const label = iconClone.querySelector('.taskbar-icon-label');
+            if (label) {
+                label.style.pointerEvents = 'none';
+            }
         });
+        
+        console.log('✅ Taskbar icons setup complete');
+        
+        // Removed unnecessary test timeout - icons are already set up
 
         // Theme switcher button
         const themeSwitcherBtn = document.getElementById('theme-switcher-btn');
@@ -127,6 +214,32 @@ class Desktop {
         }
 
         // Quick actions button
+        // Notification Center button
+        const notificationCenterBtn = document.getElementById('notification-center-btn');
+        if (notificationCenterBtn && typeof notificationCenter !== 'undefined') {
+            notificationCenterBtn.addEventListener('click', () => {
+                notificationCenter.toggle();
+            });
+            
+            // Update badge count periodically
+            const updateBadge = () => {
+                const badge = document.getElementById('notification-badge');
+                if (badge) {
+                    const count = notificationCenter.getUnreadCount();
+                    if (count > 0) {
+                        badge.textContent = count > 99 ? '99+' : count;
+                        badge.style.display = 'flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+            };
+            
+            // Update badge less frequently (every 10 seconds instead of 5)
+            setInterval(updateBadge, 10000);
+            updateBadge();
+        }
+        
         const quickActionsBtn = document.getElementById('quick-actions-btn');
         if (quickActionsBtn && typeof quickActions !== 'undefined') {
             quickActionsBtn.addEventListener('click', () => {
@@ -141,34 +254,23 @@ class Desktop {
             return;
         }
 
-        console.log('Setting up search functionality...');
-        console.log('Search input element:', this.searchInput);
-        console.log('browserApp available:', typeof browserApp !== 'undefined');
+        // Debounce search suggestions
+        const debouncedSearch = typeof perfOptimizer !== 'undefined' 
+            ? perfOptimizer.debounce((query) => {
+                // Handle search suggestions here if needed
+            }, 300)
+            : null;
 
-        // Handle Enter key
+        // Handle Enter key (single listener, no duplicates)
         this.searchInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 e.stopPropagation();
                 const query = this.searchInput.value.trim();
-                console.log('Enter pressed, query:', query);
                 if (query) {
                     this.handleSearch(query);
                 } else {
                     this.searchInput.focus();
-                }
-            }
-        });
-
-        // Also handle keypress as backup
-        this.searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                e.stopPropagation();
-                const query = this.searchInput.value.trim();
-                console.log('Enter pressed (keypress), query:', query);
-                if (query) {
-                    this.handleSearch(query);
                 }
             }
         });
@@ -360,7 +462,7 @@ class Desktop {
         if (!appsGrid) return;
 
         // Get app order (preserve existing order from HTML if possible)
-        const appOrder = ['tasks', 'notes', 'weather', 'ai-chat', 'code-editor', 'terminal', 'music-player', 'drawing', 'system-monitor', 'gallery', 'playground', 'browser', 'bookmarks', 'calculator', 'calendar', 'files', 'settings', 'email', 'crypto-tracker', 'news-reader', 'help'];
+        const appOrder = ['tasks', 'notes', 'weather', 'ai-chat', 'code-editor', 'terminal', 'music-player', 'drawing', 'system-monitor', 'gallery', 'playground', 'browser', 'bookmarks', 'calculator', 'calendar', 'files', 'settings', 'mail', 'email', 'system-intelligence', 'news-reader', 'college-hub', 'classroom', 'assignments', 'announcements', 'student-progress', 'user', 'help'];
         
         // Render apps from registry
         appsGrid.innerHTML = appOrder.map(appId => {
@@ -375,48 +477,258 @@ class Desktop {
                 urlAttr = 'data-url="https://www.google.com"';
             }
             
+            // Escape HTML in title for tooltip
+            const title = app.title || appId;
+            const escapedTitle = title.replace(/"/g, '&quot;');
+            
             return `
-                <div class="app-tile" data-app="${appId}" ${urlAttr}>
-                    <div class="app-tile-icon">
+                <div class="app-tile" 
+                     data-app="${appId}" 
+                     ${urlAttr}
+                     role="button"
+                     tabindex="0"
+                     aria-label="Open ${escapedTitle}"
+                     title="${escapedTitle}">
+                    <div class="app-tile-icon" aria-hidden="true">
                         ${app.iconSVG}
                     </div>
-                    <div class="app-tile-name">${app.title}</div>
+                    <div class="app-tile-name">${title}</div>
+                    <div class="app-tile-tooltip" role="tooltip" aria-hidden="true">${escapedTitle}</div>
                 </div>
             `;
         }).join('');
+        
+        // Setup tooltip positioning after render
+        this.setupAppTileTooltips(appsGrid);
+        
+        // Setup keyboard navigation
+        this.setupAppTileKeyboard(appsGrid);
+    }
+    
+    setupAppTileTooltips(container) {
+        const tiles = container.querySelectorAll('.app-tile');
+        tiles.forEach(tile => {
+            const tooltip = tile.querySelector('.app-tile-tooltip');
+            if (!tooltip) return;
+            
+            // Auto-position tooltip to avoid viewport clipping
+            const updateTooltipPosition = () => {
+                const rect = tile.getBoundingClientRect();
+                const tooltipRect = tooltip.getBoundingClientRect();
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                
+                // Reset classes
+                tooltip.className = 'app-tile-tooltip';
+                
+                // Check if tooltip would clip on top
+                if (rect.top - tooltipRect.height - 12 < 0) {
+                    tooltip.classList.add('tooltip-bottom');
+                } else {
+                    tooltip.classList.add('tooltip-top');
+                }
+                
+                // Check if tooltip would clip on left
+                if (rect.left + tooltipRect.width / 2 > viewportWidth) {
+                    tooltip.classList.add('tooltip-left');
+                } else if (rect.right - tooltipRect.width / 2 < 0) {
+                    tooltip.classList.add('tooltip-right');
+                }
+            };
+            
+            // Update on hover/focus
+            tile.addEventListener('mouseenter', updateTooltipPosition);
+            tile.addEventListener('focus', updateTooltipPosition);
+            
+            // Update on window resize
+            window.addEventListener('resize', updateTooltipPosition);
+        });
+    }
+    
+    setupAppTileKeyboard(container) {
+        const tiles = Array.from(container.querySelectorAll('.app-tile[tabindex="0"]'));
+        
+        tiles.forEach((tile, index) => {
+            // Enter/Space to activate
+            tile.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const appId = tile.dataset.app;
+                    const url = tile.dataset.url;
+                    this.appsMenu.classList.remove('visible');
+                    setTimeout(() => {
+                        this.openApp(appId, url);
+                    }, 100);
+                }
+            });
+            
+            // Arrow key navigation
+            tile.addEventListener('keydown', (e) => {
+                if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+                
+                e.preventDefault();
+                
+                const cols = Math.floor(container.clientWidth / 160); // Approximate columns
+                const currentIndex = tiles.indexOf(tile);
+                let nextIndex = currentIndex;
+                
+                switch(e.key) {
+                    case 'ArrowRight':
+                        nextIndex = (currentIndex + 1) % tiles.length;
+                        break;
+                    case 'ArrowLeft':
+                        nextIndex = (currentIndex - 1 + tiles.length) % tiles.length;
+                        break;
+                    case 'ArrowDown':
+                        nextIndex = Math.min(currentIndex + cols, tiles.length - 1);
+                        break;
+                    case 'ArrowUp':
+                        nextIndex = Math.max(currentIndex - cols, 0);
+                        break;
+                }
+                
+                if (nextIndex !== currentIndex) {
+                    tiles[nextIndex].focus();
+                    // Scroll into view
+                    tiles[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            });
+        });
     }
 
     openApp(appId, url = null) {
-        console.log('Opening app:', appId, 'with URL:', url);
+        console.log('🚀 openApp called:', appId, 'with URL:', url);
+        
+        if (!appId) {
+            console.error('❌ No appId provided to openApp');
+            return;
+        }
         
         // Use APP_REGISTRY if available
         if (typeof APP_REGISTRY !== 'undefined' && APP_REGISTRY[appId]) {
             const app = APP_REGISTRY[appId];
             try {
+                console.log('✅ Opening from APP_REGISTRY:', appId);
                 // Pass URL if provided (for browser, youtube, etc.)
                 if (url) {
                     app.open(url);
                 } else {
                     app.open();
                 }
+                
+                // Track in user profile
+                if (typeof userProfile !== 'undefined' && userProfile.initialized) {
+                    userProfile.recordEvent('app_opened', { appId });
+                }
+                
                 return;
             } catch (error) {
-                console.error('Error opening app from registry:', appId, error);
+                console.error('❌ Error opening app from registry:', appId, error);
+                console.error('Error details:', error.stack);
                 // Fallback to legacy method
             }
+        } else {
+            console.warn('⚠️ APP_REGISTRY not available or app not found:', appId);
         }
         
         // Fallback to legacy method
+        console.log('🔄 Using legacy method for:', appId);
         this.openAppLegacy(appId, url);
     }
 
     openAppLegacy(appId, url = null) {
+        console.log('🔄 openAppLegacy called for:', appId);
         switch (appId) {
             case 'tasks':
-                if (typeof tasksApp !== 'undefined') tasksApp.open();
+                console.log('📋 Opening Tasks app, tasksApp available:', typeof tasksApp !== 'undefined');
+                if (typeof tasksApp !== 'undefined') {
+                    try {
+                        tasksApp.open();
+                        console.log('✅ Tasks app opened successfully');
+                    } catch (error) {
+                        console.error('❌ Error opening Tasks app:', error);
+                        console.error('Error stack:', error.stack);
+                        if (typeof notificationSystem !== 'undefined') {
+                            notificationSystem.error('Error', 'Failed to open Tasks app: ' + error.message);
+                        } else {
+                            alert('Error opening Tasks app: ' + error.message);
+                        }
+                    }
+                } else {
+                    console.error('❌ tasksApp is not defined!');
+                    console.log('Available globals:', Object.keys(window).filter(k => k.toLowerCase().includes('task')));
+                    // Try waiting and retry multiple times
+                    let attempts = 0;
+                    const maxAttempts = 5;
+                    const checkAndOpen = () => {
+                        attempts++;
+                        if (typeof tasksApp !== 'undefined') {
+                            console.log('✅ tasksApp now available (attempt ' + attempts + '), opening...');
+                            try {
+                                tasksApp.open();
+                            } catch (error) {
+                                console.error('Error opening after wait:', error);
+                            }
+                        } else if (attempts < maxAttempts) {
+                            console.log('⏳ Waiting for tasksApp... (attempt ' + attempts + ')');
+                            setTimeout(checkAndOpen, 300);
+                        } else {
+                            console.error('❌ tasksApp still not available after ' + maxAttempts + ' attempts');
+                            if (typeof notificationSystem !== 'undefined') {
+                                notificationSystem.error('Error', 'Tasks app is not loaded. Please refresh the page.');
+                            } else {
+                                alert('Tasks app is not loaded. Please refresh the page.');
+                            }
+                        }
+                    };
+                    setTimeout(checkAndOpen, 300);
+                }
                 break;
             case 'notes':
-                if (typeof notesApp !== 'undefined') notesApp.open();
+                console.log('📝 Opening Notes app, notesApp available:', typeof notesApp !== 'undefined');
+                if (typeof notesApp !== 'undefined') {
+                    try {
+                        notesApp.open();
+                        console.log('✅ Notes app opened successfully');
+                    } catch (error) {
+                        console.error('❌ Error opening Notes app:', error);
+                        console.error('Error stack:', error.stack);
+                        if (typeof notificationSystem !== 'undefined') {
+                            notificationSystem.error('Error', 'Failed to open Notes app: ' + error.message);
+                        } else {
+                            alert('Error opening Notes app: ' + error.message);
+                        }
+                    }
+                } else {
+                    console.error('❌ notesApp is not defined!');
+                    console.log('Available globals:', Object.keys(window).filter(k => k.toLowerCase().includes('note')));
+                    // Try waiting and retry multiple times
+                    let attempts = 0;
+                    const maxAttempts = 5;
+                    const checkAndOpen = () => {
+                        attempts++;
+                        if (typeof notesApp !== 'undefined') {
+                            console.log('✅ notesApp now available (attempt ' + attempts + '), opening...');
+                            try {
+                                notesApp.open();
+                            } catch (error) {
+                                console.error('Error opening after wait:', error);
+                            }
+                        } else if (attempts < maxAttempts) {
+                            console.log('⏳ Waiting for notesApp... (attempt ' + attempts + ')');
+                            setTimeout(checkAndOpen, 300);
+                        } else {
+                            console.error('❌ notesApp still not available after ' + maxAttempts + ' attempts');
+                            if (typeof notificationSystem !== 'undefined') {
+                                notificationSystem.error('Error', 'Notes app is not loaded. Please refresh the page.');
+                            } else {
+                                alert('Notes app is not loaded. Please refresh the page.');
+                            }
+                        }
+                    };
+                    setTimeout(checkAndOpen, 300);
+                }
                 break;
             case 'weather':
                 if (typeof weatherApp !== 'undefined') weatherApp.open();

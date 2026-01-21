@@ -47,14 +47,14 @@ Full-featured email client built-in!
 - Click "Email" app
 - Compose, send, and manage emails
 
-### ₿ **Crypto Tracker**
-Real-time cryptocurrency prices!
+### 🧠 **System Intelligence**
+Real-time OS analytics and productivity insights!
 
 **How to Access:**
 - Open Apps Menu (Alt+Space)
-- Click "Crypto Tracker"
-- Add coins to track
-- Auto-refreshes every 30 seconds
+- Click "System Intelligence"
+- View system overview, usage analytics, and performance
+- Get AI-powered productivity insights
 
 ### 📰 **News Reader**
 Stay informed with latest news!
@@ -81,7 +81,7 @@ Stay informed with latest news!
 
 1. **See Notifications**: Open any app - notifications appear automatically
 2. **Change Theme**: Press **T** or click theme icon in taskbar
-3. **Try New Apps**: Press **Alt+Space** → Click Email, Crypto Tracker, or News Reader
+3. **Try New Apps**: Press **Alt+Space** → Click Email, System Intelligence, or News Reader
 4. **Virtual Desktops**: Press **Ctrl+Alt+Right** to switch to next desktop
 5. **Clipboard**: Copy something, then press **Ctrl+Shift+V**
 

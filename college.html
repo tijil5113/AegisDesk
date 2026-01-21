@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Hub - AegisDesk</title>
+    <meta name="theme-color" content="#6366f1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/college.css">
+</head>
+<body class="college-page">
+    <div id="college-app-container" class="college-container">
+        <!-- Header -->
+        <header class="college-header" role="banner">
+            <div class="college-header-left">
+                <button class="college-back-btn" id="college-back-btn" aria-label="Close" onclick="window.close()" title="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+                <div class="college-logo">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        <path d="M8 7h8"></path>
+                        <path d="M8 11h8"></path>
+                        <path d="M8 15h4"></path>
+                    </svg>
+                    <div>
+                        <h1 class="college-title">College Hub</h1>
+                        <p class="college-subtitle">Your Academic Command Center</p>
+                    </div>
+                </div>
+            </div>
+            <div class="college-header-right">
+                <button class="college-header-btn" id="college-sync-btn" title="Sync with Google Classroom">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <polyline points="1 20 1 14 7 14"></polyline>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                    <span>Sync</span>
+                </button>
+                <button class="college-header-btn" id="college-settings-btn" title="Settings">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="college-main" role="main">
+            <!-- Quick Stats Bar -->
+            <section class="college-stats-bar">
+                <div class="college-stat-card">
+                    <div class="college-stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                        </svg>
+                    </div>
+                    <div class="college-stat-content">
+                        <div class="college-stat-value" id="college-assignments-count">0</div>
+                        <div class="college-stat-label">Due Soon</div>
+                    </div>
+                </div>
+                <div class="college-stat-card">
+                    <div class="college-stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                    </div>
+                    <div class="college-stat-content">
+                        <div class="college-stat-value" id="college-classes-count">0</div>
+                        <div class="college-stat-label">Today's Classes</div>
+                    </div>
+                </div>
+                <div class="college-stat-card">
+                    <div class="college-stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                    </div>
+                    <div class="college-stat-content">
+                        <div class="college-stat-value" id="college-completion-rate">0%</div>
+                        <div class="college-stat-label">Completion</div>
+                    </div>
+                </div>
+                <div class="college-stat-card">
+                    <div class="college-stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </div>
+                    <div class="college-stat-content">
+                        <div class="college-stat-value" id="college-attendance-rate">0%</div>
+                        <div class="college-stat-label">Attendance</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dashboard Grid -->
+            <div class="college-dashboard-grid">
+                <!-- Left Column -->
+                <div class="college-dashboard-left">
+                    <!-- Today's Schedule -->
+                    <section class="college-section">
+                        <div class="college-section-header">
+                            <h2 class="college-section-title">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                                Today's Schedule
+                            </h2>
+                            <button class="college-view-all-btn" onclick="collegeApp.openCalendar()">View Calendar</button>
+                        </div>
+                        <div class="college-classes-list" id="college-today-classes">
+                            <!-- Today's classes will be rendered here -->
+                        </div>
+                    </section>
+
+                    <!-- Upcoming Assignments -->
+                    <section class="college-section">
+                        <div class="college-section-header">
+                            <h2 class="college-section-title">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 20h9"></path>
+                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                                </svg>
+                                Upcoming Assignments
+                            </h2>
+                            <button class="college-view-all-btn" onclick="collegeApp.openAssignments()">View All</button>
+                        </div>
+                        <div class="college-assignments-list" id="college-upcoming-assignments">
+                            <!-- Upcoming assignments will be rendered here -->
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Right Column -->
+                <div class="college-dashboard-right">
+                    <!-- Announcements -->
+                    <section class="college-section">
+                        <div class="college-section-header">
+                            <h2 class="college-section-title">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                                Announcements
+                            </h2>
+                            <button class="college-view-all-btn" onclick="collegeApp.openAnnouncements()">View All</button>
+                        </div>
+                        <div class="college-announcements-list" id="college-announcements">
+                            <!-- Announcements will be rendered here -->
+                        </div>
+                    </section>
+
+                    <!-- Quick Actions -->
+                    <section class="college-section">
+                        <div class="college-section-header">
+                            <h2 class="college-section-title">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                Quick Actions
+                            </h2>
+                        </div>
+                        <div class="college-quick-actions">
+                            <button class="college-action-btn" onclick="collegeApp.openClassroom()">
+                                <div class="college-action-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                    </svg>
+                                </div>
+                                <div class="college-action-content">
+                                    <div class="college-action-title">Classroom</div>
+                                    <div class="college-action-desc">View courses</div>
+                                </div>
+                            </button>
+                            <button class="college-action-btn" onclick="collegeApp.openAssignments()">
+                                <div class="college-action-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 20h9"></path>
+                                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                                    </svg>
+                                </div>
+                                <div class="college-action-content">
+                                    <div class="college-action-title">Assignments</div>
+                                    <div class="college-action-desc">Submit work</div>
+                                </div>
+                            </button>
+                            <button class="college-action-btn" onclick="collegeApp.openNotes()">
+                                <div class="college-action-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        <polyline points="10 9 9 9 8 9"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="college-action-content">
+                                    <div class="college-action-title">Notes</div>
+                                    <div class="college-action-desc">Take notes</div>
+                                </div>
+                            </button>
+                            <button class="college-action-btn" onclick="collegeApp.openAI()">
+                                <div class="college-action-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                                    </svg>
+                                </div>
+                                <div class="college-action-content">
+                                    <div class="college-action-title">AI Assistant</div>
+                                    <div class="college-action-desc">Get help</div>
+                                </div>
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- Recent Activity -->
+                    <section class="college-section">
+                        <div class="college-section-header">
+                            <h2 class="college-section-title">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                                </svg>
+                                Recent Activity
+                            </h2>
+                        </div>
+                        <div class="college-activity-list" id="college-activity">
+                            <!-- Recent activity will be rendered here -->
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/apps/college-hub.js" defer></script>
+</body>
+</html>

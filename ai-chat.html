@@ -9,11 +9,28 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/zoom-responsive.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Code blocks: lightweight syntax highlighting (no framework) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/highlight.min.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        }
+
+        html {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            /* Prevent horizontal scroll globally */
+            overflow-x: hidden;
+        }
+
+        /* Global overflow prevention - CRITICAL for desktop-class layout */
+        html, body, .app-root, .content-wrapper, .chat-container, .chat-main {
+            max-width: 100vw;
+            overflow-x: hidden;
         }
 
         :root {
@@ -29,22 +46,110 @@
             --text-secondary: #cbd5e1;
             --text-muted: #94a3b8;
             --border: rgba(148, 163, 184, 0.2);
+            --theme-transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Conversation Canvas (centered column) */
+            --canvas-max: clamp(720px, 60vw, 1100px);
+            --canvas-pad-x: clamp(14px, 2vw, 32px);
+            --composer-h: 96px; /* updated at runtime */
+        }
+
+        /* Theme System */
+        :root[data-theme="dark"] {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --accent: #ec4899;
+            --bg-dark: #0f172a;
+            --bg-darker: #020617;
+        }
+
+        :root[data-theme="light"] {
+            --primary: #4f46e5;
+            --secondary: #7c3aed;
+            --accent: #db2777;
+            --bg-dark: #f8fafc;
+            --bg-darker: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+        }
+
+        :root[data-theme="neon"] {
+            --primary: #00ff88;
+            --secondary: #00d4ff;
+            --accent: #ff00ff;
+            --bg-dark: #0a0e27;
+            --bg-darker: #050812;
+            --text-primary: #00ff88;
+        }
+
+        :root[data-theme="midnight"] {
+            --primary: #3b82f6;
+            --secondary: #6366f1;
+            --accent: #8b5cf6;
+            --bg-dark: #1e1b4b;
+            --bg-darker: #0f172a;
+        }
+
+        :root[data-theme="aurora"] {
+            --primary: #10b981;
+            --secondary: #06b6d4;
+            --accent: #f59e0b;
+            --bg-dark: #0c4a6e;
+            --bg-darker: #082f49;
+        }
+
+        :root[data-theme="cyber-neon"] {
+            --primary: #00ffff;
+            --secondary: #ff00ff;
+            --accent: #ffff00;
+            --bg-dark: #000011;
+            --bg-darker: #000008;
+            --text-primary: #00ffff;
+            --text-secondary: #00cccc;
+        }
+
+        :root[data-theme="solarized"] {
+            --primary: #268bd2;
+            --secondary: #2aa198;
+            --accent: #859900;
+            --bg-dark: #002b36;
+            --bg-darker: #001f27;
+            --text-primary: #839496;
+            --text-secondary: #586e75;
+        }
+
+        * {
+            transition: background-color var(--theme-transition), color var(--theme-transition), border-color var(--theme-transition);
         }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 30%, #334155 60%, #1e293b 100%);
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-darker) 100%);
             background-attachment: fixed;
             color: var(--text-primary);
-            min-height: 100vh;
-            min-height: 100dvh; /* Dynamic viewport height for mobile/zoom */
+            height: 100%;
+            width: 100%;
+            max-width: 100vw;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
+        }
+
+        /* Root app container - DESKTOP-CLASS LAYOUT */
+        .app-root {
+            height: 100dvh;
+            min-height: 100vh;
+            width: 100vw;
+            max-width: 100vw;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
             position: relative;
+            /* Prevent any horizontal overflow */
             overflow-x: hidden;
-            overflow-y: auto;
-            width: 100%;
-            padding-bottom: 100px; /* Reduced since input is now outside chat-main */
         }
 
         body::before {
@@ -96,24 +201,26 @@
             100% { transform: translate(50px, 50px); }
         }
 
+        /* TopBar - Fixed height, part of flex layout */
         .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 64px;
+            flex: 0 0 auto;
+            height: clamp(56px, 7vh, 72px);
             background: rgba(15, 23, 42, 0.9);
             backdrop-filter: blur(26px) saturate(180%);
             border-bottom: 1px solid rgba(99, 102, 241, 0.2);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 24px;
+            padding: 0 clamp(16px, 2vw, 24px);
             z-index: 1000;
             box-shadow: 
                 0 8px 28px rgba(0, 0, 0, 0.35),
                 inset 0 1px 0 rgba(255, 255, 255, 0.04);
             animation: headerSlideDown 0.5s ease-out;
+            /* Ensure header doesn't cause overflow */
+            min-width: 0;
+            width: 100%;
+            max-width: 100vw;
         }
 
         @keyframes headerSlideDown {
@@ -308,24 +415,35 @@
             box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
         }
 
+        /* Main content wrapper - CRITICAL: must have min-height: 0 for flex shrinking */
+        .content-wrapper {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: row;
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+            max-width: 100vw;
+        }
+
+        /* Chat container - Workspace layout */
         .chat-container {
             flex: 1;
             display: flex;
             flex-direction: row;
             width: 100%;
-            margin: 80px 0 0;
-            padding: 0;
+            min-height: 0;
+            min-width: 0;
+            overflow: hidden;
             position: relative;
-            z-index: 1;
-            min-height: calc(100vh - 80px);
-            min-height: calc(100dvh - 80px); /* Dynamic viewport for zoom compatibility */
-            height: auto;
         }
 
+        /* Sidebar - Clamped width as specified: clamp(260px, 22vw, 340px) */
         .chat-sidebar {
-            width: 320px;
-            min-width: 200px;
-            max-width: 600px;
+            flex: 0 0 auto;
+            width: clamp(260px, 22vw, 340px);
+            min-width: 0;
             background: linear-gradient(180deg, 
                 rgba(15, 23, 42, 0.98) 0%, 
                 rgba(30, 41, 59, 0.95) 100%);
@@ -334,10 +452,7 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            position: fixed;
-            left: 0;
-            top: 70px;
-            bottom: 0;
+            position: relative;
             z-index: 100;
             box-shadow: 
                 4px 0 32px rgba(0, 0, 0, 0.4),
@@ -370,11 +485,12 @@
             background: rgba(99, 102, 241, 0.8);
         }
         
+        /* Sidebar toggle button - positioned relative to sidebar */
         .sidebar-toggle-btn {
-            position: fixed;
-            left: 320px;
+            position: absolute;
+            left: clamp(260px, 22vw, 340px);
             top: 50%;
-            transform: translateY(-50%);
+            transform: translateY(-50%) translateX(-50%);
             width: 32px;
             height: 64px;
             background: linear-gradient(135deg, 
@@ -398,7 +514,7 @@
                 rgba(99, 102, 241, 0.2) 0%, 
                 rgba(139, 92, 246, 0.15) 100%);
             border-color: rgba(99, 102, 241, 0.5);
-            transform: translateY(-50%) translateX(2px);
+            transform: translateY(-50%) translateX(-48%);
         }
         
         .chat-sidebar.collapsed ~ .sidebar-toggle-btn {
@@ -428,6 +544,7 @@
         }
 
         .chat-sidebar-header {
+            flex: 0 0 auto;
             padding: 28px 24px;
             border-bottom: 2px solid rgba(99, 102, 241, 0.25);
             background: linear-gradient(180deg, 
@@ -533,6 +650,8 @@
             position: relative;
             overflow: hidden;
             animation: gradientShift 3s ease infinite;
+            pointer-events: auto !important;
+            z-index: 10;
         }
 
         .chat-new-btn::before {
@@ -700,42 +819,55 @@
 
         .chat-main {
             flex: 1;
+            min-width: 0;
             display: flex;
             flex-direction: column;
-            margin-left: 320px;
-            max-width: calc(100% - 320px);
-            padding: 0;
-            min-height: calc(100vh - 70px);
-            min-height: calc(100dvh - 70px);
-            padding-bottom: 100px; /* Reduced padding since input is now outside */
-            animation: mainFadeIn 0.8s ease-out;
-            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            width: calc(100% - 320px);
-            box-sizing: border-box;
+            min-height: 0;
+            overflow: hidden;
             position: relative;
-            z-index: 1;
+            animation: mainFadeIn 0.8s ease-out;
         }
         
-        .chat-sidebar.collapsed ~ .chat-main {
-            margin-left: 0 !important;
-            max-width: 100% !important;
-            width: 100% !important;
+        /* Collapsed sidebar - removes from layout flow */
+        .chat-sidebar.collapsed {
+            transform: translateX(-100%);
+            width: 0 !important;
+            min-width: 0 !important;
+            overflow: hidden;
         }
         
+        /* Responsive breakpoints */
         @media (max-width: 768px) {
             .chat-sidebar {
-                width: 100% !important;
-                max-width: 100% !important;
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                z-index: 200;
+                width: min(85vw, 320px) !important;
             }
             
-            .chat-main {
-                margin-left: 0 !important;
-                width: 100% !important;
-                max-width: 100% !important;
+            .chat-sidebar.collapsed {
+                transform: translateX(-100%);
             }
             
             .sidebar-toggle-btn {
-                display: none;
+                left: 0 !important;
+            }
+            
+            .chat-main {
+                width: 100%;
+            }
+            
+            .chat-input-container {
+                padding: 12px 16px;
+            }
+        }
+        
+        /* Large screens - optimize spacing */
+        @media (min-width: 1200px) {
+            .chat-sidebar {
+                width: clamp(280px, 22vw, 340px);
             }
         }
 
@@ -750,18 +882,19 @@
             }
         }
 
+        /* Conversation Canvas (the heart): centered column; only this area scrolls */
         .chat-messages {
-            flex: 1;
+            flex: 1 1 auto;
+            min-height: 0;
             overflow-y: auto;
             overflow-x: hidden;
             display: flex;
             flex-direction: column;
             gap: 14px;
-            padding: 28px 36px 12px;
-            margin-bottom: 0;
-            min-height: 0;
-            max-height: 100%;
+            padding: clamp(18px, 2.2vh, 28px) var(--canvas-pad-x) calc(var(--composer-h) + 12px);
+            scrollbar-gutter: stable;
             -webkit-overflow-scrolling: touch;
+            align-items: center;
             background: radial-gradient(circle at 20% 20%, rgba(99,102,241,0.08), transparent 40%),
                         radial-gradient(circle at 80% 80%, rgba(139,92,246,0.08), transparent 40%),
                         linear-gradient(180deg, 
@@ -822,6 +955,8 @@
             z-index: 1;
             align-items: flex-start;
             box-shadow: 0 10px 26px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+            width: min(100%, var(--canvas-max));
+            margin: 0 auto;
         }
 
         .chat-message::before {
@@ -1023,41 +1158,175 @@
             margin: 6px 0;
         }
 
+        /* Intelligent Composer (not a normal input): sticky, expands upward, never overlaps */
         .chat-input-container {
-            display: flex !important;
-            visibility: visible !important;
-            opacity: 1 !important;
+            flex: 0 0 auto;
+            display: flex;
             gap: 0;
-            padding: 16px 20px 20px 20px;
+            padding: clamp(12px, 1.5vh, 16px) 0;
             background: linear-gradient(180deg, 
                 rgba(15, 23, 42, 0.98) 0%, 
                 rgba(30, 41, 59, 0.99) 100%);
             backdrop-filter: blur(40px) saturate(180%);
             border-top: 2px solid rgba(99, 102, 241, 0.4);
-            border-radius: 0;
-            position: fixed !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            z-index: 99999 !important;
-            flex-shrink: 0;
-            margin: 0 !important;
             box-shadow: 
                 0 -8px 32px rgba(0, 0, 0, 0.5),
                 inset 0 1px 0 rgba(255, 255, 255, 0.08),
-                0 0 0 1px rgba(99, 102, 241, 0.15) inset,
-                0 20px 40px rgba(0,0,0,0.5);
+                0 0 0 1px rgba(99, 102, 241, 0.15) inset;
             animation: inputSlideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            pointer-events: auto !important;
-            box-sizing: border-box !important;
+            box-sizing: border-box;
+            min-width: 0;
+            width: 100%;
+            position: sticky;
+            bottom: 0;
+            z-index: 60;
+            padding-bottom: calc(clamp(12px, 1.5vh, 16px) + env(safe-area-inset-bottom, 0px));
         }
 
+        /* Composer inner width matches canvas - PROPERLY CENTERED */
+        .chat-form {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            max-width: var(--canvas-max);
+            margin: 0 auto;
+            align-items: flex-end;
+            padding: 0 var(--canvas-pad-x);
+        }
+
+        /* Context badge (non-intrusive) */
+        .context-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(99, 102, 241, 0.22);
+            background: rgba(15, 23, 42, 0.55);
+            color: var(--text-secondary);
+            font-size: 12px;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        /* Code block UX: copy + collapse */
+        .codeblock {
+            border: 1px solid rgba(99, 102, 241, 0.22);
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(2, 6, 23, 0.65);
+            margin: 12px 0;
+        }
+        .codeblock-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.16);
+            background: rgba(15, 23, 42, 0.55);
+        }
+        .codeblock-meta {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .codeblock-actions {
+            display: inline-flex;
+            gap: 8px;
+            flex: 0 0 auto;
+        }
+        .codeblock-btn {
+            border: 1px solid rgba(99, 102, 241, 0.22);
+            background: rgba(30, 41, 59, 0.55);
+            color: var(--text-secondary);
+            border-radius: 10px;
+            padding: 6px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+        }
+        .codeblock-btn:hover {
+            transform: translateY(-1px);
+            border-color: rgba(99, 102, 241, 0.45);
+            background: rgba(99, 102, 241, 0.16);
+        }
+        .codeblock pre {
+            margin: 0;
+            max-height: 420px;
+            overflow: auto;
+        }
+        .codeblock.is-collapsed pre {
+            max-height: 180px;
+            mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * { animation: none !important; transition: none !important; }
+        }
+
+        /* Scroll navigation arrows - desktop-class */
+        .scroll-nav {
+            position: fixed;
+            right: clamp(18px, 2vw, 24px);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none;
+        }
+        
+        .scroll-nav-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #fff;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0.8);
+            visibility: hidden;
+        }
+        
+        .scroll-nav-btn.visible {
+            opacity: 1;
+            transform: scale(1);
+            visibility: visible;
+        }
+
+        .scroll-nav-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 12px 32px rgba(99, 102, 241, 0.6);
+        }
+
+        .scroll-nav-btn:active {
+            transform: translateY(0) scale(0.97);
+        }
+        
+        .scroll-nav-btn.scroll-up {
+            top: calc(clamp(56px, 7vh, 72px) + 20px);
+        }
+        
+        .scroll-nav-btn.scroll-down {
+            bottom: calc(var(--composer-h) + 20px);
+        }
+        
         .jump-to-input {
             position: fixed;
-            right: 18px;
-            bottom: 120px;
+            right: clamp(18px, 2vw, 24px);
+            bottom: calc(var(--composer-h) + 80px);
             width: 48px;
             height: 48px;
             border-radius: 50%;
@@ -1067,9 +1336,12 @@
             font-size: 24px;
             font-weight: 700;
             cursor: pointer;
-            z-index: 1200;
+            z-index: 120;
             box-shadow: 0 10px 30px rgba(99, 102, 241, 0.45);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .jump-to-input:hover {
@@ -1081,26 +1353,14 @@
             transform: translateY(0) scale(0.97);
         }
 
-        .chat-form {
-            display: flex;
-            gap: 10px;
-            width: 100%;
-            max-width: 1400px;
-            margin: 0 auto;
-            align-items: flex-end;
-        }
         
         @media (max-width: 768px) {
             .chat-input-container {
-                padding: 12px 16px 16px 16px !important;
+                padding: 12px 16px;
             }
             
             .chat-form {
                 gap: 8px;
-            }
-            
-            .chat-main {
-                padding-bottom: 90px !important;
             }
         }
 
@@ -1151,6 +1411,110 @@
             display: flex;
             gap: 10px;
             align-items: center;
+        }
+
+        .attached-files {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+            padding: 8px 0;
+        }
+
+        .attached-file {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        .attached-file-icon {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .attached-file-info {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .attached-file-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+        
+        .attached-file-size {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        
+        .attached-file-preview {
+            display: block;
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 4px;
+            margin-top: 4px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .attached-file-remove {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .attached-file-remove:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .message-attachments {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .message-image {
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            transition: transform 0.2s ease;
+        }
+
+        .message-image:hover {
+            transform: scale(1.02);
+        }
+
+        .message-file {
+            padding: 8px 12px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 6px;
+            font-size: 13px;
         }
 
         .input-icon-btn {
@@ -1392,6 +1756,7 @@
             }
         }
 
+        /* Welcome screen - properly centered and aligned */
         .welcome-screen {
             position: absolute;
             top: 0;
@@ -1401,19 +1766,21 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 60px 40px 120px 40px;
+            padding: clamp(40px, 5vh, 60px) clamp(20px, 3vw, 40px) clamp(100px, 12vh, 120px);
             z-index: 50;
             pointer-events: none;
             background: 
                 radial-gradient(circle at 30% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
                 radial-gradient(circle at 70% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
+            box-sizing: border-box;
         }
 
         .welcome-content {
             text-align: center;
-            max-width: 700px;
+            max-width: min(700px, 90vw);
             width: 100%;
             animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            margin: 0 auto;
             pointer-events: auto;
             position: relative;
         }
@@ -1797,79 +2164,142 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="header-left">
-            <div class="logo">
-                <div class="logo-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                        <path d="M2 17l10 5 10-5"></path>
-                        <path d="M2 12l10 5 10-5"></path>
-                    </svg>
+    <div class="app-root">
+        <div class="header">
+            <div class="header-left">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                            <path d="M2 17l10 5 10-5"></path>
+                            <path d="M2 12l10 5 10-5"></path>
+                        </svg>
+                    </div>
+                    <div class="logo-text">AegisDesk AI</div>
                 </div>
-                <div class="logo-text">AegisDesk AI</div>
+            </div>
+            <div class="header-right">
+                <div class="status-chip" id="status-chip">
+                    <span class="status-dot"></span>
+                    Live
+                </div>
+                <a href="desktop.html" class="back-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    Back to Desktop
+                </a>
+                <button class="btn-icon" id="theme-btn" title="Change Theme">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="4"></circle>
+                        <line x1="12" y1="2" x2="12" y2="4"></line>
+                        <line x1="12" y1="20" x2="12" y2="22"></line>
+                        <line x1="4.93" y1="4.93" x2="6.34" y2="6.34"></line>
+                        <line x1="17.66" y1="17.66" x2="19.07" y2="19.07"></line>
+                        <line x1="2" y1="12" x2="4" y2="12"></line>
+                        <line x1="20" y1="12" x2="22" y2="12"></line>
+                        <line x1="6.34" y1="17.66" x2="4.93" y2="19.07"></line>
+                        <line x1="19.07" y1="4.93" x2="17.66" y2="6.34"></line>
+                    </svg>
+                </button>
+                <button class="btn-icon" id="settings-btn" title="Settings">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"></path>
+                    </svg>
+                </button>
             </div>
         </div>
-        <div class="header-right">
-            <div class="status-chip" id="status-chip">
-                <span class="status-dot"></span>
-                Live
-            </div>
-            <a href="desktop.html" class="back-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
-                </svg>
-                Back to Desktop
-            </a>
-            <button class="btn-icon" id="settings-btn" title="Settings">
+        <div class="floating-particles" id="particles"></div>
+        
+        <!-- Scroll navigation arrows -->
+        <div class="scroll-nav">
+            <button class="scroll-nav-btn scroll-up" id="scroll-up" title="Scroll up" aria-label="Scroll up">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"></path>
+                    <polyline points="18 15 12 9 6 15"></polyline>
+                </svg>
+            </button>
+            <button class="scroll-nav-btn scroll-down" id="scroll-down" title="Scroll down" aria-label="Scroll down">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
             </button>
         </div>
-    </div>
-
-    <div class="floating-particles" id="particles"></div>
-    <div class="floating-particles" id="particles"></div>
-    <!-- Quick jump to input bar -->
-    <button class="jump-to-input" id="jump-to-input" title="Jump to message box">+</button>
-    <div class="chat-container">
-                <div class="chat-sidebar" id="chat-sidebar">
-            <div class="sidebar-resize-handle" id="sidebar-resize-handle"></div>
-            <div class="chat-sidebar-header">
-                <button class="chat-new-btn" id="chat-new-btn">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                    New Chat
-                </button>
-                <div class="chat-search-container">
-                    <input type="text" class="chat-search-input" id="chat-search-input" placeholder="Search chats...">
-                    <svg class="chat-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="m21 21-4.35-4.35"></path>
-                    </svg>
-                    <button class="chat-search-clear" id="chat-search-clear" title="Clear search">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-            <div class="chat-list" id="chat-list">            </div>
-        </div>
-        <button class="sidebar-toggle-btn" id="sidebar-toggle-btn" title="Toggle Sidebar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="9 18 15 12 9 6"></polyline>
+        
+        <!-- Quick jump to input bar -->
+        <button class="jump-to-input" id="jump-to-input" title="Jump to message box" aria-label="Jump to input">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <polyline points="19 12 12 19 5 12"></polyline>
             </svg>
         </button>
-            <div class="chat-main">
-                <div class="chat-messages" id="chat-messages"></div>
-                <div class="welcome-screen" id="welcome-screen">
-            <div class="welcome-content">
+        
+        <div class="content-wrapper">
+            <div class="chat-container">
+                <div class="chat-sidebar" id="chat-sidebar">
+                    <div class="sidebar-resize-handle" id="sidebar-resize-handle"></div>
+                    <div class="chat-sidebar-header">
+                        <button class="chat-new-btn" id="chat-new-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            New Chat
+                        </button>
+                        <div class="chat-search-container">
+                            <input type="text" class="chat-search-input" id="chat-search-input" placeholder="Search chats...">
+                            <svg class="chat-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.35-4.35"></path>
+                            </svg>
+                            <button class="chat-search-clear" id="chat-search-clear" title="Clear search">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chat-list" id="chat-list"></div>
+                </div>
+                <button class="sidebar-toggle-btn" id="sidebar-toggle-btn" title="Toggle Sidebar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
+                <div class="chat-main">
+                    <div class="chat-messages" id="chat-messages"></div>
+
+                    <!-- Intelligent Composer (sticky) -->
+                    <div class="chat-input-container" id="chat-input-container">
+                        <form id="chat-form" class="chat-form">
+                            <div class="input-actions">
+                                <label for="file-upload" class="input-icon-btn" id="attach-btn" title="Attach files or images">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                                    </svg>
+                                    <input type="file" id="file-upload" multiple accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp,image/*,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display: none;">
+                                </label>
+                            </div>
+                            <div class="chat-input-wrapper">
+                                <div class="attached-files" id="attached-files"></div>
+                                <div class="context-badge" id="context-badge" style="display:none;">Using context: 0 files</div>
+                                <textarea class="chat-input" id="chat-input" placeholder="Message AegisDesk AI..." rows="1"></textarea>
+                            </div>
+                            <div class="input-actions">
+                                <button type="submit" class="chat-send" id="chat-send" aria-label="Send message">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                                        <polyline points="22 2 15 22 11 13 2 9 22 2"></polyline>
+                                    </svg>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Welcome overlay (non-interactive; composer remains usable) -->
+                    <div class="welcome-screen" id="welcome-screen">
+                        <div class="welcome-content">
                 <div class="welcome-icon">
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
@@ -1902,38 +2332,18 @@
                         <div class="suggestion-desc">Get help with programming</div>
                     </div>
                 </div>
-            </div>
-                <div class="quick-actions" id="quick-actions">
+                        </div>
+                        <div class="quick-actions" id="quick-actions">
                     <button class="quick-action" data-text="Summarize this page">Summarize</button>
                     <button class="quick-action" data-text="Draft a reply: ">Draft reply</button>
                     <button class="quick-action" data-text="Fix this code: ">Fix code</button>
                     <button class="quick-action" data-text="Brainstorm 5 ideas about ">Brainstorm</button>
                 </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    
-    <!-- Input container moved outside chat-main for proper fixed positioning -->
-    <div class="chat-input-container" id="chat-input-container">
-        <form id="chat-form" class="chat-form">
-            <div class="input-actions">
-                <button type="button" class="input-icon-btn" id="attach-btn" title="Attach (placeholder)">
-                    📎
-                </button>
-            </div>
-            <div class="chat-input-wrapper">
-                <textarea class="chat-input" id="chat-input" placeholder="Message AegisDesk AI..." rows="1"></textarea>
-            </div>
-            <div class="input-actions">
-                <button type="button" class="input-icon-btn" id="mic-btn" title="Mic (placeholder)">🎤</button>
-                <button type="submit" class="chat-send" id="chat-send" aria-label="Send message">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="22" y1="2" x2="11" y2="13"></line>
-                        <polyline points="22 2 15 22 11 13 2 9 22 2"></polyline>
-                    </svg>
-                </button>
-            </div>
-        </form>
     </div>
 
     <div class="api-key-modal" id="api-key-modal" style="display: none;">
@@ -2209,9 +2619,18 @@
                 // Setup search functionality
                 this.setupSearch();
                 
-                // New chat button
+                // New chat button - FIXED: ensure it works properly
                 if (this.newChatBtn) {
-                    this.newChatBtn.addEventListener('click', () => {
+                    // Remove any existing listeners first
+                    const newBtn = this.newChatBtn.cloneNode(true);
+                    this.newChatBtn.parentNode.replaceChild(newBtn, this.newChatBtn);
+                    this.newChatBtn = newBtn;
+                    
+                    // Add multiple event listeners to ensure it works
+                    const handleNewChat = (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('New Chat button clicked');
                         this.createNewChat();
                         this.loadHistory();
                         // Clear search when creating new chat
@@ -2222,7 +2641,22 @@
                             if (searchClear) searchClear.classList.remove('visible');
                         }
                         this.renderChatList();
+                        // Focus input after creating new chat
+                        setTimeout(() => {
+                            if (this.input) this.input.focus();
+                        }, 100);
+                    };
+                    
+                    this.newChatBtn.addEventListener('click', handleNewChat);
+                    this.newChatBtn.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        handleNewChat(e);
                     });
+                    this.newChatBtn.onclick = handleNewChat;
+                    this.newChatBtn.style.pointerEvents = 'auto';
+                    this.newChatBtn.style.cursor = 'pointer';
+                } else {
+                    console.error('New Chat button not found!');
                 }
 
                 // Load history - API key is handled by Vercel server
@@ -2269,8 +2703,9 @@
                     const text = this.input.value.trim();
                     console.log('Message text:', text);
                     
-                    if (!text) {
-                        console.log('Empty message, ignoring');
+                    // Check if we have text or attached files
+                    if (!text && (!this.attachedFiles || this.attachedFiles.length === 0)) {
+                        console.log('Empty message and no files, ignoring');
                         return;
                     }
                     
@@ -2291,14 +2726,36 @@
                     console.log('Sending message:', text);
                     
                     this.hideWelcome();
-                    this.addMessage('user', text);
+                    
+                    // Process attached files BEFORE clearing
+                    const attachments = (this.attachedFiles || []).map(f => ({
+                        name: f.name, type: f.type, size: f.size, preview: f.preview, data: f.file
+                    }));
+                    const hadFiles = attachments.length > 0;
+                    
+                    // Add user message with attachments
+                    this.addMessage('user', text || (hadFiles ? 'Sent files' : ''), hadFiles ? attachments : null);
+                    
+                    // Clear attached files UI AFTER message is added
+                    if (this.attachedFiles && this.attachedFiles.length > 0) {
+                        this.attachedFiles = [];
+                        const attachedFilesContainer = document.getElementById('attached-files');
+                        if (attachedFilesContainer) attachedFilesContainer.innerHTML = '';
+                        const fileUpload = document.getElementById('file-upload');
+                        if (fileUpload) fileUpload.value = '';
+                        // Hide context badge
+                        const badge = document.getElementById('context-badge');
+                        if (badge) badge.style.display = 'none';
+                    }
+                    
                     this.input.value = '';
                     this.input.style.height = 'auto';
                     this.ensureInputVisible();
                     
                     // Update chat title if it's the first message
-                    if (currentChat.messages.length === 0 && currentChat.title === 'New Chat') {
-                        currentChat.title = text.substring(0, 30) + (text.length > 30 ? '...' : '');
+                    if (currentChat.messages.length === 1 && currentChat.title === 'New Chat') {
+                        const titleText = text || (hadFiles ? 'File upload' : 'New Chat');
+                        currentChat.title = titleText.substring(0, 30) + (titleText.length > 30 ? '...' : '');
                         this.saveChats();
                         this.renderChatList();
                     }
@@ -2308,7 +2765,9 @@
                         this.sendBtn.disabled = true;
                     }
 
-                    this.getAIResponse(text).then(response => {
+                    // Get AI response with attachments (handle empty text + files case)
+                    const messageText = text || (hadFiles ? 'Please analyze the attached files.' : '');
+                    this.getAIResponse(messageText, attachments).then(response => {
                         console.log('AI response received:', response.substring(0, 50) + '...');
                         this.hideTyping();
                         this.addMessage('assistant', response);
@@ -2337,13 +2796,30 @@
                     });
                 };
 
-                // Form submit handler (MOST RELIABLE PATH)
+                // Form submit handler (MOST RELIABLE PATH) - FIXED
                 if (this.form) {
+                    // Remove existing listeners first
+                    const newForm = this.form.cloneNode(true);
+                    this.form.parentNode.replaceChild(newForm, this.form);
+                    this.form = newForm;
+                    // Re-get form elements after cloning
+                    this.input = document.getElementById('chat-input');
+                    this.sendBtn = document.getElementById('chat-send');
+                    
                     this.form.addEventListener('submit', (e) => {
                         console.log('Form submit triggered');
                         e.preventDefault();
+                        e.stopPropagation();
                         sendMessage();
-                    });
+                        return false;
+                    }, true); // Use capture phase
+                    
+                    this.form.onsubmit = (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        sendMessage();
+                        return false;
+                    };
                 }
 
                 // Add click event to send button - MULTIPLE METHODS TO ENSURE IT WORKS
@@ -2452,30 +2928,61 @@
                     });
                 });
 
-                // Placeholder actions
-                const attachBtn = document.getElementById('attach-btn');
-                const micBtn = document.getElementById('mic-btn');
-                if (attachBtn) attachBtn.addEventListener('click', () => {
-                    console.log('Attach placeholder clicked');
-                    this.ensureInputVisible();
-                });
-                if (micBtn) micBtn.addEventListener('click', () => {
-                    console.log('Mic placeholder clicked');
-                    this.ensureInputVisible();
-                });
+                // File upload functionality
+                const fileUpload = document.getElementById('file-upload');
+                this.attachedFiles = [];
+                if (fileUpload) {
+                    fileUpload.addEventListener('change', (e) => {
+                        this.handleFileUpload(e.target.files);
+                    });
+                }
 
                 console.log('Event listeners set up successfully');
             }
 
-            async getAIResponse(userMessage) {
+            async getAIResponse(userMessage, attachments = []) {
                 const currentChat = this.getCurrentChat();
-                // OPTIMIZED FOR SPEED: Limit context to last 4 messages (reduced from 10)
+                
+                // Build enhanced system prompt with context awareness
+                let systemPrompt = `You are AegisDesk AI, an intelligent operating system assistant embedded directly into the OS.
+
+CORE IDENTITY:
+- You are context-aware, helpful, and concise
+- You understand the user's workflow and can access system features
+- You excel at code help, file analysis, summarization, and creative tasks
+
+RESPONSE STYLE:
+- Use clear markdown formatting (headings, lists, code blocks)
+- Be concise but thorough
+- Provide actionable, step-by-step guidance when needed
+- Show code examples when relevant (with syntax highlighting)
+- Adapt tone to match the question's complexity
+
+CAPABILITIES:
+- Analyze uploaded files and images
+- Provide code assistance and debugging help
+- Summarize content and extract key information
+- Brainstorm ideas and creative solutions
+- Answer questions with depth and accuracy
+
+IMPORTANT:
+- Keep responses focused and practical
+- Use emojis sparingly and only when appropriate
+- Format code blocks with proper syntax`;
+
+                // Add file context if attachments present
+                if (attachments && attachments.length > 0) {
+                    systemPrompt += `\n\nFILE CONTEXT:\nThe user has attached ${attachments.length} file(s). Analyze and reference them in your response when relevant.`;
+                }
+
+                // Build conversation history with smart context window
+                const contextWindow = 8; // Last 8 messages for better context
                 const messages = [
                     {
                         role: 'system',
-                        content: `You are AegisDesk AI, an advanced AI assistant. Be concise, helpful, and engaging. Use markdown for formatting. Keep responses brief and to the point.`
+                        content: systemPrompt
                     },
-                    ...(currentChat?.messages || []).slice(-4).filter(msg => msg.role && msg.content).map(msg => ({
+                    ...(currentChat?.messages || []).slice(-contextWindow).filter(msg => msg.role && msg.content).map(msg => ({
                         role: msg.role,
                         content: msg.content
                     })),
@@ -2630,11 +3137,139 @@
                 }
             }
 
-            addMessage(role, content) {
-                const message = { role, content, timestamp: Date.now() };
+            handleFileUpload(files) {
+                if (!files || files.length === 0) return;
+                if (!this.attachedFiles) this.attachedFiles = [];
+                
+                const attachedFilesContainer = document.getElementById('attached-files');
+                if (!attachedFilesContainer) return;
+                const badge = document.getElementById('context-badge');
+                
+                Array.from(files).forEach(file => {
+                    // Check file size (max 10MB for images, 5MB for others)
+                    const maxSize = file.type.startsWith('image/') ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
+                    if (file.size > maxSize) {
+                        alert(`File "${file.name}" is too large. Maximum size: ${Math.round(maxSize / 1024 / 1024)}MB`);
+                        return;
+                    }
+                    
+                    // Check if file already attached
+                    if (this.attachedFiles.find(f => f.name === file.name && f.size === file.size)) {
+                        return;
+                    }
+                    
+                    const fileId = `file_${Date.now()}_${Math.random()}`;
+                    const fileInfo = { 
+                        id: fileId, 
+                        file, 
+                        name: file.name, 
+                        size: file.size, 
+                        type: file.type,
+                        preview: null,
+                        uploading: false
+                    };
+                    this.attachedFiles.push(fileInfo);
+                    
+                    // Create file preview element
+                    const fileEl = document.createElement('div');
+                    fileEl.className = 'attached-file';
+                    fileEl.dataset.fileId = fileId;
+                    
+                    // Get appropriate icon based on file type
+                    let icon = '📄';
+                    if (file.type.startsWith('image/')) icon = '🖼️';
+                    else if (file.type.includes('pdf')) icon = '📕';
+                    else if (file.type.includes('word') || file.type.includes('document')) icon = '📘';
+                    else if (file.type.includes('text')) icon = '📝';
+                    
+                    // Format file size
+                    const fileSize = file.size > 1024 * 1024 
+                        ? `${(file.size / 1024 / 1024).toFixed(2)} MB`
+                        : `${(file.size / 1024).toFixed(2)} KB`;
+                    
+                    fileEl.innerHTML = `
+                        <span class="attached-file-icon">${icon}</span>
+                        <div class="attached-file-info">
+                            <span class="attached-file-name" title="${this.escapeHtml(file.name)}">${this.escapeHtml(file.name)}</span>
+                            <span class="attached-file-size">${fileSize}</span>
+                        </div>
+                        <button type="button" class="attached-file-remove" onclick="aiChat.removeFile('${fileId}')" title="Remove">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    `;
+                    attachedFilesContainer.appendChild(fileEl);
+
+                    // Update context badge (non-intrusive)
+                    if (badge) {
+                        badge.style.display = 'inline-flex';
+                        const count = document.getElementById('context-count');
+                        const plural = document.getElementById('context-plural');
+                        if (count) count.textContent = this.attachedFiles.length;
+                        if (plural) plural.textContent = this.attachedFiles.length === 1 ? '' : 's';
+                    }
+                    
+                    // For images, create preview immediately
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            fileInfo.preview = e.target.result;
+                            // Update preview in UI
+                            const img = document.createElement('img');
+                            img.src = e.target.result;
+                            img.className = 'attached-file-preview';
+                            img.style.maxWidth = '100px';
+                            img.style.maxHeight = '100px';
+                            img.style.borderRadius = '4px';
+                            img.style.marginTop = '4px';
+                            fileEl.querySelector('.attached-file-info').after(img);
+                        };
+                        reader.onerror = () => {
+                            console.error('Failed to read image file');
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+            
+            removeFile(fileId) {
+                if (!this.attachedFiles) return;
+                this.attachedFiles = this.attachedFiles.filter(f => f.id !== fileId);
+                const fileEl = document.querySelector(`[data-file-id="${fileId}"]`);
+                if (fileEl) fileEl.remove();
+
+                const badge = document.getElementById('context-badge');
+                if (badge) {
+                    if (this.attachedFiles.length === 0) {
+                        badge.style.display = 'none';
+                    } else {
+                        badge.style.display = 'inline-flex';
+                        const count = document.getElementById('context-count');
+                        const plural = document.getElementById('context-plural');
+                        if (count) count.textContent = this.attachedFiles.length;
+                        if (plural) plural.textContent = this.attachedFiles.length === 1 ? '' : 's';
+                    }
+                }
+            }
+
+            addMessage(role, content, attachments = null) {
+                const message = { role, content, timestamp: Date.now(), attachments };
                 const currentChat = this.getCurrentChat();
                 if (currentChat) {
                     currentChat.messages.push(message);
+                }
+
+                let attachmentsHtml = '';
+                if (attachments && attachments.length > 0) {
+                    attachmentsHtml = '<div class="message-attachments">' +
+                        attachments.map(att => {
+                            if (att.type && att.type.startsWith('image/') && att.preview) {
+                                return `<img src="${att.preview}" alt="${this.escapeHtml(att.name)}" class="message-image" onclick="window.open('${att.preview}', '_blank')">`;
+                            }
+                            return `<div class="message-file">📄 ${this.escapeHtml(att.name)}</div>`;
+                        }).join('') + '</div>';
                 }
 
                 const messageEl = document.createElement('div');
@@ -2646,44 +3281,104 @@
                             : '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>'
                         }
                     </div>
-                    <div class="chat-content">${this.formatMessage(content)}</div>
+                    <div class="chat-content">${attachmentsHtml}${this.formatMessage(content)}</div>
                 `;
                 this.messagesContainer.appendChild(messageEl);
+                this.enhanceRenderedMessage(messageEl);
                 this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+                this.updateScrollButtons();
                 this.ensureInputVisible();
+            }
+
+            /**
+             * Post-process rendered markdown to feel "desktop-class":
+             * - syntax highlight
+             * - copy buttons
+             * - collapse/expand long code blocks
+             */
+            enhanceRenderedMessage(messageEl) {
+                try {
+                    const contentEl = messageEl.querySelector('.chat-content');
+                    if (!contentEl) return;
+
+                    const blocks = Array.from(contentEl.querySelectorAll('pre > code'));
+                    if (blocks.length === 0) return;
+
+                    for (const codeEl of blocks) {
+                        const pre = codeEl.parentElement;
+                        if (!pre || pre.dataset.enhanced === '1') continue;
+                        pre.dataset.enhanced = '1';
+
+                        const langClass = Array.from(codeEl.classList).find(c => c.startsWith('language-'));
+                        const lang = langClass ? langClass.replace('language-', '') : 'code';
+
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'codeblock is-collapsed';
+                        wrapper.innerHTML = `
+                            <div class="codeblock-header">
+                                <div class="codeblock-meta">${this.escapeHtml(lang)}</div>
+                                <div class="codeblock-actions">
+                                    <button type="button" class="codeblock-btn" data-action="toggle">Expand</button>
+                                    <button type="button" class="codeblock-btn" data-action="copy">Copy</button>
+                                </div>
+                            </div>
+                        `;
+
+                        pre.replaceWith(wrapper);
+                        wrapper.appendChild(pre);
+
+                        if (window.hljs && typeof window.hljs.highlightElement === 'function') {
+                            window.hljs.highlightElement(codeEl);
+                        }
+
+                        const toggleBtn = wrapper.querySelector('[data-action="toggle"]');
+                        const copyBtn = wrapper.querySelector('[data-action="copy"]');
+
+                        toggleBtn?.addEventListener('click', () => {
+                            const collapsed = wrapper.classList.toggle('is-collapsed');
+                            toggleBtn.textContent = collapsed ? 'Expand' : 'Collapse';
+                        });
+
+                        copyBtn?.addEventListener('click', async () => {
+                            const text = codeEl.innerText || '';
+                            try {
+                                await navigator.clipboard.writeText(text);
+                                copyBtn.textContent = 'Copied';
+                                setTimeout(() => (copyBtn.textContent = 'Copy'), 900);
+                            } catch {
+                                const ta = document.createElement('textarea');
+                                ta.value = text;
+                                ta.style.position = 'fixed';
+                                ta.style.left = '-9999px';
+                                document.body.appendChild(ta);
+                                ta.select();
+                                document.execCommand('copy');
+                                ta.remove();
+                                copyBtn.textContent = 'Copied';
+                                setTimeout(() => (copyBtn.textContent = 'Copy'), 900);
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.warn('enhanceRenderedMessage error', e);
+                }
             }
 
             ensureInputVisible() {
                 try {
-                    // Force input container to be visible
-                    const inputContainer = document.querySelector('.chat-input-container');
-                    if (inputContainer) {
-                        inputContainer.style.display = 'flex';
-                        inputContainer.style.visibility = 'visible';
-                        inputContainer.style.opacity = '1';
-                        inputContainer.style.zIndex = '9999';
-                        inputContainer.style.position = 'fixed';
-                        inputContainer.style.bottom = '0';
-                        inputContainer.style.pointerEvents = 'auto';
-                    }
-                    
-                    // Force input field to be visible
-                    if (this.input) {
-                        this.input.style.display = 'block';
-                        this.input.style.visibility = 'visible';
-                        this.input.style.opacity = '1';
-                        this.input.style.pointerEvents = 'auto';
-                    }
-                    
+                    // Scroll messages to bottom smoothly
                     if (this.messagesContainer) {
-                        this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+                        this.messagesContainer.scrollTo({
+                            top: this.messagesContainer.scrollHeight,
+                            behavior: 'smooth'
+                        });
                     }
-                    window.scrollTo({
-                        top: document.body.scrollHeight,
-                        behavior: 'smooth'
-                    });
+                    
+                    // Focus input after a brief delay
                     if (this.input) {
-                        this.input.focus({ preventScroll: false });
+                        setTimeout(() => {
+                            this.input.focus({ preventScroll: true });
+                        }, 100);
                     }
                 } catch (err) {
                     console.warn('ensureInputVisible error', err);
@@ -2760,6 +3455,16 @@
                     currentChat.messages.forEach(msg => {
                         const messageEl = document.createElement('div');
                         messageEl.className = `chat-message ${msg.role}`;
+                        let attachmentsHtml = '';
+                        if (msg.attachments && msg.attachments.length > 0) {
+                            attachmentsHtml = '<div class="message-attachments">' +
+                                msg.attachments.map(att => {
+                                    if (att.type && att.type.startsWith('image/') && att.preview) {
+                                        return `<img src="${att.preview}" alt="${this.escapeHtml(att.name)}" class="message-image" onclick="window.open('${att.preview}', '_blank')">`;
+                                    }
+                                    return `<div class="message-file">📄 ${this.escapeHtml(att.name)}</div>`;
+                                }).join('') + '</div>';
+                        }
                         messageEl.innerHTML = `
                             <div class="chat-avatar">
                                 ${msg.role === 'user' 
@@ -2767,11 +3472,15 @@
                                     : '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>'
                                 }
                             </div>
-                            <div class="chat-content">${this.formatMessage(msg.content)}</div>
+                            <div class="chat-content">${attachmentsHtml}${this.formatMessage(msg.content)}</div>
                         `;
                         this.messagesContainer.appendChild(messageEl);
+                        // Enhance with code blocks
+                        this.enhanceRenderedMessage(messageEl);
                     });
                     this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+                    // Update scroll buttons visibility
+                    this.updateScrollButtons();
                 } else {
                     // Show welcome screen if no messages
                     if (this.welcomeScreen) {
@@ -2781,10 +3490,189 @@
                     }
                 }
             }
+            
+            updateScrollButtons() {
+                if (!this.messagesContainer) return;
+                const container = this.messagesContainer;
+                const scrollUp = document.getElementById('scroll-up');
+                const scrollDown = document.getElementById('scroll-down');
+                
+                const checkScroll = () => {
+                    const isAtTop = container.scrollTop < 50;
+                    const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
+                    
+                    if (scrollUp) {
+                        if (isAtTop) {
+                            scrollUp.classList.remove('visible');
+                        } else {
+                            scrollUp.classList.add('visible');
+                        }
+                    }
+                    
+                    if (scrollDown) {
+                        if (isAtBottom) {
+                            scrollDown.classList.remove('visible');
+                        } else {
+                            scrollDown.classList.add('visible');
+                        }
+                    }
+                };
+                
+                checkScroll();
+                container.addEventListener('scroll', checkScroll, { passive: true });
+            }
 
             saveHistory() {
                 // Legacy method - now uses saveChats
                 this.saveChats();
+            }
+        }
+
+        // Theme Management System - Enhanced with all 6 themes
+        class ThemeManager {
+            constructor() {
+                this.themes = ['dark', 'light', 'neon', 'midnight', 'aurora', 'cyber-neon', 'solarized'];
+                this.currentThemeIndex = 0;
+                this.autoThemeEnabled = storage.get('autoThemeEnabled', false); // Disabled by default
+                this.autoThemeInterval = null;
+                this.themeInterval = 20000; // 20 seconds
+                
+                const savedTheme = storage.get('aiChatTheme', 'dark');
+                this.currentThemeIndex = this.themes.indexOf(savedTheme);
+                if (this.currentThemeIndex === -1) this.currentThemeIndex = 0;
+                
+                this.init();
+            }
+            
+            init() {
+                this.setTheme(this.themes[this.currentThemeIndex], false);
+                
+                const themeBtn = document.getElementById('theme-btn');
+                if (themeBtn) {
+                    themeBtn.addEventListener('click', () => this.cycleTheme());
+                    // Long press to toggle auto-theme
+                    let pressTimer;
+                    themeBtn.addEventListener('mousedown', () => {
+                        pressTimer = setTimeout(() => {
+                            this.toggleAutoTheme();
+                            const status = this.autoThemeEnabled ? 'enabled' : 'disabled';
+                            console.log(`Auto-theme ${status}`);
+                        }, 1000);
+                    });
+                    themeBtn.addEventListener('mouseup', () => clearTimeout(pressTimer));
+                    themeBtn.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+                }
+                
+                if (this.autoThemeEnabled) {
+                    this.startAutoTheme();
+                }
+            }
+            
+            setTheme(theme, save = true) {
+                document.documentElement.setAttribute('data-theme', theme);
+                if (save) {
+                    storage.set('aiChatTheme', theme);
+                }
+                this.currentThemeIndex = this.themes.indexOf(theme);
+                // Dispatch theme change event
+                window.dispatchEvent(new CustomEvent('themechange', { detail: { theme } }));
+            }
+            
+            cycleTheme() {
+                this.currentThemeIndex = (this.currentThemeIndex + 1) % this.themes.length;
+                this.setTheme(this.themes[this.currentThemeIndex]);
+            }
+            
+            startAutoTheme() {
+                this.autoThemeEnabled = true;
+                storage.set('autoThemeEnabled', true);
+                if (this.autoThemeInterval) {
+                    clearInterval(this.autoThemeInterval);
+                }
+                this.autoThemeInterval = setInterval(() => {
+                    if (this.autoThemeEnabled) {
+                        this.currentThemeIndex = (this.currentThemeIndex + 1) % this.themes.length;
+                        this.setTheme(this.themes[this.currentThemeIndex]);
+                    }
+                }, this.themeInterval);
+            }
+            
+            stopAutoTheme() {
+                this.autoThemeEnabled = false;
+                storage.set('autoThemeEnabled', false);
+                if (this.autoThemeInterval) {
+                    clearInterval(this.autoThemeInterval);
+                    this.autoThemeInterval = null;
+                }
+            }
+            
+            toggleAutoTheme() {
+                if (this.autoThemeEnabled) {
+                    this.stopAutoTheme();
+                } else {
+                    this.startAutoTheme();
+                }
+            }
+        }
+        
+        // ResizeObserver for dynamic layout recalculation
+        class LayoutObserver {
+            constructor() {
+                this.observer = null;
+                this.init();
+            }
+            
+            init() {
+                if ('ResizeObserver' in window) {
+                    this.observer = new ResizeObserver((entries) => {
+                        entries.forEach(entry => {
+                            // Recalculate layout on resize
+                            this.handleResize(entry);
+                        });
+                    });
+                    
+                    // Observe app root and key containers
+                    const appRoot = document.querySelector('.app-root');
+                    if (appRoot) {
+                        this.observer.observe(appRoot);
+                    }
+
+                    // Observe composer height so the canvas padding never overlaps it
+                    const composer = document.getElementById('chat-input-container');
+                    if (composer) {
+                        this.observer.observe(composer);
+                    }
+                    
+                    // Observe viewport changes
+                    window.addEventListener('resize', () => this.handleWindowResize());
+                    window.addEventListener('orientationchange', () => {
+                        setTimeout(() => this.handleWindowResize(), 100);
+                    });
+                }
+            }
+            
+            handleResize(entry) {
+                // Ensure no overflow on resize
+                const target = entry.target;
+                if (target.scrollWidth > target.clientWidth) {
+                    target.style.overflowX = 'hidden';
+                }
+
+                // Keep canvas padding in sync with composer height
+                if (target && target.id === 'chat-input-container') {
+                    const h = Math.max(72, Math.ceil(target.getBoundingClientRect().height));
+                    document.documentElement.style.setProperty('--composer-h', `${h}px`);
+                }
+            }
+            
+            handleWindowResize() {
+                // Force layout recalculation
+                const appRoot = document.querySelector('.app-root');
+                if (appRoot) {
+                    appRoot.style.height = '100dvh';
+                    // Trigger reflow
+                    void appRoot.offsetHeight;
+                }
             }
         }
 
@@ -2926,25 +3814,33 @@
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', () => {
             createParticles();
+            
+            // Initialize theme manager
+            const themeManager = new ThemeManager();
+            window.themeManager = themeManager;
+            
             const aiChat = new AIChat();
             new SidebarManager();
             
-            // Force input container to always be visible
-            const forceInputVisible = () => {
-                const inputContainer = document.querySelector('.chat-input-container');
-                if (inputContainer) {
-                    inputContainer.style.display = 'flex';
-                    inputContainer.style.visibility = 'visible';
-                    inputContainer.style.opacity = '1';
-                    inputContainer.style.zIndex = '9999';
-                    inputContainer.style.position = 'fixed';
-                    inputContainer.style.bottom = '0';
-                }
-            };
+            // Initialize scroll navigation buttons
+            const scrollUp = document.getElementById('scroll-up');
+            const scrollDown = document.getElementById('scroll-down');
             
-            // Run immediately and on intervals
-            forceInputVisible();
-            setInterval(forceInputVisible, 1000);
+            if (scrollUp) {
+                scrollUp.addEventListener('click', () => {
+                    if (aiChat.messagesContainer) {
+                        aiChat.messagesContainer.scrollBy({ top: -400, behavior: 'smooth' });
+                    }
+                });
+            }
+            
+            if (scrollDown) {
+                scrollDown.addEventListener('click', () => {
+                    if (aiChat.messagesContainer) {
+                        aiChat.messagesContainer.scrollBy({ top: 400, behavior: 'smooth' });
+                    }
+                });
+            }
             
             // Jump-to-input helper
             const jumpBtn = document.getElementById('jump-to-input');
@@ -2954,81 +3850,25 @@
                 });
             }
             
-            // Ensure input visible on load
+            // Initialize scroll buttons visibility
             setTimeout(() => {
-                forceInputVisible();
-                aiChat.ensureInputVisible();
-            }, 300);
-            
-            // EXTRA: Direct button initialization as fallback
-            setTimeout(() => {
-                const sendBtn = document.getElementById('chat-send');
-                const input = document.getElementById('chat-input');
-                
-                if (sendBtn && input) {
-                    console.log('Direct button initialization - button found');
-                    
-                    // Remove any existing listeners and add fresh ones
-                    const newSendBtn = sendBtn.cloneNode(true);
-                    sendBtn.parentNode.replaceChild(newSendBtn, sendBtn);
-                    
-                    // Add direct click handler
-                    newSendBtn.addEventListener('click', function(e) {
-                        console.log('DIRECT BUTTON CLICK HANDLER FIRED!', e);
-                        e.preventDefault();
-                        e.stopPropagation();
-                        
-                        const text = input.value.trim();
-                        if (text && !aiChat.isTyping) {
-                            console.log('Calling sendMessage directly');
-                            input.dispatchEvent(new KeyboardEvent('keydown', {
-                                key: 'Enter',
-                                code: 'Enter',
-                                keyCode: 13,
-                                which: 13,
-                                bubbles: true,
-                                cancelable: true
-                            }));
-                        }
-                    });
-                    
-                    // Also add direct onclick - use the global function or call directly
-                    newSendBtn.onclick = function(e) {
-                        console.log('DIRECT ONCLICK FIRED!', e);
-                        e.preventDefault();
-                        e.stopPropagation();
-                        
-                        // Use global function if available, otherwise call directly
-                        if (window.aegisDeskSendMessage) {
-                            window.aegisDeskSendMessage();
-                        } else {
-                            const text = input.value.trim();
-                            if (text && !aiChat.isTyping) {
-                                aiChat.hideWelcome();
-                                aiChat.addMessage('user', text);
-                                input.value = '';
-                                input.style.height = 'auto';
-                                
-                                aiChat.showTyping();
-                                aiChat.getAIResponse(text).then(response => {
-                                    aiChat.hideTyping();
-                                    aiChat.addMessage('assistant', response);
-                                    aiChat.saveChats();
-                                }).catch(error => {
-                                    aiChat.hideTyping();
-                                    aiChat.addMessage('assistant', error.message || 'An error occurred');
-                                    aiChat.saveChats();
-                                });
-                            }
-                        }
-                        return false;
-                    };
-                    
-                    console.log('Direct button handlers added');
-                } else {
-                    console.error('Direct initialization failed - button or input not found');
+                if (aiChat.updateScrollButtons) {
+                    aiChat.updateScrollButtons();
                 }
             }, 500);
+            
+            // Initialize LayoutObserver for dynamic composer height tracking
+            const layoutObserver = new LayoutObserver();
+            window.layoutObserver = layoutObserver;
+            
+            // Initial composer height measurement
+            setTimeout(() => {
+                const composer = document.getElementById('chat-input-container');
+                if (composer) {
+                    const h = Math.max(72, Math.ceil(composer.getBoundingClientRect().height));
+                    document.documentElement.style.setProperty('--composer-h', `${h}px`);
+                }
+            }, 100);
         });
     </script>
 </body>

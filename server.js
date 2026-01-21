@@ -3,6 +3,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import chatHandler from './api/chat.js';
 import newsHandler from './api/news.js';
+import gnewsHandler from './api/gnews.js';
+import musicHandler from './api/music.js';
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -30,12 +32,39 @@ app.options('/api/news', (req, res) => {
 
 app.post('/api/news', (req, res) => newsHandler(req, res));
 
+app.options('/api/gnews', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  return res.status(200).end();
+});
+
+app.post('/api/gnews', (req, res) => gnewsHandler(req, res));
+
+app.options('/api/music', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  return res.status(200).end();
+});
+
+app.post('/api/music', (req, res) => musicHandler(req, res));
+
 // Test endpoint to verify server is running
 app.get('/api/test', (req, res) => {
   res.json({ 
     status: 'ok', 
     message: 'Server is running!',
     timestamp: new Date().toISOString()
+  });
+});
+
+// Test music API endpoint
+app.get('/api/music/test', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    message: 'Music API endpoint is available',
+    apiKey: process.env.YOUTUBE_API_KEY ? 'Set' : 'Missing (using fallback)'
   });
 });
 

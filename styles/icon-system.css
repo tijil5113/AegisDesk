@@ -1,0 +1,576 @@
+/* AEGIS DESK - UNIFIED ICON SYSTEM */
+/* Premium, Tech-Forward, Executive Design Language */
+
+:root {
+    /* Icon System Variables */
+    --icon-size-base: 80px;
+    --icon-size-small: 64px;
+    --icon-size-medium: 80px;
+    --icon-size-large: 96px;
+    
+    --icon-gap: 20px;
+    --icon-gap-small: 16px;
+    --icon-gap-large: 24px;
+    
+    --icon-border-radius: 18px;
+    --icon-glow-intensity: 0.4;
+    --icon-hover-lift: 8px;
+    
+    --animation-speed: 0.3s;
+    --animation-ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==========================================
+   ICON GRID SYSTEM (RESPONSIVE)
+   ========================================== */
+
+.apps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--icon-gap);
+    padding: 24px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: calc(750px - 140px);
+    max-height: min(calc(750px - 140px), calc(100vh - 240px));
+    max-height: min(calc(750px - 140px), calc(100dvh - 240px));
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    flex: 1;
+    min-height: 0;
+}
+
+/* Adaptive columns based on available space */
+@media (min-width: 1400px) {
+    .apps-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+@media (min-width: 1200px) and (max-width: 1399px) {
+    .apps-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (min-width: 900px) and (max-width: 1199px) {
+    .apps-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 600px) and (max-width: 899px) {
+    .apps-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 599px) {
+    .apps-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--icon-gap-small);
+        padding: 16px;
+    }
+}
+
+/* Zoom-aware sizing */
+@media (min-zoom: 1.5) {
+    .apps-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: var(--icon-gap-large);
+    }
+}
+
+/* ==========================================
+   APP TILE (PREMIUM CONTAINER)
+   ========================================== */
+
+.app-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 16px;
+    min-height: 160px;
+    border-radius: var(--icon-border-radius);
+    cursor: pointer;
+    position: relative;
+    overflow: visible;
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    transition: all var(--animation-speed) var(--animation-ease);
+    transform: translateZ(0); /* GPU acceleration */
+    will-change: transform;
+}
+
+/* Glassmorphism glow effect */
+.app-tile::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(135deg, 
+        rgba(99, 102, 241, 0.2) 0%, 
+        rgba(139, 92, 246, 0.15) 50%,
+        rgba(99, 102, 241, 0.2) 100%);
+    border-radius: calc(var(--icon-border-radius) + 2px);
+    opacity: 0;
+    transition: opacity var(--animation-speed) var(--animation-ease);
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Inner glow on hover */
+.app-tile::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, transparent 70%);
+    border-radius: 50%;
+    transition: width var(--animation-speed) var(--animation-ease),
+                height var(--animation-speed) var(--animation-ease),
+                opacity var(--animation-speed) var(--animation-ease);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ==========================================
+   ICON STATES
+   ========================================== */
+
+/* DEFAULT STATE */
+.app-tile {
+    /* Base styles already defined */
+}
+
+/* HOVER STATE */
+.app-tile:hover {
+    background: rgba(30, 41, 59, 0.85);
+    border-color: rgba(99, 102, 241, 0.5);
+    transform: translateY(calc(var(--icon-hover-lift) * -1)) scale(1.05);
+    box-shadow: 
+        0 16px 40px rgba(0, 0, 0, 0.4),
+        0 8px 24px rgba(99, 102, 241, calc(var(--icon-glow-intensity) * 0.8)),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        0 0 0 1px rgba(99, 102, 241, 0.3);
+}
+
+.app-tile:hover::before {
+    opacity: 1;
+}
+
+.app-tile:hover::after {
+    width: 120%;
+    height: 120%;
+    opacity: 1;
+}
+
+/* ACTIVE STATE (clicking) */
+.app-tile:active {
+    transform: translateY(calc(var(--icon-hover-lift) * -0.5)) scale(1.02);
+    transition-duration: 0.1s;
+}
+
+/* FOCUS STATE (keyboard) */
+.app-tile:focus-visible {
+    outline: none;
+    border-color: rgba(99, 102, 241, 0.8);
+    box-shadow: 
+        0 0 0 3px rgba(99, 102, 241, 0.3),
+        0 8px 24px rgba(99, 102, 241, calc(var(--icon-glow-intensity) * 0.6)),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* DISABLED STATE */
+.app-tile:disabled,
+.app-tile.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.app-tile:disabled:hover,
+.app-tile.disabled:hover {
+    transform: none;
+}
+
+/* ==========================================
+   ICON CONTAINER
+   ========================================== */
+
+.app-tile-icon {
+    width: var(--icon-size-medium);
+    height: var(--icon-size-medium);
+    min-width: var(--icon-size-medium);
+    min-height: var(--icon-size-medium);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+    background: linear-gradient(135deg, 
+        rgba(99, 102, 241, 0.25) 0%, 
+        rgba(139, 92, 246, 0.2) 100%);
+    border-radius: calc(var(--icon-border-radius) - 2px);
+    padding: 18px;
+    transition: all var(--animation-speed) var(--animation-ease);
+    box-shadow: 
+        0 8px 24px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0 0 1px rgba(99, 102, 241, 0.15);
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+.app-tile-icon::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.1) 0%, 
+        transparent 100%);
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity var(--animation-speed) var(--animation-ease);
+    pointer-events: none;
+}
+
+.app-tile:hover .app-tile-icon {
+    background: linear-gradient(135deg, 
+        rgba(99, 102, 241, 0.4) 0%, 
+        rgba(139, 92, 246, 0.35) 100%);
+    box-shadow: 
+        0 12px 32px rgba(0, 0, 0, 0.4),
+        0 8px 24px rgba(99, 102, 241, calc(var(--icon-glow-intensity) * 1.2)),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 0 0 2px rgba(99, 102, 241, 0.4);
+    transform: scale(1.08) rotate(2deg);
+}
+
+.app-tile:hover .app-tile-icon::before {
+    opacity: 1;
+}
+
+.app-tile:focus-visible .app-tile-icon {
+    box-shadow: 
+        0 0 0 3px rgba(99, 102, 241, 0.4),
+        0 12px 32px rgba(0, 0, 0, 0.4),
+        0 8px 24px rgba(99, 102, 241, calc(var(--icon-glow-intensity) * 1));
+}
+
+/* ==========================================
+   ICON SVG (CUSTOM ICONS)
+   ========================================== */
+
+.app-tile-icon svg {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    transition: all var(--animation-speed) var(--animation-ease);
+    filter: drop-shadow(0 4px 12px rgba(99, 102, 241, 0.4));
+    color: #818cf8;
+    transform: translateZ(0);
+    will-change: transform, filter;
+}
+
+.app-tile:hover .app-tile-icon svg {
+    filter: drop-shadow(0 6px 20px rgba(99, 102, 241, 0.7));
+    transform: scale(1.1);
+    color: #a78bfa;
+}
+
+/* ==========================================
+   APP NAME (NO CLIPPING - EVER)
+   ========================================== */
+
+.app-tile-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e2e8f0;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    transition: all var(--animation-speed) var(--animation-ease);
+    letter-spacing: 0.2px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    margin-top: 0;
+    padding: 0 4px;
+    
+    /* NEVER CLIP TEXT */
+    max-width: 100%;
+    width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    line-height: 1.4;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Allow text to wrap to 2 lines */
+.app-tile-name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 2.8em; /* 2 lines */
+}
+
+.app-tile:hover .app-tile-name {
+    color: #a78bfa;
+    text-shadow: 0 0 12px rgba(99, 102, 241, 0.6);
+    transform: translateY(-2px);
+}
+
+/* ==========================================
+   TOOLTIP SYSTEM (FULL NAME ON HOVER)
+   ========================================== */
+
+.app-tile-tooltip {
+    position: absolute;
+    bottom: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    padding: 8px 12px;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #e2e8f0;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 1000;
+    transition: all 0.2s var(--animation-ease);
+    box-shadow: 
+        0 8px 24px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(99, 102, 241, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    max-width: 200px;
+    word-wrap: break-word;
+    white-space: normal;
+    text-align: center;
+}
+
+.app-tile-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: rgba(15, 23, 42, 0.95);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.app-tile:hover .app-tile-tooltip,
+.app-tile:focus-visible .app-tile-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    transition-delay: 0.3s;
+}
+
+/* Auto-position tooltip to avoid viewport clipping */
+.app-tile-tooltip.tooltip-top {
+    bottom: calc(100% + 12px);
+    top: auto;
+}
+
+.app-tile-tooltip.tooltip-bottom {
+    top: calc(100% + 12px);
+    bottom: auto;
+}
+
+.app-tile-tooltip.tooltip-bottom::after {
+    top: auto;
+    bottom: 100%;
+    border-top-color: transparent;
+    border-bottom-color: rgba(15, 23, 42, 0.95);
+}
+
+.app-tile-tooltip.tooltip-left {
+    left: auto;
+    right: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%) translateX(8px);
+}
+
+.app-tile-tooltip.tooltip-left::after {
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border-top-color: transparent;
+    border-left-color: rgba(15, 23, 42, 0.95);
+}
+
+.app-tile-tooltip.tooltip-right {
+    left: calc(100% + 12px);
+    right: auto;
+    top: 50%;
+    transform: translateY(-50%) translateX(-8px);
+}
+
+.app-tile-tooltip.tooltip-right::after {
+    right: 100%;
+    left: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    border-top-color: transparent;
+    border-right-color: rgba(15, 23, 42, 0.95);
+}
+
+/* ==========================================
+   ACCESSIBILITY
+   ========================================== */
+
+.app-tile {
+    /* ARIA support */
+    role: button;
+}
+
+.app-tile:focus {
+    outline: none;
+}
+
+/* Keyboard navigation */
+.app-tile[tabindex="0"]:focus-visible {
+    /* Focus styles already defined above */
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .app-tile {
+        border-width: 2px;
+        border-color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .app-tile:hover {
+        border-color: rgba(255, 255, 255, 1);
+    }
+    
+    .app-tile-icon {
+        background: rgba(255, 255, 255, 0.2);
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .app-tile,
+    .app-tile-icon,
+    .app-tile-icon svg,
+    .app-tile-name,
+    .app-tile-tooltip {
+        transition: none;
+        animation: none;
+    }
+    
+    .app-tile:hover {
+        transform: none;
+    }
+}
+
+/* ==========================================
+   SCROLLBAR STYLING
+   ========================================== */
+
+.apps-grid::-webkit-scrollbar {
+    width: 10px;
+}
+
+.apps-grid::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 5px;
+}
+
+.apps-grid::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, 
+        rgba(99, 102, 241, 0.6) 0%, 
+        rgba(99, 102, 241, 0.4) 100%);
+    border-radius: 5px;
+    border: 2px solid rgba(15, 23, 42, 0.5);
+    transition: background 0.2s ease;
+}
+
+.apps-grid::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, 
+        rgba(99, 102, 241, 0.8) 0%, 
+        rgba(99, 102, 241, 0.6) 100%);
+}
+
+/* ==========================================
+   ICON SIZE VARIANTS
+   ========================================== */
+
+.app-tile-icon.size-small {
+    width: var(--icon-size-small);
+    height: var(--icon-size-small);
+    padding: 14px;
+}
+
+.app-tile-icon.size-small svg {
+    width: 36px;
+    height: 36px;
+}
+
+.app-tile-icon.size-medium {
+    width: var(--icon-size-medium);
+    height: var(--icon-size-medium);
+    padding: 18px;
+}
+
+.app-tile-icon.size-medium svg {
+    width: 48px;
+    height: 48px;
+}
+
+.app-tile-icon.size-large {
+    width: var(--icon-size-large);
+    height: var(--icon-size-large);
+    padding: 22px;
+}
+
+.app-tile-icon.size-large svg {
+    width: 60px;
+    height: 60px;
+}
+
+/* ==========================================
+   PERFORMANCE OPTIMIZATIONS
+   ========================================== */
+
+.app-tile {
+    contain: layout style paint;
+    isolation: isolate;
+}
+
+.app-tile-icon svg {
+    contain: layout style paint;
+}
+
+/* Force GPU acceleration for smooth animations */
+@media (hover: hover) {
+    .app-tile,
+    .app-tile-icon,
+    .app-tile-icon svg {
+        transform: translateZ(0);
+    }
+}

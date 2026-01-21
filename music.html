@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music - AegisDesk</title>
+    <meta name="theme-color" content="#1db954">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/music.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="music-app">
+        <!-- Header -->
+        <header class="music-header">
+            <div class="music-header-content">
+                <div class="music-logo">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M9 18V5l12-2v13"></path>
+                        <circle cx="6" cy="18" r="3"></circle>
+                        <circle cx="18" cy="16" r="3"></circle>
+                    </svg>
+                    <h1>Music</h1>
+                </div>
+                
+                <div class="music-search">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" class="music-search-input" placeholder="What do you want to play?">
+                    <button class="music-search-clear" style="display: none;">×</button>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Language Tabs -->
+        <div class="music-language-tabs">
+            <button class="language-tab active" data-language="all">All</button>
+            <button class="language-tab" data-language="english">English</button>
+            <button class="language-tab" data-language="tamil">Tamil</button>
+            <button class="language-tab" data-language="hindi">Hindi</button>
+            <button class="language-tab" data-language="telugu">Telugu</button>
+            <button class="language-tab" data-language="malayalam">Malayalam</button>
+            <button class="language-tab" data-language="kannada">Kannada</button>
+        </div>
+        
+        <!-- Main Content -->
+        <main class="music-main">
+            <!-- Search Results (hidden by default) -->
+            <div class="search-results-container" style="display: none;">
+                <h2 class="section-title">Search Results</h2>
+                <div class="search-results track-list horizontal-scroll"></div>
+            </div>
+            
+            <!-- Discovery Sections -->
+            <div class="music-content">
+                <!-- Trending Now -->
+                <section class="music-section" data-section="trending">
+                    <div class="section-header">
+                        <h2 class="section-title">🔥 Trending Now</h2>
+                    </div>
+                    <div class="track-list horizontal-scroll">
+                        <div class="loading-skeleton"></div>
+                    </div>
+                </section>
+                
+                <!-- Language Sections -->
+                <section class="music-section" data-section="tamil" style="display: none;">
+                    <div class="section-header">
+                        <h2 class="section-title">🎵 Tamil Hits</h2>
+                    </div>
+                    <div class="track-list horizontal-scroll">
+                        <div class="loading-skeleton"></div>
+                    </div>
+                </section>
+                
+                <section class="music-section" data-section="hindi" style="display: none;">
+                    <div class="section-header">
+                        <h2 class="section-title">🎵 Hindi Hits</h2>
+                    </div>
+                    <div class="track-list horizontal-scroll">
+                        <div class="loading-skeleton"></div>
+                    </div>
+                </section>
+                
+                <section class="music-section" data-section="english" style="display: none;">
+                    <div class="section-header">
+                        <h2 class="section-title">🎵 English Hits</h2>
+                    </div>
+                    <div class="track-list horizontal-scroll">
+                        <div class="loading-skeleton"></div>
+                    </div>
+                </section>
+                
+                <!-- New Releases -->
+                <section class="music-section" data-section="new-releases">
+                    <div class="section-header">
+                        <h2 class="section-title">🆕 New Releases</h2>
+                    </div>
+                    <div class="track-list horizontal-scroll">
+                        <div class="loading-skeleton"></div>
+                    </div>
+                </section>
+                
+                <!-- Recently Played -->
+                <section class="music-section" data-section="recent" style="display: none;">
+                    <div class="section-header">
+                        <h2 class="section-title">🕐 Recently Played</h2>
+                    </div>
+                    <div class="track-list horizontal-scroll"></div>
+                </section>
+            </div>
+        </main>
+        
+        <!-- Fixed Player Bar -->
+        <div class="music-player-bar" id="player-bar">
+            <div class="player-left">
+                <div class="player-thumbnail">
+                    <img src="" alt="Track" style="display: none;">
+                    <div class="player-placeholder">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M9 18V5l12-2v13"></path>
+                            <circle cx="6" cy="18" r="3"></circle>
+                            <circle cx="18" cy="16" r="3"></circle>
+                        </svg>
+                    </div>
+                </div>
+                <div class="player-info">
+                    <div class="player-track-title">No track selected</div>
+                    <div class="player-track-artist">Select a song to play</div>
+                </div>
+            </div>
+            
+            <div class="player-center">
+                <div class="player-controls">
+                    <button class="player-control-btn player-shuffle-btn" title="Shuffle">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="16 3 21 3 21 8"></polyline>
+                            <line x1="4" y1="20" x2="21" y2="3"></line>
+                            <polyline points="21 16 21 21 16 21"></polyline>
+                            <line x1="15" y1="15" x2="21" y2="21"></line>
+                            <line x1="4" y1="4" x2="9" y2="9"></line>
+                        </svg>
+                    </button>
+                    <button class="player-control-btn player-prev-btn" title="Previous">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="19 20 9 12 19 4 19 20"></polygon>
+                            <line x1="5" y1="19" x2="5" y2="5"></line>
+                        </svg>
+                    </button>
+                    <button class="player-control-btn player-play-btn" title="Play">
+                        <svg class="play-icon" width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        <svg class="pause-icon" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                            <rect x="6" y="4" width="4" height="16"></rect>
+                            <rect x="14" y="4" width="4" height="16"></rect>
+                        </svg>
+                    </button>
+                    <button class="player-control-btn player-next-btn" title="Next">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                            <line x1="19" y1="5" x2="19" y2="19"></line>
+                        </svg>
+                    </button>
+                    <button class="player-control-btn player-repeat-btn" title="Repeat" data-mode="off">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="17 1 21 5 17 9"></polyline>
+                            <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                            <polyline points="7 23 3 19 7 15"></polyline>
+                            <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="player-progress">
+                    <span class="player-time player-time-current">0:00</span>
+                    <div class="player-progress-container">
+                        <input type="range" class="player-progress-bar" min="0" max="100" value="0">
+                    </div>
+                    <span class="player-time player-time-total">0:00</span>
+                </div>
+            </div>
+            
+            <div class="player-right">
+                <div class="player-volume">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                    <input type="range" class="player-volume-bar" min="0" max="100" value="70">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Error Banner -->
+    <div class="error-banner" id="error-banner" style="display: none;">
+        <span class="error-message"></span>
+        <button class="error-retry">Retry</button>
+        <button class="error-close">×</button>
+    </div>
+    
+    <!-- Debug Info -->
+    <div id="music-debug" style="position: fixed; bottom: 100px; right: 20px; background: rgba(0,0,0,0.9); color: #1db954; padding: 1rem; border-radius: 8px; font-size: 0.75rem; z-index: 9999; max-width: 300px; display: none; font-family: monospace; border: 1px solid #1db954;">
+        <div style="margin-bottom: 0.5rem;"><strong>🎵 Player Debug</strong></div>
+        <div id="debug-status">Initializing...</div>
+        <div id="debug-track" style="margin-top: 0.5rem; color: #b3b3b3;"></div>
+        <button onclick="document.getElementById('music-debug').style.display='none'" style="margin-top: 0.5rem; background: #1db954; border: none; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer;">Close</button>
+    </div>
+    
+    <!-- Manual Player Init Panel -->
+    <div id="manual-init-panel" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.95); padding: 2rem; border-radius: 12px; z-index: 10000; display: none; border: 2px solid #1db954; text-align: center; max-width: 400px; box-shadow: 0 0 30px rgba(29, 185, 84, 0.3);">
+        <h3 style="color: #1db954; margin-bottom: 1rem; margin-top: 0;">Player Not Initialized</h3>
+        <p style="color: #b3b3b3; margin-bottom: 1.5rem; line-height: 1.5;">The YouTube player failed to initialize. Click below to retry.</p>
+        <button onclick="initPlayerManually()" style="background: #1db954; color: white; border: none; padding: 0.75rem 2rem; border-radius: 6px; cursor: pointer; font-size: 1rem; margin-right: 1rem; font-weight: bold;">Initialize Player</button>
+        <button onclick="document.getElementById('manual-init-panel').style.display='none'" style="background: #333; color: white; border: none; padding: 0.75rem 2rem; border-radius: 6px; cursor: pointer; font-size: 1rem;">Close</button>
+    </div>
+    
+    <!-- Scripts -->
+    <script>
+        // Global error handler
+        window.addEventListener('error', (e) => {
+            console.error('Global error:', e.error);
+            const banner = document.getElementById('error-banner');
+            if (banner) {
+                banner.querySelector('.error-message').textContent = e.error?.message || 'An error occurred';
+                banner.style.display = 'flex';
+            }
+        });
+        
+        // Check if storage is available
+        if (typeof storage === 'undefined') {
+            console.warn('Storage not available, creating fallback');
+            window.storage = {
+                get: (key, defaultValue) => {
+                    try {
+                        const item = localStorage.getItem('aegisdesk_' + key);
+                        return item ? JSON.parse(item) : defaultValue;
+                    } catch {
+                        return defaultValue;
+                    }
+                },
+                set: (key, value) => {
+                    try {
+                        localStorage.setItem('aegisdesk_' + key, JSON.stringify(value));
+                    } catch (e) {
+                        console.error('Storage set error:', e);
+                    }
+                }
+            };
+        }
+    </script>
+    <!-- Core Music System (MUSICBRAINZ + YOUTUBE) -->
+    <script src="js/core/musicStore.js"></script>
+    <script src="js/core/musicbrainzAPI.js"></script>
+    <script src="js/core/youtubeSearchAPI.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script src="js/core/youtubePlayer.js"></script>
+    <script src="js/core/audioPlayer.js"></script>
+    <script src="js/apps/musicDataBootstrap.js"></script>
+    <script>
+        // Prevent page reload on errors
+        window.addEventListener('error', (e) => {
+            console.error('Error caught:', e.error);
+            e.preventDefault(); // Prevent default error handling
+            return true;
+        });
+        
+        // Prevent unhandled promise rejections from reloading
+        window.addEventListener('unhandledrejection', (e) => {
+            console.error('Unhandled promise rejection:', e.reason);
+            e.preventDefault();
+            return true;
+        });
+    </script>
+    <script src="js/utils/storage.js"></script>
+    <!-- Old music-engine.js removed - using new architecture (musicStore + youtubePlayer) -->
+    <script src="js/apps/music-page.js"></script>
+</body>
+</html>

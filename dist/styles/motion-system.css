@@ -1,0 +1,186 @@
+/* Motion System - Premium Animation Framework */
+
+/* Easing Functions */
+:root {
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-out-cubic: cubic-bezier(0.33, 1, 0.68, 1);
+    --ease-in-cubic: cubic-bezier(0.32, 0, 0.67, 0);
+    --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Window Animations */
+@keyframes windowEnter {
+    0% {
+        opacity: 0;
+        transform: scale(0.98) translate3d(0, 10px, 0); /* GPU accelerated */
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translate3d(0, 0, 0);
+    }
+}
+
+@keyframes windowExit {
+    0% {
+        opacity: 1;
+        transform: scale(1) translate3d(0, 0, 0); /* GPU accelerated */
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.98) translate3d(0, 10px, 0);
+    }
+}
+
+@keyframes windowMinimize {
+    0% {
+        opacity: 1;
+        transform: scale(1) translateZ(0);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.3) translate3d(0, 100px, 0); /* GPU accelerated */
+    }
+}
+
+@keyframes windowMaximize {
+    0% {
+        transform: scale(1);
+        border-radius: 12px;
+    }
+    100% {
+        transform: scale(1);
+        border-radius: 0;
+    }
+}
+
+/* Boot Sequence Animations */
+@keyframes bootFadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes bootScanline {
+    0% {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh);
+        opacity: 0;
+    }
+}
+
+@keyframes bootLogoPowerOn {
+    0% {
+        opacity: 0;
+        transform: scale(0.8) translateZ(0);
+        filter: blur(5px); /* Reduced blur */
+    }
+    50% {
+        filter: blur(2px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateZ(0);
+        filter: blur(0);
+    }
+}
+
+@keyframes bootTextReveal {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes bootDesktopReveal {
+    0% {
+        opacity: 0;
+        transform: scale(1.02) translateZ(0);
+        filter: blur(8px); /* Reduced blur for better performance */
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateZ(0);
+        filter: blur(0);
+    }
+}
+
+/* Parallax Layers */
+@keyframes parallaxFloat {
+    0%, 100% {
+        transform: translate3d(0, 0, 0); /* GPU accelerated */
+    }
+    50% {
+        transform: translate3d(10px, -10px, 0);
+    }
+}
+
+@keyframes particleDrift {
+    0% {
+        transform: translate3d(0, 0, 0) rotate(0deg); /* GPU accelerated */
+        opacity: 0.3;
+    }
+    50% {
+        opacity: 0.6;
+    }
+    100% {
+        transform: translate3d(100px, -100px, 0) rotate(360deg);
+        opacity: 0.3;
+    }
+}
+
+/* Dock Animations */
+@keyframes dockBounce {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        transform: translateY(-8px) scale(1.1);
+    }
+}
+
+@keyframes dockIconGlow {
+    0%, 100% {
+        box-shadow: 0 0 0 rgba(99, 102, 241, 0);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+    }
+}
+
+/* Spotlight Effect */
+@keyframes spotlightExpand {
+    0% {
+        transform: scale(0);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(10);
+        opacity: 0;
+    }
+}
+
+/* Utility Classes */
+.animate-enter {
+    animation: windowEnter 0.4s var(--ease-out-expo) forwards;
+}
+
+.animate-exit {
+    animation: windowExit 0.3s var(--ease-in-cubic) forwards;
+}
+
+.animate-minimize {
+    animation: windowMinimize 0.3s var(--ease-out-cubic) forwards;
+}

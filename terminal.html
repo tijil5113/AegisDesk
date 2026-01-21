@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal - AegisDesk</title>
+    <meta name="theme-color" content="#10b981">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/terminal-v2.css">
+    <!-- Local xterm.js CSS -->
+    <link rel="stylesheet" href="vendor/xterm/xterm.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0f172a;
+            overflow: hidden;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        .standalone-terminal {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .standalone-terminal .terminal-v2-container {
+            border-radius: 0;
+            height: 100%;
+        }
+        
+        .standalone-terminal .window-content {
+            height: 100%;
+        }
+        
+        .terminal-containers {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .terminal-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="standalone-terminal">
+        <div class="terminal-v2-container">
+            <div class="terminal-v2-header">
+                <div class="terminal-tabs" id="terminal-tabs"></div>
+                <div class="terminal-actions">
+                    <button class="terminal-action-btn" id="terminal-new-tab" title="New Terminal (Ctrl+Shift+T)">➕</button>
+                    <button class="terminal-action-btn" id="terminal-clear" title="Clear (Ctrl+L)">Clear</button>
+                    <button class="terminal-action-btn" id="terminal-search" title="Search (Ctrl+F)">🔍</button>
+                    <button class="terminal-action-btn" id="terminal-theme" title="Change Theme">🎨</button>
+                    <button class="terminal-action-btn" id="terminal-settings" title="Settings">⚙️</button>
+                </div>
+            </div>
+            <div class="terminal-v2-content">
+                <div id="terminal-containers" class="terminal-containers"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Load utilities FIRST -->
+    <script src="js/utils/storage.js"></script>
+    
+    <!-- Load Terminal Engine (BULLETPROOF) -->
+    <script src="js/core/terminal-engine.js"></script>
+    
+    <!-- Standalone Terminal Logic -->
+    <script>
+        // Standalone Terminal for terminal.html page
+        class StandaloneTerminalManager {
+            constructor() {
+                this.terminalEngines = new Map();
+                this.activeTabId = null;
+                this.tabs = [];
+                this.nextTabId = 1;
+                this.commandHistory = storage.get('terminalHistory', []) || [];
+                this.currentDir = '/home/user';
+                this.environment = { HOME: '/home/user', USER: 'user' };
+                this.theme = storage.get('terminalTheme', 'vs-code-dark');
+                this.fontFamily = storage.get('terminalFont', 'JetBrains Mono, Fira Code, Source Code Pro, Consolas, monospace');
+                this.fontSize = storage.get('terminalFontSize', 14);
+                
+                this.init();
+            }
+            
+            async init() {
+                // Wait for TerminalEngine to be available
+                if (typeof TerminalEngine === 'undefined') {
+                    await this.waitForTerminalEngine();
+                }
+                
+                this.attachEvents();
+                this.createTab();
+            }
+            
+            waitForTerminalEngine() {
+                return new Promise((resolve) => {
+                    let attempts = 0;
+                    const checkInterval = setInterval(() => {
+                        attempts++;
+                        if (typeof TerminalEngine !== 'undefined') {
+                            clearInterval(checkInterval);
+                            resolve();
+                        } else if (attempts > 100) {
+                            clearInterval(checkInterval);
+                            console.error('❌ TerminalEngine failed to load');
+                            resolve(); // Continue anyway
+                        }
+                    }, 100);
+                });
+            }
+            
+            createTab(tabName = null) {
+                const tabId = `tab-${this.nextTabId++}`;
+                const name = tabName || `Terminal ${this.tabs.length + 1}`;
+                
+                this.tabs.push({ id: tabId, name, active: false });
+                
+                // Create tab button
+                const tabsContainer = document.querySelector('#terminal-tabs');
+                const tabButton = document.createElement('div');
+                tabButton.className = 'terminal-tab';
+                tabButton.dataset.tabId = tabId;
+                tabButton.innerHTML = `
+                    <span class="tab-title">${name}</span>
+                    <button class="tab-close" data-tab-id="${tabId}" title="Close (Ctrl+W)">×</button>
+                `;
+                
+                // Create container
+                const containersDiv = document.querySelector('#terminal-containers');
+                const container = document.createElement('div');
+                container.className = 'terminal-container';
+                container.id = `terminal-container-${tabId}`;
+                container.style.display = 'none';
+                containersDiv.appendChild(container);
+                
+                // Create terminal engine
+                const engine = new TerminalEngine(container, {
+                    fontFamily: this.fontFamily,
+                    fontSize: this.fontSize,
+                    theme: this.theme,
+                    cursorBlink: true,
+                    cursorStyle: 'block',
+                    scrollback: 1000
+                });
+                
+                engine.setHistory(this.commandHistory);
+                engine.setDirectory(this.currentDir);
+                engine.setEnvironment(this.environment);
+                
+                // Setup command handler
+                engine.onLine((command) => {
+                    this.executeCommand(engine, command);
+                });
+                
+                this.terminalEngines.set(tabId, engine);
+                this.activeTabId = tabId;
+                this.activateTab(tabId);
+                
+                // Tab click handler
+                tabButton.querySelector('.tab-title').addEventListener('click', () => {
+                    this.activateTab(tabId);
+                });
+                
+                // Close button handler
+                tabButton.querySelector('.tab-close').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.closeTab(tabId);
+                });
+                
+                tabsContainer.appendChild(tabButton);
+                
+                // Write welcome message
+                setTimeout(() => {
+                    this.writeWelcome(engine);
+                    engine.focus();
+                }, 200);
+                
+                return tabId;
+            }
+            
+            activateTab(tabId) {
+                this.tabs.forEach(tab => {
+                    tab.active = tab.id === tabId;
+                });
+                
+                const tabs = document.querySelectorAll('.terminal-tab');
+                tabs.forEach(tab => {
+                    if (tab.dataset.tabId === tabId) {
+                        tab.classList.add('active');
+                    } else {
+                        tab.classList.remove('active');
+                    }
+                });
+                
+                const containers = document.querySelectorAll('.terminal-container');
+                containers.forEach(container => {
+                    if (container.id === `terminal-container-${tabId}`) {
+                        container.style.display = 'block';
+                    } else {
+                        container.style.display = 'none';
+                    }
+                });
+                
+                this.activeTabId = tabId;
+                
+                const engine = this.terminalEngines.get(tabId);
+                if (engine) {
+                    setTimeout(() => engine.focus(), 50);
+                }
+            }
+            
+            closeTab(tabId) {
+                if (this.tabs.length <= 1) {
+                    const engine = this.terminalEngines.get(tabId);
+                    if (engine) {
+                        engine.clear();
+                        this.writeWelcome(engine);
+                    }
+                    return;
+                }
+                
+                const tabIndex = this.tabs.findIndex(t => t.id === tabId);
+                if (tabIndex !== -1) {
+                    this.tabs.splice(tabIndex, 1);
+                }
+                
+                const tabButton = document.querySelector(`.terminal-tab[data-tab-id="${tabId}"]`);
+                if (tabButton) tabButton.remove();
+                
+                const container = document.querySelector(`#terminal-container-${tabId}`);
+                if (container) {
+                    const engine = this.terminalEngines.get(tabId);
+                    if (engine) {
+                        engine.destroy();
+                    }
+                    container.remove();
+                }
+                
+                this.terminalEngines.delete(tabId);
+                
+                if (this.activeTabId === tabId) {
+                    const nextTab = this.tabs[0];
+                    if (nextTab) {
+                        this.activateTab(nextTab.id);
+                    }
+                }
+            }
+            
+            writeWelcome(engine) {
+                const welcome = `\x1b[36m╔═══════════════════════════════════════════╗\x1b[0m\n\x1b[36m║\x1b[0m     \x1b[32mAEGIS DESK TERMINAL v3.0\x1b[0m              \x1b[36m║\x1b[0m\n\x1b[36m║\x1b[0m     \x1b[33mBulletproof Terminal Engine\x1b[0m          \x1b[36m║\x1b[0m\n\x1b[36m║\x1b[0m     \x1b[35mStandalone Mode - Full Page\x1b[0m          \x1b[36m║\x1b[0m\n\x1b[36m╚═══════════════════════════════════════════╝\x1b[0m\n\n\x1b[32mWelcome!\x1b[0m Type '\x1b[36mhelp\x1b[0m' for available commands.\nType '\x1b[36mai help\x1b[0m' for AI-powered commands.\n\n`;
+                engine.write(welcome);
+            }
+            
+            getActiveEngine() {
+                if (!this.activeTabId) return null;
+                return this.terminalEngines.get(this.activeTabId);
+            }
+            
+            executeCommand(engine, command) {
+                const parts = command.trim().split(/\s+/);
+                const cmd = parts[0].toLowerCase();
+                const args = parts.slice(1);
+                
+                if (cmd === 'ai') {
+                    this.handleAICommand(engine, args);
+                    return;
+                }
+                
+                switch (cmd) {
+                    case 'help':
+                        this.showHelp(engine);
+                        break;
+                    case 'clear':
+                        engine.clear();
+                        break;
+                    case 'echo':
+                        engine.writeln(args.join(' '));
+                        break;
+                    case 'date':
+                        engine.writeln(new Date().toString());
+                        break;
+                    case 'whoami':
+                        engine.writeln(engine.getEnvironment().USER);
+                        break;
+                    case 'pwd':
+                        engine.writeln(engine.getDirectory());
+                        break;
+                    case 'ls':
+                        const files = ['\x1b[34mDocuments\x1b[0m', '\x1b[34mDownloads\x1b[0m', '\x1b[34mDesktop\x1b[0m'];
+                        engine.writeln(files.join('  '));
+                        break;
+                    case 'cd':
+                        const dir = args[0] || '~';
+                        if (dir === '~') {
+                            engine.setDirectory(engine.getEnvironment().HOME);
+                        } else {
+                            engine.setDirectory(dir);
+                        }
+                        break;
+                    case 'theme':
+                        if (args[0]) {
+                            this.theme = args[0];
+                            storage.set('terminalTheme', args[0]);
+                            engine.setTheme(args[0]);
+                            engine.writeln(`\x1b[32m✓ Theme changed to: ${args[0]}\x1b[0m`);
+                        } else {
+                            engine.writeln('\x1b[33mAvailable themes:\x1b[0m vs-code-dark, dracula, one-dark, solarized-dark, matrix-green, retro-amber');
+                        }
+                        break;
+                    case 'history':
+                        const history = engine.getHistory();
+                        if (history.length === 0) {
+                            engine.writeln('\x1b[33mNo command history.\x1b[0m');
+                        } else {
+                            history.slice(-20).forEach((cmd, i) => {
+                                engine.writeln(`  ${i + 1}. ${cmd}`);
+                            });
+                        }
+                        break;
+                    default:
+                        engine.writeln(`\x1b[31mCommand not found: ${cmd}\x1b[0m`);
+                        engine.writeln(`Type '\x1b[36mhelp\x1b[0m' for available commands.`);
+                }
+            }
+            
+            async handleAICommand(engine, args) {
+                if (!args || args.length === 0) {
+                    engine.writeln('\x1b[33mAI-Powered Commands:\x1b[0m');
+                    engine.writeln('  \x1b[32mai explain <command>\x1b[0m  - Explain what a command does');
+                    engine.writeln('  \x1b[32mai debug <error>\x1b[0m     - Get help debugging an error');
+                    engine.writeln('  \x1b[32mai suggest\x1b[0m           - Get command suggestions');
+                    return;
+                }
+                
+                engine.write('\x1b[33m🤖 AI: \x1b[0m');
+                engine.writeln('\x1b[36mAI features available when connected to AegisDesk OS.\x1b[0m');
+            }
+            
+            showHelp(engine) {
+                engine.writeln(`
+\x1b[33mAvailable Commands:\x1b[0m
+  \x1b[32mhelp\x1b[0m          Show this help message
+  \x1b[32mclear\x1b[0m         Clear terminal screen
+  \x1b[32mecho <text>\x1b[0m   Echo text
+  \x1b[32mdate\x1b[0m          Show current date and time
+  \x1b[32mwhoami\x1b[0m        Show current user
+  \x1b[32mpwd\x1b[0m           Show current directory
+  \x1b[32mls [dir]\x1b[0m      List files and directories
+  \x1b[32mcd [dir]\x1b[0m      Change directory
+  \x1b[32mtheme [name]\x1b[0m  Change terminal theme
+  \x1b[32mhistory\x1b[0m       Show command history
+`);
+            }
+            
+            attachEvents() {
+                document.getElementById('terminal-new-tab')?.addEventListener('click', () => {
+                    this.createTab();
+                });
+                
+                document.getElementById('terminal-clear')?.addEventListener('click', () => {
+                    const engine = this.getActiveEngine();
+                    if (engine) {
+                        engine.clear();
+                        this.writeWelcome(engine);
+                    }
+                });
+                
+                document.getElementById('terminal-theme')?.addEventListener('click', () => {
+                    const engine = this.getActiveEngine();
+                    if (engine) {
+                        const themes = ['vs-code-dark', 'dracula', 'one-dark', 'solarized-dark', 'matrix-green', 'retro-amber'];
+                        const currentIndex = themes.indexOf(this.theme);
+                        const nextTheme = themes[(currentIndex + 1) % themes.length];
+                        this.theme = nextTheme;
+                        storage.set('terminalTheme', nextTheme);
+                        engine.setTheme(nextTheme);
+                    }
+                });
+                
+                // Keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'T') {
+                        e.preventDefault();
+                        this.createTab();
+                    } else if ((e.ctrlKey || e.metaKey) && e.key === 'w') {
+                        e.preventDefault();
+                        if (this.activeTabId) {
+                            this.closeTab(this.activeTabId);
+                        }
+                    } else if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
+                        e.preventDefault();
+                        const engine = this.getActiveEngine();
+                        if (engine) {
+                            engine.clear();
+                            this.writeWelcome(engine);
+                        }
+                    }
+                });
+                
+                // Handle window resize
+                window.addEventListener('resize', () => {
+                    this.terminalEngines.forEach(engine => {
+                        engine.resize();
+                    });
+                });
+            }
+        }
+        
+        // Initialize terminal when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.standaloneTerminal = new StandaloneTerminalManager();
+        });
+    </script>
+</body>
+</html>

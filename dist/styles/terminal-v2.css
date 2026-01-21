@@ -1,0 +1,383 @@
+/* Advanced Terminal v2 - BULLETPROOF BEAUTIFUL DESIGN */
+/* Glassmorphic, World-Class Terminal UI */
+
+.app-terminal-v2 {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: transparent;
+}
+
+.terminal-v2-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: linear-gradient(135deg, 
+        rgba(15, 23, 42, 0.95) 0%, 
+        rgba(30, 41, 59, 0.95) 50%,
+        rgba(15, 23, 42, 0.95) 100%);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.5),
+        0 2px 8px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Enhanced Glow effect */
+.terminal-v2-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 50% 0%, rgba(10, 185, 84, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 100% 100%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 0% 50%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+    animation: terminalGlowShift 8s ease-in-out infinite;
+}
+
+@keyframes terminalGlowShift {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+/* Header - Glassmorphic */
+.terminal-v2-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: rgba(30, 41, 59, 0.85);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    z-index: 1;
+    position: relative;
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.terminal-tabs {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    overflow-x: auto;
+}
+
+.terminal-tabs::-webkit-scrollbar {
+    height: 4px;
+}
+
+.terminal-tabs::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.3);
+    border-radius: 2px;
+}
+
+.terminal-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    color: #94a3b8;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    min-width: 130px;
+    position: relative;
+    overflow: hidden;
+}
+
+.terminal-tab::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(10, 185, 84, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.terminal-tab:hover::before {
+    left: 100%;
+}
+
+.terminal-tab:hover {
+    background: rgba(30, 41, 59, 0.9);
+    border-color: rgba(10, 185, 84, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(10, 185, 84, 0.2);
+}
+
+.terminal-tab.active {
+    background: linear-gradient(135deg, 
+        rgba(10, 185, 84, 0.25) 0%, 
+        rgba(10, 185, 84, 0.15) 100%);
+    border-color: rgba(10, 185, 84, 0.7);
+    color: #10b981;
+    box-shadow: 
+        0 0 24px rgba(10, 185, 84, 0.4),
+        0 4px 12px rgba(10, 185, 84, 0.2),
+        inset 0 1px 0 rgba(10, 185, 84, 0.4),
+        inset 0 -1px 0 rgba(10, 185, 84, 0.1);
+    text-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+}
+
+.terminal-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #10b981, transparent);
+    animation: terminalGlow 2s ease-in-out infinite;
+}
+
+.tab-title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tab-close {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 18px;
+    line-height: 1;
+    opacity: 0;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.terminal-tab:hover .tab-close {
+    opacity: 1;
+}
+
+.tab-close:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    transform: scale(1.1);
+}
+
+.terminal-new-tab {
+    padding: 8px 14px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px dashed rgba(148, 163, 184, 0.3);
+    border-radius: 8px;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: 300;
+    transition: all 0.25s;
+    line-height: 1;
+}
+
+.terminal-new-tab:hover {
+    background: rgba(30, 41, 59, 0.9);
+    border-color: rgba(10, 185, 84, 0.6);
+    color: #10b981;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(10, 185, 84, 0.2);
+}
+
+.terminal-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.terminal-action-btn {
+    padding: 8px 14px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    border-radius: 8px;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.25s;
+}
+
+.terminal-action-btn:hover {
+    background: rgba(30, 41, 59, 0.9);
+    border-color: rgba(10, 185, 84, 0.4);
+    color: #10b981;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(10, 185, 84, 0.15);
+}
+
+/* Terminal Content */
+.terminal-v2-content {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.terminal-containers {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.terminal-container {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    background: rgba(15, 23, 42, 0.3);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.xterm-container {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Fallback terminal styles */
+.terminal-fallback-container {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 16px;
+    box-sizing: border-box;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', 'Consolas', monospace;
+    line-height: 1.6;
+}
+
+.terminal-fallback-content {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin-bottom: 20px;
+}
+
+.terminal-fallback-input {
+    display: flex;
+    align-items: center;
+    position: sticky;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(10px);
+    padding: 8px 0;
+    border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.terminal-fallback-cursor {
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0.3; }
+}
+
+/* xterm.js overrides - Beautiful styling */
+.xterm {
+    font-family: 'JetBrains Mono', 'Consolas', 'Courier New', monospace !important;
+    font-feature-settings: 'liga' 0;
+    position: relative;
+    user-select: text;
+    -ms-user-select: text;
+    -webkit-user-select: text;
+    background: transparent !important;
+}
+
+.xterm-viewport {
+    background: transparent !important;
+    overflow-y: auto;
+    overflow-x: hidden;
+    cursor: text;
+}
+
+.xterm-screen {
+    position: relative;
+}
+
+.xterm-cursor-layer {
+    z-index: 2;
+}
+
+.xterm-rows {
+    font-family: 'JetBrains Mono', 'Consolas', 'Courier New', monospace !important;
+}
+
+/* Custom scrollbar */
+.xterm-viewport::-webkit-scrollbar {
+    width: 12px;
+}
+
+.xterm-viewport::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 6px;
+}
+
+.xterm-viewport::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(10, 185, 84, 0.5) 0%, rgba(10, 185, 84, 0.3) 100%);
+    border-radius: 6px;
+    border: 2px solid rgba(15, 23, 42, 0.5);
+}
+
+.xterm-viewport::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(10, 185, 84, 0.7) 0%, rgba(10, 185, 84, 0.5) 100%);
+}
+
+/* Window content override */
+.app-terminal-v2 .window-content {
+    padding: 0;
+    overflow: hidden;
+    background: transparent;
+}
+
+/* Animations */
+@keyframes terminalGlow {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .terminal-tabs {
+        min-width: 0;
+    }
+    
+    .terminal-tab {
+        min-width: 100px;
+        padding: 6px 10px;
+    }
+    
+    .terminal-actions {
+        flex-wrap: wrap;
+    }
+    
+    .terminal-v2-content {
+        padding: 12px;
+    }
+}

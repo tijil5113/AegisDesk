@@ -4,6 +4,7 @@
 class AuthSystem {
     constructor() {
         this.storageKey = 'aegis_auth_session';
+        this.idTokenKey = 'id_token'; // JWT token key (AWS Cognito compatible)
         this.apiBaseUrl = this.getApiBaseUrl();
         this.currentUser = null;
         this.session = null;
@@ -12,8 +13,116 @@ class AuthSystem {
 
     init() {
         console.log('[Auth] Initializing authentication system...');
+        
+        // Check for OAuth callback (tokens in URL)
+        this.handleOAuthCallback();
+        
+        // Load existing session
         this.loadSession();
-        this.checkAuthState();
+        
+        // Don't auto-redirect here - let router handle it
+        // this.checkAuthState();
+    }
+    
+    /**
+     * Handle OAuth callback - extract tokens from URL
+     * AWS Cognito compatible: looks for id_token, access_token, etc.
+     */
+    handleOAuthCallback() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        
+        // Check for tokens in URL params (OAuth callback)
+        const idToken = urlParams.get('id_token') || hashParams.get('id_token');
+        const accessToken = urlParams.get('access_token') || hashParams.get('access_token');
+        const error = urlParams.get('error') || hashParams.get('error');
+        const errorDescription = urlParams.get('error_description') || hashParams.get('error_description');
+        
+        if (error) {
+            console.error('[Auth] OAuth error:', error, errorDescription);
+            // Show error UI will be handled by login page
+            return;
+        }
+        
+        if (idToken) {
+            console.log('[Auth] OAuth callback detected, processing tokens...');
+            
+            try {
+                // Decode JWT to get user info (basic decode, not verification)
+                const userInfo = this.decodeJWT(idToken);
+                
+                // Create session with JWT token
+                const session = {
+                    id_token: idToken,
+                    access_token: accessToken || null,
+                    token: idToken, // For backward compatibility
+                    user: {
+                        userId: userInfo.sub || userInfo.user_id,
+                        name: userInfo.name || userInfo.email?.split('@')[0] || 'User',
+                        email: userInfo.email,
+                        profileImage: userInfo.picture || null,
+                        provider: userInfo.identities?.[0]?.provider || 'oauth'
+                    },
+                    expiresAt: userInfo.exp ? userInfo.exp * 1000 : Date.now() + (24 * 60 * 60 * 1000),
+                    createdAt: Date.now()
+                };
+                
+                this.saveSession(session);
+                
+                // Clean URL - remove tokens from URL
+                const cleanUrl = window.location.pathname + window.location.hash.split('&')[0].split('?')[0];
+                window.history.replaceState({}, '', cleanUrl);
+                
+                console.log('[Auth] OAuth callback processed, session saved');
+                
+                // Redirect will be handled by router
+                if (typeof router !== 'undefined') {
+                    router.navigate('/desktop', true);
+                } else {
+                    window.location.href = '/desktop';
+                }
+            } catch (error) {
+                console.error('[Auth] Error processing OAuth callback:', error);
+            }
+        }
+    }
+    
+    /**
+     * Decode JWT token (basic decode, no verification)
+     * @param {string} token 
+     * @returns {object}
+     */
+    decodeJWT(token) {
+        try {
+            const parts = token.split('.');
+            if (parts.length !== 3) {
+                throw new Error('Invalid JWT format');
+            }
+            
+            // Decode payload (second part)
+            const payload = parts[1];
+            const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+            return decoded;
+        } catch (error) {
+            console.error('[Auth] Error decoding JWT:', error);
+            throw error;
+        }
+    }
+
+    // Local development detection (supports file:// usage on Windows)
+    isLocalDev() {
+        try {
+            const host = (window.location && window.location.hostname) ? window.location.hostname : '';
+            const protocol = (window.location && window.location.protocol) ? window.location.protocol : '';
+            return (
+                protocol === 'file:' ||
+                host === '' ||
+                host === 'localhost' ||
+                host === '127.0.0.1'
+            );
+        } catch (_) {
+            return true;
+        }
     }
 
     getApiBaseUrl() {
@@ -46,6 +155,15 @@ class AuthSystem {
             this.session = session;
             this.currentUser = session.user || null;
             localStorage.setItem(this.storageKey, JSON.stringify(session));
+            
+            // Also store JWT id_token separately (AWS Cognito compatible)
+            if (session.id_token) {
+                localStorage.setItem(this.idTokenKey, session.id_token);
+            } else if (session.token && session.token.includes('.')) {
+                // If token looks like JWT, store it as id_token too
+                localStorage.setItem(this.idTokenKey, session.token);
+            }
+            
             return true;
         } catch (e) {
             console.error('[Auth] Failed to save session:', e);
@@ -56,6 +174,7 @@ class AuthSystem {
     clearSession() {
         try {
             localStorage.removeItem(this.storageKey);
+            localStorage.removeItem(this.idTokenKey);
             this.session = null;
             this.currentUser = null;
             return true;
@@ -67,6 +186,29 @@ class AuthSystem {
 
     // Check if user is authenticated
     isAuthenticated() {
+        // Check for JWT id_token (AWS Cognito compatible)
+        const idToken = localStorage.getItem(this.idTokenKey);
+        if (idToken) {
+            try {
+                const decoded = this.decodeJWT(idToken);
+                // Check expiry
+                if (decoded.exp && decoded.exp * 1000 < Date.now()) {
+                    console.log('[Auth] JWT token expired');
+                    localStorage.removeItem(this.idTokenKey);
+                    this.clearSession();
+                    return false;
+                }
+                // Token is valid
+                return true;
+            } catch (error) {
+                console.error('[Auth] Error validating JWT:', error);
+                localStorage.removeItem(this.idTokenKey);
+                this.clearSession();
+                return false;
+            }
+        }
+        
+        // Fallback to session token
         if (!this.session || !this.session.token) {
             return false;
         }
@@ -109,8 +251,8 @@ class AuthSystem {
             // Simulate OAuth redirect
             const googleAuthUrl = `${this.apiBaseUrl}/auth/google`;
             
-            // For local development, use popup flow
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            // For local development (including file://), use simulated flow
+            if (this.isLocalDev()) {
                 // Simulate successful OAuth
                 const mockUser = {
                     userId: `google_${Date.now()}`,
@@ -139,7 +281,7 @@ class AuthSystem {
             // AWS Cognito-compatible Apple OAuth flow
             const appleAuthUrl = `${this.apiBaseUrl}/auth/apple`;
             
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            if (this.isLocalDev()) {
                 // Simulate successful OAuth
                 const mockUser = {
                     userId: `apple_${Date.now()}`,
@@ -177,8 +319,12 @@ class AuthSystem {
             this.saveSession(session);
             this.hideLoading();
 
-            // Redirect to desktop
-            window.location.href = 'desktop.html';
+            // Redirect to desktop using router if available
+            if (typeof router !== 'undefined') {
+                router.navigate('/desktop', true);
+            } else {
+                window.location.href = '/desktop';
+            }
         } catch (error) {
             console.error('[Auth] OAuth success handler error:', error);
             this.hideLoading();
@@ -226,7 +372,7 @@ class AuthSystem {
                     body: JSON.stringify({ phone: phoneNumber })
                 });
 
-                if (response.ok || window.location.hostname === 'localhost') {
+                if (response.ok || this.isLocalDev()) {
                     // Show OTP input
                     otpGroup.style.display = 'block';
                     submitBtn.textContent = 'Verify Code';
@@ -244,7 +390,7 @@ class AuthSystem {
                 submitBtn.textContent = 'Send Code';
                 
                 // For local dev, simulate OTP
-                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                if (this.isLocalDev()) {
                     otpGroup.style.display = 'block';
                     submitBtn.textContent = 'Verify Code';
                     phoneInput.disabled = true;
@@ -273,7 +419,7 @@ class AuthSystem {
                     body: JSON.stringify({ phone: phoneNumber, code: otpCode })
                 });
 
-                if (response.ok || window.location.hostname === 'localhost') {
+                if (response.ok || this.isLocalDev()) {
                     const data = await (response.ok ? response.json() : Promise.resolve({
                         user: {
                             userId: `phone_${Date.now()}`,
@@ -314,25 +460,19 @@ class AuthSystem {
 
         try {
             this.showLoading();
-            
-            // Call backend API
-            const response = await fetch(`${this.apiBaseUrl}/auth/signin`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
 
-            if (response.ok || window.location.hostname === 'localhost') {
-                const data = await (response.ok ? response.json() : Promise.resolve({
+            // Local dev (including file://): skip backend and accept any credentials
+            if (this.isLocalDev()) {
+                const data = {
                     user: {
                         userId: `email_${Date.now()}`,
-                        name: email.split('@')[0],
-                        email: email,
+                        name: email ? email.split('@')[0] : 'Developer',
+                        email: email || 'dev@local',
                         profileImage: null,
                         provider: 'email'
                     },
-                    token: this.generateMockToken({ email })
-                }));
+                    token: this.generateMockToken({ email: email || 'dev@local' })
+                };
 
                 const expiresAt = remember 
                     ? Date.now() + (30 * 24 * 60 * 60 * 1000) // 30 days
@@ -349,10 +489,37 @@ class AuthSystem {
                 this.saveSession(session);
                 this.hideLoading();
                 window.location.href = 'desktop.html';
-            } else {
+                return;
+            }
+
+            // Production: Call backend API
+            const response = await fetch(`${this.apiBaseUrl}/auth/signin`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            if (!response.ok) {
                 const error = await response.json().catch(() => ({ message: 'Sign-in failed' }));
                 throw new Error(error.message || 'Invalid email or password');
             }
+
+            const data = await response.json();
+            const expiresAt = remember
+                ? Date.now() + (30 * 24 * 60 * 60 * 1000)
+                : Date.now() + (24 * 60 * 60 * 1000);
+
+            const session = {
+                token: data.token,
+                user: data.user,
+                provider: 'email',
+                expiresAt: expiresAt,
+                createdAt: Date.now()
+            };
+
+            this.saveSession(session);
+            this.hideLoading();
+            window.location.href = 'desktop.html';
         } catch (error) {
             console.error('[Auth] Email sign-in error:', error);
             this.hideLoading();
@@ -386,25 +553,19 @@ class AuthSystem {
 
         try {
             this.showLoading();
-            
-            // Call backend API
-            const response = await fetch(`${this.apiBaseUrl}/auth/signup`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, password })
-            });
 
-            if (response.ok || window.location.hostname === 'localhost') {
-                const data = await (response.ok ? response.json() : Promise.resolve({
+            // Local dev (including file://): skip backend and create session immediately
+            if (this.isLocalDev()) {
+                const data = {
                     user: {
                         userId: `email_${Date.now()}`,
-                        name: name,
-                        email: email,
+                        name: name || 'Developer',
+                        email: email || 'dev@local',
                         profileImage: null,
                         provider: 'email'
                     },
-                    token: this.generateMockToken({ email })
-                }));
+                    token: this.generateMockToken({ email: email || 'dev@local' })
+                };
 
                 const session = {
                     token: data.token,
@@ -417,10 +578,33 @@ class AuthSystem {
                 this.saveSession(session);
                 this.hideLoading();
                 window.location.href = 'desktop.html';
-            } else {
+                return;
+            }
+
+            // Production: Call backend API
+            const response = await fetch(`${this.apiBaseUrl}/auth/signup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, password })
+            });
+
+            if (!response.ok) {
                 const error = await response.json().catch(() => ({ message: 'Sign-up failed' }));
                 throw new Error(error.message || 'Failed to create account');
             }
+
+            const data = await response.json();
+            const session = {
+                token: data.token,
+                user: data.user,
+                provider: 'email',
+                expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000),
+                createdAt: Date.now()
+            };
+
+            this.saveSession(session);
+            this.hideLoading();
+            window.location.href = 'desktop.html';
         } catch (error) {
             console.error('[Auth] Email sign-up error:', error);
             this.hideLoading();
@@ -509,11 +693,19 @@ class AuthSystem {
             }
 
             this.clearSession();
-            window.location.href = 'login.html';
+            if (typeof router !== 'undefined') {
+                router.navigate('/login', true);
+            } else {
+                window.location.href = '/login';
+            }
         } catch (error) {
             console.error('[Auth] Sign-out error:', error);
             this.clearSession();
-            window.location.href = 'login.html';
+            if (typeof router !== 'undefined') {
+                router.navigate('/login', true);
+            } else {
+                window.location.href = '/login';
+            }
         }
     }
 
