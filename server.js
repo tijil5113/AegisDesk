@@ -68,13 +68,23 @@ app.get('/api/music/test', (req, res) => {
   });
 });
 
+// Root route - serve welcome.html first (before static files)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'welcome.html'));
+});
+
 // Static files
 app.use(express.static(__dirname));
 
-// Fallback to welcome.html as default landing page
+// Fallback to welcome.html for any other routes that don't match static files
 app.get('*', (req, res) => {
-  const target = req.path.endsWith('.html') ? req.path : '/welcome.html';
-  res.sendFile(path.join(__dirname, target));
+  // If it's already an HTML file request, serve it
+  if (req.path.endsWith('.html')) {
+    res.sendFile(path.join(__dirname, req.path));
+  } else {
+    // Otherwise, redirect to welcome.html
+    res.sendFile(path.join(__dirname, 'welcome.html'));
+  }
 });
 
 const PORT = process.env.PORT || 3000;
