@@ -22,3 +22,6 @@ npm-debug.log*
 *.tmp
 *.temp
 
+# Dependencies
+node_modules/
+package-lock.json
