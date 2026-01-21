@@ -933,40 +933,23 @@
         }, 500);
         
         // Check authentication before loading desktop
-        // Auth guard - desktop.html MUST NOT render unless authenticated
+        // Auth is optional - allow access to desktop.html without auth
+        // Users can access all features, login is optional for cloud sync
         function checkAuth() {
             if (typeof authSystem !== 'undefined' && authSystem) {
-                if (!authSystem.isAuthenticated()) {
-                    console.log('[Desktop] 🔒 Auth guard: Not authenticated, redirecting to login...');
-                    if (typeof router !== 'undefined') {
-                        router.navigate('/login', true);
-                    } else {
-                        window.location.href = '/login';
-                    }
-                    return false;
+                if (authSystem.isAuthenticated()) {
+                    console.log('[Desktop] ✅ Auth: User authenticated - cloud sync enabled');
+                } else {
+                    console.log('[Desktop] ℹ️ Auth: Guest mode - local features available');
                 }
-                console.log('[Desktop] ✅ Auth guard: User authenticated');
-                return true;
+                return true; // Always allow access
             }
-            return false;
+            console.log('[Desktop] ℹ️ Auth: Auth system not loaded - guest mode');
+            return true; // Always allow access
         }
         
-        // Check immediately
-        if (!checkAuth()) {
-            // Wait for auth system to load
-            setTimeout(() => {
-                if (!checkAuth()) {
-                    console.error('[Desktop] ❌ Auth system not available');
-                    document.body.innerHTML = `
-                        <div style="padding: 48px; text-align: center; font-family: sans-serif;">
-                            <h1>Authentication Error</h1>
-                            <p>Unable to verify authentication. Please refresh the page.</p>
-                            <button onclick="location.reload()">Reload</button>
-                        </div>
-                    `;
-                }
-            }, 1000);
-        }
+        // Check immediately - always allow access (auth is optional)
+        checkAuth(); // Just log status, don't block access
     });
     </script>
 </body>
