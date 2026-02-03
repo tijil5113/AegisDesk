@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Reader - AegisDesk</title>
+    <meta name="theme-color" content="#6366f1">
+    <meta name="description" content="AI-Powered News Aggregator - Stay informed with the latest news from around the world">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/news.css">
+</head>
+<body class="news-page">
+    <!-- Breaking News Ticker -->
+    <div class="breaking-news-ticker" id="breaking-news-ticker" aria-live="polite">
+        <div class="breaking-news-label">
+            <span class="breaking-pulse"></span>
+            BREAKING
+        </div>
+        <div class="breaking-news-content" id="breaking-news-content">
+            <span>Loading breaking news...</span>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="news-header" role="banner">
+        <div class="news-header-container">
+            <div class="news-header-left">
+                <button class="news-back-btn" id="news-back-btn" aria-label="Go back" onclick="window.close()" title="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+                <div class="news-logo">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"></path>
+                        <path d="M18 14h-8"></path>
+                        <path d="M15 18h-5"></path>
+                    </svg>
+                    <span>News Reader</span>
+                </div>
+                <p class="news-subtitle">AI-Powered News Aggregator</p>
+            </div>
+            <div class="news-header-right">
+                <div class="news-search-container">
+                    <input 
+                        type="search" 
+                        id="news-search" 
+                        class="news-search-input" 
+                        placeholder="Search news, topics, keywords..."
+                        aria-label="Search news"
+                        autocomplete="off"
+                    >
+                    <button class="news-search-btn" id="news-search-btn" aria-label="Search">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="news-controls">
+                    <div class="news-language-toggle" id="news-language-toggle" role="group" aria-label="Language selection">
+                        <button class="news-control-btn news-lang-btn" data-lang="en" aria-label="English" title="English" id="news-lang-en">EN</button>
+                        <button class="news-control-btn news-lang-btn" data-lang="hi" aria-label="Hindi" title="Hindi" id="news-lang-hi">HI</button>
+                        <button class="news-control-btn news-lang-btn" data-lang="ta" aria-label="Tamil" title="Tamil" id="news-lang-ta">TA</button>
+                    </div>
+                    <button class="news-control-btn" id="news-filters-toggle" aria-label="Toggle filters" title="Filters">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                        </svg>
+                    </button>
+                    <button class="news-control-btn" id="news-reading-mode" aria-label="Reading mode" title="Reading Mode">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                    </button>
+                    <button class="news-control-btn" id="news-bookmarks" aria-label="Bookmarks" title="Bookmarks">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation & Filters -->
+    <nav class="news-nav" role="navigation" aria-label="News categories">
+        <div class="news-nav-container">
+            <div class="news-categories" id="news-categories" role="tablist">
+                <button class="news-category-btn active" data-category="all" role="tab" aria-selected="true">All News</button>
+                <button class="news-category-btn" data-category="top-headlines" role="tab">Top Headlines</button>
+                <button class="news-category-btn" data-category="world" role="tab">World</button>
+                <button class="news-category-btn" data-category="india" role="tab">India</button>
+                <button class="news-category-btn" data-category="business" role="tab">Business</button>
+                <button class="news-category-btn" data-category="technology" role="tab">Technology</button>
+                <button class="news-category-btn" data-category="science" role="tab">Science</button>
+                <button class="news-category-btn" data-category="health" role="tab">Health</button>
+                <button class="news-category-btn" data-category="sports" role="tab">Sports</button>
+                <button class="news-category-btn" data-category="entertainment" role="tab">Entertainment</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Filters Panel -->
+    <div class="news-filters-panel" id="news-filters-panel" aria-hidden="true">
+        <div class="news-filters-content">
+            <div class="news-filter-group">
+                <label class="news-filter-label">Source</label>
+                <select id="news-filter-source" class="news-filter-select" aria-label="Filter by source">
+                    <option value="all">All Sources</option>
+                    <option value="the-times-of-india">Times of India</option>
+                    <option value="the-hindu">The Hindu</option>
+                    <option value="ndtv">NDTV</option>
+                    <option value="indian-express">Indian Express</option>
+                    <option value="bbc-news">BBC News</option>
+                    <option value="reuters">Reuters</option>
+                    <option value="techcrunch">TechCrunch</option>
+                    <option value="wired">Wired</option>
+                    <option value="bloomberg">Bloomberg</option>
+                </select>
+            </div>
+            <div class="news-filter-group">
+                <label class="news-filter-label">Location</label>
+                <select id="news-filter-location" class="news-filter-select" aria-label="Filter by location">
+                    <option value="all">All Locations</option>
+                    <option value="in">India</option>
+                    <option value="tamil-nadu">Tamil Nadu</option>
+                    <option value="chennai">Chennai</option>
+                    <option value="kerala">Kerala</option>
+                    <option value="karnataka">Karnataka</option>
+                </select>
+            </div>
+            <div class="news-filter-group">
+                <label class="news-filter-label">Sort By</label>
+                <select id="news-filter-sort" class="news-filter-select" aria-label="Sort articles">
+                    <option value="publishedAt">Latest First</option>
+                    <option value="popularity">Most Popular</option>
+                    <option value="relevancy">Relevance</option>
+                </select>
+            </div>
+            <div class="news-filter-group">
+                <label class="news-filter-label">Date Range</label>
+                <select id="news-filter-date" class="news-filter-select" aria-label="Filter by date">
+                    <option value="all">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                </select>
+            </div>
+            <div class="news-filter-actions">
+                <button class="news-filter-apply" id="news-filter-apply">Apply Filters</button>
+                <button class="news-filter-clear" id="news-filter-clear">Clear All</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="news-main" role="main">
+        <!-- Hero Section -->
+        <section class="news-hero" id="news-hero" aria-label="Featured news">
+            <div class="news-hero-content">
+                <div class="news-hero-main" id="news-hero-main">
+                    <div class="news-hero-skeleton">
+                        <div class="news-skeleton-image"></div>
+                        <div class="news-skeleton-text"></div>
+                        <div class="news-skeleton-text short"></div>
+                    </div>
+                </div>
+                <div class="news-hero-sidebar" id="news-hero-sidebar">
+                    <h3 class="news-sidebar-title">Trending Now</h3>
+                    <div class="news-trending-list" id="news-trending-list">
+                        <div class="news-skeleton-item"></div>
+                        <div class="news-skeleton-item"></div>
+                        <div class="news-skeleton-item"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Articles Grid -->
+        <section class="news-articles-section" aria-label="News articles">
+            <div class="news-articles-container">
+                <div class="news-articles-header">
+                    <h2 class="news-section-title" id="news-section-title">All News</h2>
+                    <div class="news-articles-count" id="news-articles-count">0 articles</div>
+                </div>
+                <div class="news-articles-grid" id="news-articles-grid" role="list">
+                    <!-- Articles will be inserted here -->
+                </div>
+                <div class="news-loading" id="news-loading" style="display: none;">
+                    <div class="news-skeleton-loader">
+                        <div class="news-skeleton-card"></div>
+                        <div class="news-skeleton-card"></div>
+                        <div class="news-skeleton-card"></div>
+                        <div class="news-skeleton-card"></div>
+                    </div>
+                </div>
+                <div class="news-end-message" id="news-end-message" style="display: none;">
+                    <p>You've reached the end! 🎉</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Article Reader Modal -->
+    <div class="news-modal-overlay" id="news-modal-overlay" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="news-modal" id="news-modal">
+            <button class="news-modal-close" id="news-modal-close" aria-label="Close article">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+            <div class="news-modal-content" id="news-modal-content">
+                <!-- Article content will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Bookmarks Panel -->
+    <div class="news-bookmarks-panel" id="news-bookmarks-panel" aria-hidden="true">
+        <div class="news-bookmarks-header">
+            <h3>Saved Articles</h3>
+            <button class="news-bookmarks-close" id="news-bookmarks-close" aria-label="Close bookmarks">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="news-bookmarks-content" id="news-bookmarks-content">
+            <div class="news-empty-state">No bookmarks yet. Save articles to read later!</div>
+        </div>
+    </div>
+
+    <!-- Scroll to Top -->
+    <button class="news-scroll-top" id="news-scroll-top" aria-label="Scroll to top" style="display: none;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="18 15 12 9 6 15"></polyline>
+        </svg>
+    </button>
+
+    <!-- Debug Panel (Developer Only) -->
+    <div class="news-debug-panel" id="news-debug-panel">
+        <button class="news-debug-toggle" id="news-debug-toggle" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
+            🐛 Debug Info
+        </button>
+        <div class="news-debug-content" style="display: none;">
+            <div class="news-debug-item">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/utils/storage.js"></script>
+    <script src="js/apps/news-reader-app.js"></script>
+    <!-- News App is initialized automatically at the end of news-reader-app.js -->
+</body>
+</html>

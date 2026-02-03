@@ -1,0 +1,114 @@
+/**
+ * PERFORMANCE GUARDRAILS
+ *
+ * 1. prefers-reduced-motion: near-instant animations (motion-system.css does the heavy lift).
+ * 2. prefers-reduced-transparency: no blur, more opaque backgrounds so layout stays intact.
+ * 3. .performance-mode: manual or auto (low-end) — no blur, minimal animation, GPU hints only where needed.
+ * 4. CSS containment: isolate repaint/layout to key regions without breaking overflow or positioning.
+ * 5. GPU compositing: will-change/translateZ only on elements that actually animate.
+ *
+ * Graceful degradation: when any of these apply, UI remains usable; no broken layout or overflow.
+ */
+
+/* ========== PREFERS-REDUCED-TRANSPARENCY ==========
+   Replace glass blur with solid(er) backgrounds so content stays readable and layout unchanged. */
+@media (prefers-reduced-transparency: reduce) {
+    :root {
+        --glass-blur: none;
+        --glass-bg: rgba(15, 23, 42, 0.98);
+        --glass-bg-solid: rgba(15, 23, 42, 0.99);
+    }
+
+    .taskbar,
+    .apps-menu,
+    .power-menu,
+    .window,
+    .search-bar,
+    [class*="glass"],
+    [class*="modal"] {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+}
+
+/* ========== PREFERS-REDUCED-MOTION (reinforce) ==========
+   motion-system.css sets durations to 0.01ms globally. Here we ensure no layout shift
+   when animations are disabled (e.g. avoid transform that could leave elements off-grid). */
+@media (prefers-reduced-motion: reduce) {
+    .apps-menu:not(.visible) {
+        /* Keep off-screen but avoid relying on animated transform for layout */
+        visibility: hidden;
+        pointer-events: none;
+    }
+    .apps-menu.visible {
+        visibility: visible;
+    }
+
+    .power-menu:not(.visible) {
+        visibility: hidden;
+        pointer-events: none;
+    }
+    .power-menu.visible {
+        visibility: visible;
+    }
+}
+
+/* ========== CONTAINMENT (limit reflow/repaint to regions) ==========
+   Use contain: layout style paint where the box is a self-contained UI block.
+   Avoid contain: strict so overflow and positioning still work. */
+.search-bar,
+.power-menu,
+.tooltip,
+.boot-overlay {
+    contain: layout style paint;
+}
+
+.windows-container {
+    contain: layout style;
+}
+
+.apps-menu-header,
+.apps-menu-scroll,
+.time-date-container {
+    contain: layout style;
+}
+
+/* Launcher grid and taskbar already have containment in launcher-grid.css / perf-desktop.css */
+
+/* ========== PERFORMANCE MODE (manual or auto) ==========
+   glass-system.css and performance-optimized.css already define .performance-mode.
+   Here we add guardrails so layout never breaks: ensure panels stay visible and scrollable. */
+body.performance-mode .apps-menu,
+:root.performance-mode .apps-menu {
+    overflow: visible;
+}
+body.performance-mode .apps-menu-scroll,
+:root.performance-mode .apps-menu-scroll {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+body.performance-mode .window,
+:root.performance-mode .window {
+    overflow: auto;
+}
+
+/* Performance mode: ensure focus outlines still visible for accessibility */
+body.performance-mode *:focus-visible,
+:root.performance-mode *:focus-visible {
+    outline: 2px solid rgba(99, 102, 241, 0.7);
+    outline-offset: 2px;
+}
+
+/* Power menu: Performance mode toggle item (state label on the right) */
+.power-menu-item-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.power-menu-item-state {
+    margin-left: auto;
+    font-size: 0.85em;
+    color: var(--text-muted, rgba(148, 163, 184, 0.9));
+}

@@ -1,0 +1,58 @@
+{
+  "aws": {
+    "frontend": {
+      "s3": {
+        "bucket": "aegisdesk-frontend",
+        "region": "us-east-1",
+        "cloudFront": {
+          "distributionId": "YOUR_DISTRIBUTION_ID",
+          "domain": "https://aegisdesk.com"
+        }
+      }
+    },
+    "backend": {
+      "apiGateway": {
+        "restApiId": "YOUR_API_GATEWAY_ID",
+        "region": "us-east-1",
+        "baseUrl": "https://api.aegisdesk.com"
+      },
+      "lambda": {
+        "functions": {
+          "auth": "aegisdesk-auth",
+          "mail": "aegisdesk-mail",
+          "gmail": "aegisdesk-gmail",
+          "outlook": "aegisdesk-outlook"
+        },
+        "region": "us-east-1",
+        "runtime": "nodejs18.x"
+      },
+      "cognito": {
+        "userPoolId": "YOUR_USER_POOL_ID",
+        "clientId": "YOUR_CLIENT_ID",
+        "region": "us-east-1"
+      },
+      "dynamodb": {
+        "tableName": "aegisdesk-users",
+        "region": "us-east-1"
+      },
+      "ses": {
+        "region": "us-east-1",
+        "fromEmail": "noreply@aegisdesk.com"
+      }
+    }
+  },
+  "environment": {
+    "production": {
+      "API_BASE_URL": "https://api.aegisdesk.com",
+      "COGNITO_DOMAIN": "auth.aegisdesk.com",
+      "GMAIL_CLIENT_ID": "YOUR_GMAIL_CLIENT_ID",
+      "OUTLOOK_CLIENT_ID": "YOUR_OUTLOOK_CLIENT_ID"
+    },
+    "development": {
+      "API_BASE_URL": "http://localhost:3000/api",
+      "COGNITO_DOMAIN": "localhost:3000",
+      "GMAIL_CLIENT_ID": "YOUR_GMAIL_CLIENT_ID_DEV",
+      "OUTLOOK_CLIENT_ID": "YOUR_OUTLOOK_CLIENT_ID_DEV"
+    }
+  }
+}

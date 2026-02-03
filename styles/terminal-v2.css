@@ -1,0 +1,693 @@
+/* Advanced Terminal v2 - BULLETPROOF BEAUTIFUL DESIGN */
+/* Glassmorphic, World-Class Terminal UI */
+
+.app-terminal-v2 {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: transparent;
+}
+
+.terminal-v2-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: linear-gradient(135deg, 
+        rgba(15, 23, 42, 0.95) 0%, 
+        rgba(30, 41, 59, 0.95) 50%,
+        rgba(15, 23, 42, 0.95) 100%);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.5),
+        0 2px 8px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Enhanced Glow effect */
+.terminal-v2-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 50% 0%, rgba(10, 185, 84, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 100% 100%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 0% 50%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+    animation: terminalGlowShift 8s ease-in-out infinite;
+}
+
+@keyframes terminalGlowShift {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+/* Header - Glassmorphic, never collapse so Instructions is always visible */
+.terminal-v2-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    min-height: 48px;
+    padding: 12px 16px;
+    background: rgba(30, 41, 59, 0.85);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    z-index: 10;
+    position: relative;
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.terminal-tabs {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    overflow-x: auto;
+}
+
+.terminal-tabs::-webkit-scrollbar {
+    height: 4px;
+}
+
+.terminal-tabs::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.3);
+    border-radius: 2px;
+}
+
+.terminal-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    color: #94a3b8;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    min-width: 130px;
+    position: relative;
+    overflow: hidden;
+}
+
+.terminal-tab::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(10, 185, 84, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.terminal-tab:hover::before {
+    left: 100%;
+}
+
+.terminal-tab:hover {
+    background: rgba(30, 41, 59, 0.9);
+    border-color: rgba(10, 185, 84, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(10, 185, 84, 0.2);
+}
+
+.terminal-tab.active {
+    background: linear-gradient(135deg, 
+        rgba(10, 185, 84, 0.25) 0%, 
+        rgba(10, 185, 84, 0.15) 100%);
+    border-color: rgba(10, 185, 84, 0.7);
+    color: #10b981;
+    box-shadow: 
+        0 0 24px rgba(10, 185, 84, 0.4),
+        0 4px 12px rgba(10, 185, 84, 0.2),
+        inset 0 1px 0 rgba(10, 185, 84, 0.4),
+        inset 0 -1px 0 rgba(10, 185, 84, 0.1);
+    text-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+}
+
+.terminal-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #10b981, transparent);
+    animation: terminalGlow 2s ease-in-out infinite;
+}
+
+.tab-title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tab-close {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 18px;
+    line-height: 1;
+    opacity: 0;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.terminal-tab:hover .tab-close {
+    opacity: 1;
+}
+
+.tab-close:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    transform: scale(1.1);
+}
+
+.terminal-new-tab {
+    padding: 8px 14px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px dashed rgba(148, 163, 184, 0.3);
+    border-radius: 8px;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: 300;
+    transition: all 0.25s;
+    line-height: 1;
+}
+
+.terminal-new-tab:hover {
+    background: rgba(30, 41, 59, 0.9);
+    border-color: rgba(10, 185, 84, 0.6);
+    color: #10b981;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(10, 185, 84, 0.2);
+}
+
+.terminal-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.terminal-action-btn {
+    padding: 8px 14px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    border-radius: 8px;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.25s;
+}
+
+.terminal-action-btn:hover {
+    background: rgba(30, 41, 59, 0.9);
+    border-color: rgba(10, 185, 84, 0.4);
+    color: #10b981;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(10, 185, 84, 0.15);
+}
+
+/* Terminal Content */
+.terminal-v2-content {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    padding: 16px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.terminal-containers {
+    width: 100%;
+    flex: 1;
+    position: relative;
+    min-height: 0;
+}
+
+.terminal-container {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    background: rgba(15, 23, 42, 0.3);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.xterm-container {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Fallback terminal styles */
+.terminal-fallback-container {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 16px;
+    box-sizing: border-box;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', 'Consolas', monospace;
+    line-height: 1.6;
+}
+
+.terminal-fallback-content {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin-bottom: 20px;
+}
+
+.terminal-fallback-input {
+    display: flex;
+    align-items: center;
+    position: sticky;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(10px);
+    padding: 8px 0;
+    border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.terminal-fallback-cursor {
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0.3; }
+}
+
+/* High-contrast typing: ensure text and cursor are always visible */
+.xterm {
+    font-family: 'JetBrains Mono', 'Consolas', 'Courier New', monospace !important;
+    font-feature-settings: 'liga' 0;
+    position: relative;
+    user-select: text;
+    -ms-user-select: text;
+    -webkit-user-select: text;
+    background: transparent !important;
+}
+/* Ensure ALL text is bright and visible */
+.xterm .xterm-screen { 
+    color: #f1f5f9 !important; 
+    background: transparent !important;
+}
+.xterm .xterm-rows { 
+    color: #f1f5f9 !important; 
+    background: transparent !important;
+}
+.xterm .xterm-rows > div { 
+    color: #f1f5f9 !important; 
+    background: transparent !important;
+}
+.xterm .xterm-rows span { 
+    color: #f1f5f9 !important; 
+    background: transparent !important;
+}
+/* Ensure typed characters are bright white */
+.xterm .xterm-rows .xterm-line span {
+    color: #ffffff !important;
+    font-weight: 400 !important;
+}
+/* Cursor - highly visible */
+.xterm .xterm-cursor-layer { 
+    z-index: 3 !important; 
+}
+.xterm .xterm-cursor-layer .xterm-cursor {
+    background-color: #10b981 !important;
+    color: #0f172a !important;
+    border: 2px solid #34d399 !important;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.8), 0 0 24px rgba(16, 185, 129, 0.4) !important;
+    animation: terminalCursorBlink 1s step-end infinite !important;
+    opacity: 1 !important;
+}
+@keyframes terminalCursorBlink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0.5; }
+}
+
+.xterm-viewport {
+    background: transparent !important;
+    overflow-y: auto;
+    overflow-x: hidden;
+    cursor: text;
+}
+
+.xterm-screen {
+    position: relative;
+}
+
+.xterm-cursor-layer {
+    z-index: 2;
+}
+
+.xterm-rows {
+    font-family: 'JetBrains Mono', 'Consolas', 'Courier New', monospace !important;
+}
+
+/* Custom scrollbar */
+.xterm-viewport::-webkit-scrollbar {
+    width: 12px;
+}
+
+.xterm-viewport::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 6px;
+}
+
+.xterm-viewport::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(10, 185, 84, 0.5) 0%, rgba(10, 185, 84, 0.3) 100%);
+    border-radius: 6px;
+    border: 2px solid rgba(15, 23, 42, 0.5);
+}
+
+.xterm-viewport::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(10, 185, 84, 0.7) 0%, rgba(10, 185, 84, 0.5) 100%);
+}
+
+/* Window content override */
+.app-terminal-v2 .window-content {
+    padding: 0;
+    overflow: hidden;
+    background: transparent;
+}
+
+/* Animations */
+@keyframes terminalGlow {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+}
+
+/* Search bar */
+.terminal-search-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(15, 23, 42, 0.95);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    z-index: 10;
+}
+.terminal-search-bar input {
+    flex: 1;
+    padding: 6px 12px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    border-radius: 6px;
+    background: rgba(30, 41, 59, 0.8);
+    color: #e2e8f0;
+    font-size: 13px;
+}
+.terminal-search-bar button {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    background: rgba(30, 41, 59, 0.9);
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 12px;
+}
+.terminal-search-bar button:hover {
+    background: rgba(10, 185, 84, 0.2);
+    color: #10b981;
+}
+
+/* Reverse search */
+.terminal-reverse-search-bar {
+    display: flex;
+    align-items: center;
+    padding: 6px 16px;
+    background: rgba(15, 23, 42, 0.98);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    z-index: 10;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+}
+.terminal-reverse-prompt { color: #f59e0b; margin-right: 4px; }
+.terminal-reverse-suffix { color: #94a3b8; margin-left: 2px; }
+.terminal-reverse-search-bar input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #e2e8f0;
+    font-family: inherit;
+    font-size: inherit;
+    outline: none;
+}
+
+/* Settings modal */
+.terminal-settings-modal {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+.terminal-settings-content {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-radius: 12px;
+    padding: 24px;
+    min-width: 320px;
+    max-width: 90%;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+}
+.terminal-settings-content h3 {
+    margin: 0 0 16px;
+    color: #e2e8f0;
+    font-size: 18px;
+}
+.terminal-settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 16px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.terminal-settings-grid label { color: #94a3b8; font-size: 13px; }
+.terminal-settings-grid input[type="number"],
+.terminal-settings-grid input[type="text"],
+.terminal-settings-grid select {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: rgba(15, 23, 42, 0.8);
+    color: #e2e8f0;
+}
+.terminal-settings-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.terminal-settings-actions button {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(10, 185, 84, 0.4);
+    background: rgba(10, 185, 84, 0.2);
+    color: #10b981;
+    cursor: pointer;
+}
+.terminal-settings-actions button:last-of-type { border-color: rgba(148, 163, 184, 0.3); background: transparent; color: #94a3b8; }
+
+/* Context menu */
+.terminal-context-menu {
+    position: fixed;
+    z-index: 1000;
+    min-width: 160px;
+    background: rgba(30, 41, 59, 0.98);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 8px;
+    padding: 6px 0;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+.terminal-context-item {
+    padding: 8px 16px;
+    color: #e2e8f0;
+    font-size: 13px;
+    cursor: pointer;
+}
+.terminal-context-item:hover {
+    background: rgba(10, 185, 84, 0.2);
+    color: #10b981;
+}
+.terminal-context-divider {
+    height: 1px;
+    background: rgba(148, 163, 184, 0.2);
+    margin: 4px 0;
+}
+
+/* Instructions button (primary) */
+.terminal-action-btn-primary {
+    background: rgba(16, 185, 129, 0.25) !important;
+    border-color: rgba(16, 185, 129, 0.5) !important;
+    color: #34d399 !important;
+    font-weight: 600;
+}
+.terminal-action-btn-primary:hover {
+    background: rgba(16, 185, 129, 0.4) !important;
+    border-color: #10b981 !important;
+    color: #6ee7b7 !important;
+}
+
+/* Instructions modal */
+.terminal-instructions-modal {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 24px;
+    box-sizing: border-box;
+}
+.terminal-instructions-panel {
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    border-radius: 12px;
+    max-width: 480px;
+    width: 100%;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+}
+.terminal-instructions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    flex-shrink: 0;
+}
+.terminal-instructions-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #f1f5f9;
+    font-weight: 600;
+}
+.terminal-instructions-close {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+.terminal-instructions-close:hover {
+    color: #e2e8f0;
+    background: rgba(148, 163, 184, 0.2);
+}
+.terminal-instructions-body {
+    overflow-y: auto;
+    padding: 20px;
+    color: #cbd5e1;
+    font-size: 14px;
+    line-height: 1.6;
+}
+.terminal-instructions-body section {
+    margin-bottom: 20px;
+}
+.terminal-instructions-body section:last-child { margin-bottom: 0; }
+.terminal-instructions-body h3 {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: #10b981;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.terminal-instructions-body p { margin: 0 0 8px; }
+.terminal-instructions-body ul {
+    margin: 0;
+    padding-left: 20px;
+}
+.terminal-instructions-body li { margin-bottom: 4px; }
+.terminal-instructions-body code {
+    background: rgba(15, 23, 42, 0.8);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #6ee7b7;
+}
+.terminal-instructions-body kbd {
+    background: rgba(30, 41, 59, 0.9);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    font-size: 12px;
+    color: #e2e8f0;
+}
+
+/* Hint bar */
+.terminal-hint-bar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: rgba(15, 23, 42, 0.95);
+    border-top: 1px solid rgba(16, 185, 129, 0.25);
+    font-size: 12px;
+    color: #94a3b8;
+    min-height: 36px;
+    box-sizing: border-box;
+}
+.terminal-hint-label {
+    color: #10b981;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+.terminal-hint-text { flex: 1; }
+.terminal-hint-cmd {
+    color: #6ee7b7;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .terminal-tabs {
+        min-width: 0;
+    }
+    
+    .terminal-tab {
+        min-width: 100px;
+        padding: 6px 10px;
+    }
+    
+    .terminal-actions {
+        flex-wrap: wrap;
+    }
+    
+    .terminal-v2-content {
+        padding: 12px;
+    }
+}

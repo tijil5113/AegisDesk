@@ -1,0 +1,391 @@
+/**
+ * APPLICATION ICON SYSTEM — 3-layer OS design
+ *
+ * Design: Floating OS modules, depth-aware, calm, premium. Not mobile-style rounded squares.
+ * Structure: LAYER 1 = base (glass/matte), LAYER 2 = glyph (centered SVG, micro-parallax),
+ *            LAYER 3 = aura (glow/ring via pseudo-elements, hover/focus only).
+ *
+ * Performance (non-negotiable):
+ * - Animations: transform + opacity ONLY (GPU). No box-shadow, blur, width, height, position.
+ * - will-change only on hover. contain: layout style paint on tiles.
+ * - Idle: zero animation, no CPU. 60fps with 50+ icons.
+ *
+ * Timing: Hover 150ms, press 80ms. OS-like easing. No bounce/wobble.
+ * Performance Mode: aura disabled, depth reduced, layout identical.
+ */
+
+/* ========== TOKENS ========== */
+:root {
+    /* Icon animation: OS feel (snappy, not web) */
+    --icon-hover-ms: 150ms;
+    --icon-press-ms: 80ms;
+    --icon-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+    --icon-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* Glyph sizes: larger for clear picture; fixed so no reflow on change */
+    --icon-glyph-sm: 44px;
+    --icon-glyph-md: 56px;
+    --icon-glyph-lg: 64px;
+    --icon-glyph-xl: 72px;
+
+    /* Base shape: rounded but not circular (Vision Pro / Fluent feel) */
+    --icon-radius-tile: 20px;
+    --icon-radius-taskbar: 14px;
+
+    /* Depth: single static shadow (never animated) */
+    --icon-depth: 0 4px 12px rgba(0, 0, 0, 0.25);
+    --icon-depth-hover: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* ========== LAUNCHER APP TILE — 3 LAYERS ========== */
+
+/* LAYER 1 — BASE CORE: soft matte/glass, subtle depth, rounded */
+.apps-grid .app-tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 14px 10px;
+    border-radius: var(--icon-radius-tile);
+    cursor: pointer;
+    overflow: hidden;
+    isolation: isolate;
+
+    /* Matte base: no backdrop-filter on icon (perf); rgba only */
+    background: rgba(28, 38, 54, 0.72);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    /* Static depth only — never animate box-shadow */
+    box-shadow: var(--icon-depth);
+
+    /* Only transform + opacity for hover; no layout reflow */
+    transition: transform var(--icon-hover-ms) var(--icon-ease),
+                opacity var(--icon-hover-ms) var(--icon-ease),
+                background-color var(--icon-hover-ms) var(--icon-ease),
+                border-color var(--icon-hover-ms) var(--icon-ease);
+    will-change: auto;
+    contain: layout style paint;
+}
+
+/* Hover: lift in Z, base reacts subtly (background/border only; shadow stays static for perf) */
+.apps-grid .app-tile:hover {
+    will-change: transform;
+    transform: translate3d(0, -4px, 0) scale(1.02);
+    background: rgba(38, 48, 68, 0.82);
+    border-color: rgba(99, 102, 241, 0.22);
+}
+
+/* Press: quick, minimal (≤90ms) */
+.apps-grid .app-tile:active {
+    transition-duration: var(--icon-press-ms);
+    transform: translate3d(0, -2px, 0) scale(1);
+}
+
+/* LAYER 3 — AURA: glow + ring (pseudo-elements); opacity only, no continuous animation */
+.apps-grid .app-tile::before {
+    content: '';
+    position: absolute;
+    inset: -12px;
+    border-radius: calc(var(--icon-radius-tile) + 12px);
+    background: radial-gradient(
+        ellipse 70% 50% at 50% 45%,
+        rgba(99, 102, 241, 0.28) 0%,
+        rgba(139, 92, 246, 0.12) 45%,
+        transparent 72%
+    );
+    opacity: 0;
+    transition: opacity var(--icon-hover-ms) var(--icon-ease);
+    pointer-events: none;
+    z-index: -1;
+}
+
+.apps-grid .app-tile::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: calc(var(--icon-radius-tile) + 1px);
+    border: 1px solid transparent;
+    transition: opacity var(--icon-hover-ms) var(--icon-ease),
+                border-color var(--icon-hover-ms) var(--icon-ease);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.apps-grid .app-tile:hover::before,
+.apps-grid .app-tile:focus-visible::before {
+    opacity: 1;
+}
+
+.apps-grid .app-tile:hover::after,
+.apps-grid .app-tile:focus-visible::after {
+    opacity: 1;
+    border-color: rgba(99, 102, 241, 0.35);
+}
+
+/* LAYER 2 — GLYPH: centered in cell for clear alignment; micro-parallax on hover */
+.apps-grid .app-tile-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: var(--icon-glyph-md);
+    height: var(--icon-glyph-md);
+    min-width: var(--icon-glyph-md);
+    min-height: var(--icon-glyph-md);
+    border-radius: calc(var(--icon-radius-tile) - 4px);
+    background: rgba(51, 65, 85, 0.35);
+    border: 1px solid rgba(148, 163, 184, 0.08);
+    transition: transform var(--icon-hover-ms) var(--icon-ease),
+                opacity var(--icon-hover-ms) var(--icon-ease);
+    will-change: auto;
+    margin: 0 auto;
+}
+
+.apps-grid .app-tile-icon.size-small {
+    width: var(--icon-glyph-sm);
+    height: var(--icon-glyph-sm);
+    min-width: var(--icon-glyph-sm);
+    min-height: var(--icon-glyph-sm);
+}
+.apps-grid .app-tile-icon.size-medium {
+    width: var(--icon-glyph-md);
+    height: var(--icon-glyph-md);
+    min-width: var(--icon-glyph-md);
+    min-height: var(--icon-glyph-md);
+}
+.apps-grid .app-tile-icon.size-large {
+    width: var(--icon-glyph-lg);
+    height: var(--icon-glyph-lg);
+    min-width: var(--icon-glyph-lg);
+    min-height: var(--icon-glyph-lg);
+}
+.apps-grid .app-tile-icon.size-extra-large {
+    width: var(--icon-glyph-xl);
+    height: var(--icon-glyph-xl);
+    min-width: var(--icon-glyph-xl);
+    min-height: var(--icon-glyph-xl);
+}
+
+/* Glyph hover: micro-parallax (slight lift + scale), independent of tile */
+.apps-grid .app-tile:hover .app-tile-icon {
+    will-change: transform;
+    transform: translate3d(0, -2px, 0) scale(1.04);
+}
+
+/* Larger SVG so the icon is a clear picture; centered in tile */
+.apps-grid .app-tile-icon svg {
+    width: 70%;
+    height: 70%;
+    min-width: 28px;
+    min-height: 28px;
+    color: rgba(226, 232, 240, 0.95);
+    transition: transform var(--icon-hover-ms) var(--icon-ease);
+    pointer-events: none;
+    flex-shrink: 0;
+    object-fit: contain;
+}
+
+.apps-grid .app-tile:hover .app-tile-icon svg {
+    transform: translate3d(0, -0.5px, 0);
+}
+
+/* Label: no layout shift */
+.apps-grid .app-tile-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(226, 232, 240, 0.88);
+    text-align: center;
+    line-height: 1.2;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color var(--icon-hover-ms) var(--icon-ease),
+                opacity var(--icon-hover-ms) var(--icon-ease);
+}
+
+.apps-grid .app-tile:hover .app-tile-name {
+    color: rgba(248, 250, 252, 0.98);
+}
+
+/* Keyboard: visible focus, aura on */
+.apps-grid .app-tile:focus-visible {
+    outline: 2px solid rgba(99, 102, 241, 0.7);
+    outline-offset: 2px;
+}
+
+.apps-grid .app-tile:focus {
+    outline: none;
+}
+
+/* ========== TASKBAR ICONS — SAME 3-LAYER CONCEPT ========== */
+
+.taskbar-icon,
+.taskbar-app-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--icon-radius-taskbar);
+    cursor: pointer;
+    isolation: isolate;
+    /* Base: matte */
+    background: rgba(30, 41, 59, 0.62);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: transform var(--icon-hover-ms) var(--icon-ease),
+                opacity var(--icon-hover-ms) var(--icon-ease),
+                background-color var(--icon-hover-ms) var(--icon-ease),
+                border-color var(--icon-hover-ms) var(--icon-ease);
+    will-change: auto;
+    contain: layout style paint;
+    backdrop-filter: none;
+}
+
+.taskbar-icon:hover,
+.taskbar-app-icon:hover {
+    will-change: transform;
+    transform: translate3d(0, -3px, 0) scale(1.05);
+    background: rgba(51, 65, 85, 0.75);
+    border-color: rgba(99, 102, 241, 0.3);
+    /* Static shadow (not animated) so we override any prior styles */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+}
+
+.taskbar-icon:active,
+.taskbar-app-icon:active {
+    transition-duration: var(--icon-press-ms);
+    transform: translate3d(0, -1px, 0) scale(1.02);
+}
+
+/* Aura: ring only (taskbar is dense; no big glow). Override performance-optimized display:none. */
+.taskbar-icon::before,
+.taskbar-app-icon::before {
+    content: '';
+    display: block;
+    position: absolute;
+    inset: -2px;
+    border-radius: calc(var(--icon-radius-taskbar) + 2px);
+    border: 1px solid transparent;
+    opacity: 0;
+    transition: opacity var(--icon-hover-ms) var(--icon-ease),
+                border-color var(--icon-hover-ms) var(--icon-ease);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.taskbar-icon:hover::before,
+.taskbar-icon:focus-visible::before,
+.taskbar-app-icon:hover::before,
+.taskbar-app-icon:focus-visible::before {
+    opacity: 1;
+    border-color: rgba(99, 102, 241, 0.4);
+}
+
+.taskbar-icon.active,
+.taskbar-app-icon.active {
+    background: rgba(99, 102, 241, 0.28);
+    border-color: rgba(99, 102, 241, 0.45);
+}
+
+.taskbar-icon.active::before,
+.taskbar-app-icon.active::before {
+    opacity: 1;
+    border-color: rgba(99, 102, 241, 0.5);
+}
+
+.taskbar-icon svg,
+.taskbar-app-icon svg {
+    width: 20px;
+    height: 20px;
+    color: var(--text-secondary, rgba(226, 232, 240, 0.9));
+    transition: transform var(--icon-hover-ms) var(--icon-ease),
+                color var(--icon-hover-ms) var(--icon-ease);
+    position: relative;
+    z-index: 1;
+}
+
+.taskbar-icon:hover svg,
+.taskbar-app-icon:hover svg,
+.taskbar-icon.active svg,
+.taskbar-app-icon.active svg {
+    color: var(--primary-light, rgba(192, 132, 252, 0.95));
+}
+
+.taskbar-icon:hover svg,
+.taskbar-app-icon:hover svg {
+    transform: translate3d(0, -0.5px, 0);
+}
+
+.taskbar-icon:focus-visible,
+.taskbar-app-icon:focus-visible {
+    outline: 2px solid rgba(99, 102, 241, 0.7);
+    outline-offset: 2px;
+}
+
+.taskbar-icon:focus,
+.taskbar-app-icon:focus {
+    outline: none;
+}
+
+/* Pinned apps area: same icon size */
+.taskbar-pinned-apps .taskbar-icon {
+    width: 40px;
+    height: 40px;
+}
+
+/* ========== PERFORMANCE MODE — AURA OFF, DEPTH REDUCED ========== */
+
+body.performance-mode .apps-grid .app-tile::before,
+body.performance-mode .apps-grid .app-tile::after,
+:root.performance-mode .apps-grid .app-tile::before,
+:root.performance-mode .apps-grid .app-tile::after {
+    opacity: 0 !important;
+}
+
+body.performance-mode .apps-grid .app-tile,
+:root.performance-mode .apps-grid .app-tile {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+body.performance-mode .taskbar-icon::before,
+body.performance-mode .taskbar-app-icon::before,
+:root.performance-mode .taskbar-icon::before,
+:root.performance-mode .taskbar-app-icon::before {
+    opacity: 0 !important;
+}
+
+/* ========== REDUCED MOTION ========== */
+
+@media (prefers-reduced-motion: reduce) {
+    .apps-grid .app-tile,
+    .apps-grid .app-tile::before,
+    .apps-grid .app-tile::after,
+    .apps-grid .app-tile-icon,
+    .apps-grid .app-tile-icon svg,
+    .apps-grid .app-tile-name,
+    .taskbar-icon,
+    .taskbar-app-icon,
+    .taskbar-icon::before,
+    .taskbar-app-icon::before {
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ========== SAFE EXTENSION POINTS ==========
+   Future animations: add only transform or opacity to .app-tile, .app-tile-icon, or
+   .app-tile-icon svg. Keep duration ≤180ms hover, ≤90ms press. Do not animate
+   box-shadow, filter, width, height, or top/left. Aura (::before/::after) should
+   remain opacity-only. Keyboard nav: focus-visible and arrow keys are handled in
+   desktop.js setupAppTileKeyboard; keep outline and ring visible on focus. */

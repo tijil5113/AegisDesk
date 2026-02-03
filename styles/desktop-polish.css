@@ -1,0 +1,258 @@
+/**
+ * DESKTOP OS UI POLISH
+ *
+ * - Depth hierarchy (foreground / midground / background)
+ * - Clear focus states for keyboard navigation (focus-visible only)
+ * - Consistent spacing scale (OS-like rhythm)
+ * - OS-like interaction timing (snappy, not web-app slow)
+ * - Cursor and hover aligned with desktop UX
+ *
+ * Performance: transform/opacity only for transitions; no layout-triggering focus anims.
+ */
+
+/* ========== DEPTH HIERARCHY ========== */
+:root {
+    /* Z-order: background → taskbar → launcher → windows (stacked) → modals */
+    --z-background: 0;
+    --z-midground: 1;
+    --z-cursor-glow: 2;
+    --z-taskbar: 1000;
+    --z-launcher: 1050;
+    --z-window-base: 100;
+    --z-window-active: 200;
+    --z-power-menu: 1100;
+    --z-quick-actions: 1100;
+    --z-search-suggestions: 1099;
+    --z-modal: 10000;
+    --z-boot: 10000;
+
+    /* Depth shadows: subtle elevation (paint-only; no layout) */
+    --depth-shadow-surface: 0 1px 3px rgba(0, 0, 0, 0.25);
+    --depth-shadow-raised: 0 4px 12px rgba(0, 0, 0, 0.35);
+    --depth-shadow-overlay: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.desktop-background,
+.desktop-layer-far,
+.desktop-layer-mid,
+.desktop-layer-near {
+    z-index: var(--z-background);
+}
+
+.cursor-glow {
+    z-index: var(--z-cursor-glow);
+}
+
+.quick-launch,
+.desktop-icon-carousel {
+    z-index: var(--z-midground);
+}
+
+.taskbar {
+    z-index: var(--z-taskbar);
+    box-shadow: var(--depth-shadow-raised), var(--glass-shadow);
+}
+
+.apps-menu {
+    z-index: var(--z-launcher);
+}
+
+.power-menu {
+    z-index: var(--z-power-menu);
+}
+
+/* Windows use z-index from window-manager; .active gets higher */
+.window {
+    z-index: var(--z-window-base);
+}
+.window.active {
+    z-index: var(--z-window-active);
+}
+
+.quick-actions-panel {
+    z-index: var(--z-quick-actions);
+}
+
+.search-suggestions {
+    z-index: var(--z-search-suggestions);
+}
+
+/* ========== SPACING SCALE (4px base, OS-like rhythm) ========== */
+:root {
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --space-8: 48px;
+}
+
+/* Taskbar: consistent gaps and padding */
+.taskbar {
+    padding: 0 var(--space-4);
+    gap: var(--space-2);
+}
+.taskbar-left {
+    gap: var(--space-2);
+}
+.taskbar-center {
+    margin: 0 var(--space-5);
+}
+.taskbar-right {
+    gap: var(--space-2);
+}
+
+/* Apps menu: internal spacing */
+.apps-menu-header {
+    padding: var(--space-4) var(--space-5);
+    gap: var(--space-3);
+}
+.apps-menu-scroll {
+    padding: var(--space-3);
+}
+.apps-grid {
+    gap: var(--space-4);
+}
+
+/* Power menu */
+.power-menu {
+    padding: var(--space-2);
+    gap: var(--space-1);
+}
+
+/* Search bar */
+.search-bar {
+    padding: var(--space-2) var(--space-4);
+    gap: var(--space-3);
+}
+
+/* Window chrome */
+.window-titlebar {
+    padding: 0 var(--space-3);
+    gap: var(--space-3);
+}
+
+/* ========== FOCUS STATES (keyboard only; no mouse focus ring) ========== */
+:root {
+    --focus-ring-width: 2px;
+    --focus-ring-color: rgba(99, 102, 241, 0.85);
+    --focus-ring-offset: 2px;
+    /* OS-like: focus ring appears immediately, no delay */
+    --focus-ring-transition: 0ms;
+}
+
+/* Remove default outline so we control it only for keyboard (focus-visible) */
+button:focus,
+[role="button"]:focus,
+[role="menuitem"]:focus,
+[role="menuitemcheckbox"]:focus,
+.taskbar-icon:focus,
+.taskbar-app-icon:focus,
+.app-tile:focus,
+.power-menu-item:focus,
+.quick-action-item:focus,
+.modern-icon:focus,
+a:focus {
+    outline: none;
+}
+
+/* Keyboard focus: clear ring (focus-visible = keyboard/target, not mouse click) */
+button:focus-visible,
+[role="button"]:focus-visible,
+[role="menuitem"]:focus-visible,
+[role="menuitemcheckbox"]:focus-visible,
+.taskbar-icon:focus-visible,
+.taskbar-app-icon:focus-visible,
+.app-tile:focus-visible,
+.power-menu-item:focus-visible,
+.quick-action-item:focus-visible,
+.modern-icon:focus-visible,
+a:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+    transition: outline-color var(--focus-ring-transition);
+}
+
+/* Search bar: ring when focused via keyboard tab */
+.search-bar:focus-within {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+}
+
+/* ========== CURSOR (desktop UX) ========== */
+body {
+    cursor: default;
+}
+
+/* Clickable: pointer */
+button,
+[role="button"],
+a[href],
+.taskbar-icon,
+.taskbar-app-icon,
+.app-tile,
+.power-menu-item,
+.quick-action-item,
+.modern-icon,
+.window-titlebar {
+    cursor: pointer;
+}
+
+/* Text inputs: text cursor */
+input[type="text"],
+input[type="search"],
+input[type="email"],
+input[type="url"],
+textarea {
+    cursor: text;
+}
+
+/* Disabled */
+[disabled],
+[aria-disabled="true"] {
+    cursor: not-allowed;
+}
+
+/* Window titlebar: move cursor when draggable */
+.window-titlebar {
+    cursor: move;
+}
+
+/* ========== HOVER & TIMING (OS-like) ========== */
+/* Timing: motion-system.css sets --anim-micro (180ms), --anim-modal (280ms). No 300ms+ delays. */
+/* Hover: transition from motion-system; focus ring 0ms so keyboard focus feels instant. */
+.taskbar-icon,
+.taskbar-app-icon,
+.app-tile,
+.power-menu-item,
+.quick-action-item,
+.modern-icon,
+.search-bar .search-btn {
+    transition: var(--transition-micro);
+}
+
+/* ========== REDUCED MOTION: focus ring stays visible ========== */
+@media (prefers-reduced-motion: reduce) {
+    button:focus-visible,
+    [role="button"]:focus-visible,
+    .taskbar-icon:focus-visible,
+    .app-tile:focus-visible,
+    .power-menu-item:focus-visible {
+        outline: var(--focus-ring-width) solid var(--focus-ring-color);
+        outline-offset: var(--focus-ring-offset);
+    }
+}
+
+/* ========== PERFORMANCE MODE: focus ring remains for a11y ========== */
+body.performance-mode button:focus-visible,
+body.performance-mode .taskbar-icon:focus-visible,
+body.performance-mode .app-tile:focus-visible,
+body.performance-mode .power-menu-item:focus-visible,
+:root.performance-mode button:focus-visible,
+:root.performance-mode .taskbar-icon:focus-visible,
+:root.performance-mode .app-tile:focus-visible,
+:root.performance-mode .power-menu-item:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+}

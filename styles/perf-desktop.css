@@ -1,0 +1,242 @@
+/**
+ * PERF-DESKTOP: 60fps UI layer
+ * Rules: animations = transform + opacity only. No layout (top/left/width/height/box-shadow) in transitions.
+ * Glass preserved via semi-opaque fills + minimal blur. Dynamic regions isolated for minimal reflow.
+ */
+
+/* ========== LAYER ISOLATION ========== */
+/* Static: background, parallax — no frequent updates; contain to limit reflow */
+.desktop-background,
+.desktop-layer-far,
+.desktop-layer-mid,
+.desktop-layer-near {
+    contain: layout style paint;
+    content-visibility: auto;
+}
+
+/* Dynamic: frequently updated (clock, search focus, hover) — isolate repaints */
+[data-perf-dynamic] {
+    contain: layout style paint;
+    will-change: auto;
+}
+[data-perf-dynamic].is-updating {
+    will-change: transform;
+}
+
+/* Scroll / launcher: separate compositor layer to avoid jank */
+.taskbar,
+.apps-menu,
+.carousel-track,
+.windows-container {
+    contain: layout style;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+/* ========== GLASS: Use variables (blur <= 12px; perf-mode disables blur) ========== */
+.taskbar {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    box-shadow: var(--glass-shadow);
+}
+
+.apps-menu {
+    background: var(--glass-bg-solid);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    box-shadow: var(--glass-shadow-panel);
+}
+
+.window {
+    background: rgba(30, 41, 59, 0.92);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+}
+
+/* ========== ANIMATIONS: TRANSFORM + OPACITY ONLY (motion-system tokens) ========== */
+/* Taskbar icons — hover: translate3d + scale + opacity only; micro ≤220ms */
+.taskbar-app-icon,
+.taskbar-icon,
+.modern-icon,
+.app-tile,
+.desktop-icon-item {
+    transition: var(--transition-micro);
+    will-change: auto;
+}
+.taskbar-app-icon:hover,
+.taskbar-icon:hover,
+.modern-icon:hover,
+.app-tile:hover {
+    will-change: transform;
+}
+.taskbar-app-icon:hover,
+.taskbar-icon:hover,
+.modern-icon:hover {
+    transform: translate3d(0, -2px, 0) scale(1.05);
+}
+.app-tile:hover {
+    transform: translate3d(0, -2px, 0) scale(1.02);
+}
+/* No transition on background/border/box-shadow — instant or use opacity overlay */
+.taskbar-app-icon:hover,
+.taskbar-icon:hover {
+    background: rgba(99, 102, 241, 0.25);
+    border-color: rgba(99, 102, 241, 0.4);
+}
+.taskbar-icon.active {
+    background: rgba(99, 102, 241, 0.28);
+    border-color: rgba(99, 102, 241, 0.5);
+}
+
+/* Tooltip / label: opacity + transform only (micro) */
+.taskbar-icon-label {
+    transition: var(--transition-micro);
+    transform: translate3d(-50%, 6px, 0);
+}
+.taskbar-icon:hover .taskbar-icon-label {
+    transform: translate3d(-50%, 0, 0);
+    opacity: 1;
+}
+
+/* Search bar: focus state = transform + opacity only (no box-shadow transition) */
+.search-bar {
+    transition: var(--transition-micro);
+}
+.search-bar:focus-within {
+    transform: translate3d(0, -1px, 0);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+.search-bar .search-btn {
+    transition: var(--transition-micro);
+}
+.search-bar .search-btn:hover {
+    transform: scale(1.06) translateZ(0);
+}
+
+/* ========== CLOCK (frequently updated) ========== */
+.time-date-container {
+    contain: layout style paint;
+    transform: translateZ(0);
+}
+.time-display,
+.date-display {
+    /* JS updates textContent only — no layout; keep narrow so reflow is cheap */
+    display: inline-block;
+    min-width: 2.5em;
+    text-align: center;
+}
+
+/* ========== APPS MENU LAUNCHER (modal ≤320ms) ========== */
+.apps-menu {
+    transition: var(--transition-modal);
+    transform-origin: center bottom;
+}
+.apps-menu.visible {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+}
+.apps-menu:not(.visible) {
+    opacity: 0;
+    transform: translate(-50%, 8px) scale(0.98);
+    pointer-events: none;
+}
+
+.apps-grid {
+    contain: layout style;
+    content-visibility: auto;
+    contain-intrinsic-size: 0 400px;
+}
+
+/* App tiles: transform + opacity only */
+.app-tile-icon,
+.app-tile-name {
+    transition: var(--transition-micro);
+}
+.app-tile:hover .app-tile-icon {
+    transform: scale(1.08) translateZ(0);
+}
+
+/* ========== WINDOWS ========== */
+.window {
+    transition: var(--transition-micro);
+}
+.window.active {
+    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.65),
+                0 0 0 1px rgba(99, 102, 241, 0.35);
+}
+.window:not(.active) {
+    opacity: 0.85;
+}
+
+/* Window: open uses motion-system keyframes (transform+opacity). We only override transition for interactivity. */
+
+/* ========== DESKTOP ICON CAROUSEL ========== */
+.carousel-track {
+    contain: layout style paint;
+    transform: translateZ(0);
+}
+.desktop-icon-item {
+    transition: var(--transition-modal);
+}
+.desktop-icon-item:hover {
+    transform: translate3d(0, -12px, 0) scale(1.08);
+}
+.desktop-icon-wrapper {
+    transition: var(--transition-micro);
+}
+.desktop-icon-item:hover .desktop-icon-wrapper {
+    transform: scale(1.04) translateZ(0);
+}
+
+/* ========== CURSOR GLOW (parallax) — reduce repaint ========== */
+.cursor-glow {
+    will-change: transform;
+    transform: translate3d(var(--mouse-x, -999px), var(--mouse-y, -999px), 0) translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    contain: strict;
+}
+.cursor-glow.active {
+    opacity: 1;
+}
+
+/* ========== BOOT / MODALS (modal ≤320ms) ========== */
+.boot-overlay {
+    transition: opacity var(--anim-modal-slow) var(--ease-out-expo);
+}
+.icon-modal-overlay {
+    transition: opacity var(--anim-modal) var(--ease-ui);
+}
+.icon-modal-overlay .icon-modal {
+    transition: var(--transition-modal);
+}
+
+/* ========== REMOVE LAYOUT-TRIGGERING TRANSITIONS ========== */
+/* Ensure no keyframe animates top/left/width/height/box-shadow */
+.taskbar-icon.running::after {
+    animation: perfPulse 2s var(--ease-ui) infinite;
+}
+@keyframes perfPulse {
+    0%, 100% { opacity: 1; transform: translate3d(-50%, 0, 0) scale(1); }
+    50% { opacity: 0.7; transform: translate3d(-50%, 0, 0) scale(1.1); }
+}
+
+/* Reduce repaint-heavy filters on hover (use opacity instead of filter where possible) */
+.taskbar-icon svg,
+.app-tile-icon svg {
+    transition: opacity var(--anim-micro) var(--ease-ui);
+}
+.taskbar-icon:hover svg,
+.app-tile:hover .app-tile-icon svg {
+    opacity: 1;
+}
+.taskbar-icon:not(:hover):not(.active) svg {
+    opacity: 0.92;
+}
+
+/* prefers-reduced-motion: motion-system.css sets global 0.01ms; keep cursor-glow visibility */
+@media (prefers-reduced-motion: reduce) {
+    .cursor-glow.active { opacity: 0.6; }
+}

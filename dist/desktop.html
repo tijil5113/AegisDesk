@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AegisDesk - AI-Powered Desktop OS</title>
+    <meta name="description" content="AI-Powered Unified Desktop Operating System">
+    <meta name="theme-color" content="#6366f1">
+    <!-- Performance optimizations -->
+    <meta http-equiv="x-dns-prefetch-control" content="on">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/modern-system.css">
+    <link rel="stylesheet" href="styles/performance-optimized.css">
+    <link rel="stylesheet" href="styles/motion-system.css">
+    <link rel="stylesheet" href="styles/boot-sequence.css">
+    <link rel="stylesheet" href="styles/parallax-desktop.css">
+    <link rel="stylesheet" href="styles/window.css">
+    <link rel="stylesheet" href="styles/apps.css">
+    <link rel="stylesheet" href="styles/zoom-responsive.css">
+    <link rel="stylesheet" href="styles/news-tamilnadu.css">
+    <link rel="stylesheet" href="styles/desktop-icons.css">
+    <link rel="stylesheet" href="styles/notifications.css">
+    <link rel="stylesheet" href="styles/advanced-apps.css">
+    <link rel="stylesheet" href="styles/help.css">
+    <link rel="stylesheet" href="styles/quick-actions.css">
+    <link rel="stylesheet" href="styles/search-suggestions.css">
+    <link rel="stylesheet" href="styles/desktop-widgets.css">
+    <link rel="stylesheet" href="styles/world-class-enhancements.css">
+    <link rel="stylesheet" href="styles/notification-center.css">
+    <link rel="stylesheet" href="styles/global-search.css">
+    <link rel="stylesheet" href="styles/code-editor-vscode.css">
+    <link rel="stylesheet" href="styles/terminal-v2.css">
+    <link rel="stylesheet" href="styles/files-v2.css">
+    <link rel="stylesheet" href="styles/insights.css">
+    <link rel="stylesheet" href="styles/icon-system.css">
+    <script src="js/core/auth.js" defer></script>
+    <!-- Local xterm.js CSS (NO CDN - OFFLINE SAFE) -->
+    <link rel="stylesheet" href="vendor/xterm/xterm.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>
+</head>
+<body>
+    <!-- Boot Sequence Overlay -->
+    <div class="boot-overlay" id="boot-overlay">
+        <div class="boot-grid"></div>
+        <div class="boot-scanline"></div>
+        <div class="boot-logo">AEGIS DESK</div>
+        <div class="boot-text">
+            <span class="boot-text-line">Initializing Window Manager...</span>
+            <span class="boot-text-line">Restoring workspace...</span>
+            <span class="boot-text-line">AI Copilot online.</span>
+        </div>
+        <div class="boot-loader">
+            <div class="boot-loader-bar"></div>
+        </div>
+    </div>
+
+    <!-- Desktop Background with Parallax Layers -->
+    <div class="desktop-background">
+        <div class="desktop-layer-far"></div>
+        <div class="desktop-layer-mid"></div>
+        <div class="desktop-layer-near">
+            <div class="desktop-bokeh"></div>
+            <div class="desktop-bokeh"></div>
+            <div class="desktop-bokeh"></div>
+        </div>
+    </div>
+    
+    <!-- Cursor Glow -->
+    <div class="cursor-glow" id="cursor-glow" aria-hidden="true"></div>
+
+    <!-- Quick Launch Shortcuts -->
+    <div class="quick-launch" id="quick-launch" aria-label="Quick launch shortcuts">
+        <div class="quick-launch-item" data-app="tasks" title="New Task (Ctrl+N)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            New Task
+        </div>
+        <div class="quick-launch-item" data-app="notes" title="New Note (Ctrl+Shift+N)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            New Note
+        </div>
+        <div class="quick-launch-item" data-app="ai-chat" title="AI Assistant (Ctrl+K)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            AI Chat
+        </div>
+    </div>
+
+    <!-- Power Menu -->
+    <div class="power-menu" id="power-menu" role="menu" aria-label="Power menu">
+        <div class="power-menu-item" data-action="lock" role="menuitem">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            Lock OS
+        </div>
+        <div class="power-menu-item" data-action="restart" role="menuitem">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"></path>
+            </svg>
+            Restart
+        </div>
+        <div class="power-menu-item danger" data-action="shutdown" role="menuitem">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+            Shutdown
+        </div>
+    </div>
+
+    <!-- Desktop Icon Carousel -->
+    <div class="desktop-icon-carousel" id="desktop-icon-carousel" aria-label="Pinned desktop apps carousel">
+        <!-- AEGIS DESK Title -->
+        <div class="desktop-title-container">
+            <div class="desktop-title-wrapper">
+                <h1 class="desktop-title" id="desktop-title">
+                    <span class="title-letter" data-letter="A">A</span>
+                    <span class="title-letter" data-letter="E">E</span>
+                    <span class="title-letter" data-letter="G">G</span>
+                    <span class="title-letter" data-letter="I">I</span>
+                    <span class="title-letter" data-letter="S">S</span>
+                    <span class="title-space"></span>
+                    <span class="title-letter" data-letter="D">D</span>
+                    <span class="title-letter" data-letter="E">E</span>
+                    <span class="title-letter" data-letter="S">S</span>
+                    <span class="title-letter" data-letter="K">K</span>
+                </h1>
+                <div class="desktop-subtitle">
+                    <span class="subtitle-text">AI-Powered Desktop OS</span>
+                    <div class="subtitle-underline"></div>
+                </div>
+            </div>
+            <div class="title-glow-effect"></div>
+            <div class="title-particles"></div>
+        </div>
+        
+        <div class="carousel-container">
+            <div class="carousel-track" id="carousel-track">
+                <!-- Icons will be dynamically inserted here -->
+            </div>
+        </div>
+        <div class="carousel-nav carousel-nav-left" id="carousel-nav-left">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </div>
+        <div class="carousel-nav carousel-nav-right" id="carousel-nav-right">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Icon Enlargement Modal -->
+    <div class="icon-modal-overlay" id="icon-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="icon-modal-name">
+        <div class="icon-modal">
+            <div class="icon-modal-icon" id="icon-modal-icon"></div>
+            <div class="icon-modal-name" id="icon-modal-name"></div>
+            <div class="icon-modal-actions">
+                <button class="icon-modal-btn icon-modal-btn-open" id="icon-modal-open">Open</button>
+                <button class="icon-modal-btn icon-modal-btn-cancel" id="icon-modal-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Taskbar -->
+    <div class="taskbar glass-effect" role="navigation" aria-label="AegisDesk taskbar">
+        <div class="taskbar-left">
+            <button class="taskbar-app-icon active" data-action="show-apps-menu" title="Applications (Alt+Space)" aria-label="Open applications menu (Alt+Space)">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="appsMenuGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <rect x="3" y="3" width="7" height="7" rx="1.5" fill="url(#appsMenuGradient)"/>
+                    <rect x="14" y="3" width="7" height="7" rx="1.5" fill="url(#appsMenuGradient)"/>
+                    <rect x="14" y="14" width="7" height="7" rx="1.5" fill="url(#appsMenuGradient)"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1.5" fill="url(#appsMenuGradient)"/>
+                </svg>
+            </button>
+            <button class="taskbar-icon" data-app="user" title="User Profile" aria-label="Open user profile" style="width: 40px; height: 40px; margin-left: 4px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="userGradientTaskbar" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#818cf8;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="12" cy="8" r="4" fill="url(#userGradientTaskbar)" opacity="0.9"/>
+                    <path d="M6 20c0-4 2.7-6 6-6s6 2 6 6" stroke="url(#userGradientTaskbar)" stroke-width="2" stroke-linecap="round" fill="none"/>
+                </svg>
+                <span class="taskbar-icon-label">User</span>
+            </button>
+            <button class="taskbar-icon" data-app="help" title="Help & Instructions" aria-label="Open help and instructions" style="width: 40px; height: 40px; margin-left: 4px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="helpGradientLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
+                        </linearGradient>
+                        <radialGradient id="helpGlowLeft">
+                            <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:0.4" />
+                            <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0" />
+                        </radialGradient>
+                    </defs>
+                    <circle cx="12" cy="12" r="10" fill="url(#helpGlowLeft)"/>
+                    <circle cx="12" cy="12" r="10" fill="none" stroke="url(#helpGradientLeft)" stroke-width="2.5"/>
+                    <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke="url(#helpGradientLeft)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17" stroke="url(#helpGradientLeft)" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+            </button>
+            <div class="taskbar-divider"></div>
+            <div class="taskbar-pinned-apps" aria-label="Pinned apps" role="menubar">
+                <button class="taskbar-icon" data-app="tasks" title="Tasks" aria-label="Open Tasks app">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="tasksGradientLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="checkGradientLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#34d399;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#10b981;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <rect x="5" y="3" width="14" height="18" rx="1.5" fill="url(#tasksGradientLeft)" opacity="0.9"/>
+                        <rect x="5" y="3" width="14" height="18" rx="1.5" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="0.5"/>
+                        <circle cx="7" cy="5" r="0.8" fill="rgba(255,255,255,0.3)"/>
+                        <circle cx="7" cy="8" r="0.8" fill="rgba(255,255,255,0.3)"/>
+                        <circle cx="7" cy="11" r="0.8" fill="rgba(255,255,255,0.3)"/>
+                        <path d="M9 12l2 2 4-4" stroke="url(#checkGradientLeft)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        <line x1="10" y1="16" x2="16" y2="16" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="10" y1="18.5" x2="14" y2="18.5" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+                        <ellipse cx="12" cy="5" rx="3" ry="1.5" fill="white" opacity="0.2"/>
+                    </svg>
+                    <span class="taskbar-icon-label">Tasks</span>
+                </button>
+                <button class="taskbar-icon" data-app="notes" title="Notes" aria-label="Open Notes app">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="notesGradientLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#d97706;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="paperGradientLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#fef3c7;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#fde68a;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <rect x="4" y="2" width="16" height="20" rx="1" fill="url(#notesGradientLeft)"/>
+                        <rect x="4" y="2" width="16" height="20" rx="1" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="0.5"/>
+                        <rect x="4" y="2" width="3" height="20" rx="1" fill="rgba(0,0,0,0.2)"/>
+                        <rect x="8" y="4" width="10" height="16" rx="0.5" fill="url(#paperGradientLeft)"/>
+                        <rect x="8.5" y="4.5" width="9" height="15" rx="0.5" fill="url(#paperGradientLeft)" opacity="0.8"/>
+                        <line x1="10" y1="7" x2="16" y2="7" stroke="rgba(217,119,6,0.2)" stroke-width="1" stroke-linecap="round"/>
+                        <line x1="10" y1="9.5" x2="16" y2="9.5" stroke="rgba(217,119,6,0.2)" stroke-width="1" stroke-linecap="round"/>
+                        <line x1="10" y1="12" x2="15" y2="12" stroke="rgba(217,119,6,0.2)" stroke-width="1" stroke-linecap="round"/>
+                        <path d="M18 4 L18 6 L16 4 Z" fill="rgba(0,0,0,0.1)"/>
+                        <ellipse cx="10" cy="5" rx="2" ry="1" fill="white" opacity="0.3"/>
+                    </svg>
+                    <span class="taskbar-icon-label">Notes</span>
+                </button>
+                <button class="taskbar-icon" data-app="weather" title="Weather" aria-label="Open Weather app">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="weatherGradientTaskbar" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:1" />
+                                <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="sunGradientTaskbar" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <!-- Sun rays -->
+                        <circle cx="7" cy="7" r="3.5" fill="url(#sunGradientTaskbar)" opacity="0.9"/>
+                        <line x1="7" y1="2" x2="7" y2="4" stroke="url(#sunGradientTaskbar)" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="7" y1="10" x2="7" y2="12" stroke="url(#sunGradientTaskbar)" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="2" y1="7" x2="4" y2="7" stroke="url(#sunGradientTaskbar)" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="10" y1="7" x2="12" y2="7" stroke="url(#sunGradientTaskbar)" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="4.24" y1="4.24" x2="5.66" y2="5.66" stroke="url(#sunGradientTaskbar)" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="8.34" y1="8.34" x2="9.76" y2="9.76" stroke="url(#sunGradientTaskbar)" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="9.76" y1="4.24" x2="8.34" y2="5.66" stroke="url(#sunGradientTaskbar)" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="5.66" y1="8.34" x2="4.24" y2="9.76" stroke="url(#sunGradientTaskbar)" stroke-width="1.5" stroke-linecap="round"/>
+                        <!-- Cloud -->
+                        <path d="M18 16.5c0 1.38-1.12 2.5-2.5 2.5h-9c-1.38 0-2.5-1.12-2.5-2.5 0-1.04.64-1.93 1.54-2.3-.15-.5-.24-1.02-.24-1.55 0-2.76 2.24-5 5-5 1.2 0 2.3.43 3.16 1.14C14.5 6.5 15.88 7.5 17.5 7.5c1.38 0 2.5 1.12 2.5 2.5 0 .53-.17 1.02-.45 1.43.8.37 1.45 1.26 1.45 2.07z" fill="url(#weatherGradientTaskbar)" opacity="0.95"/>
+                        <!-- Cloud highlight -->
+                        <ellipse cx="15.5" cy="15" rx="2" ry="1.2" fill="white" opacity="0.3"/>
+                    </svg>
+                    <span class="taskbar-icon-label">Weather</span>
+                </button>
+                <button class="taskbar-icon" data-app="ai-chat" title="AI Assistant" aria-label="Open AI Assistant">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="aiGradientLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                                <stop offset="50%" style="stop-color:#7c3aed;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#6d28d9;stop-opacity:1" />
+                            </linearGradient>
+                            <radialGradient id="aiGlowLeft">
+                                <stop offset="0%" style="stop-color:#a78bfa;stop-opacity:0.8" />
+                                <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:0" />
+                            </radialGradient>
+                        </defs>
+                        <circle cx="8" cy="8" r="2.5" fill="url(#aiGradientLeft)"/>
+                        <circle cx="16" cy="8" r="2.5" fill="url(#aiGradientLeft)"/>
+                        <circle cx="12" cy="16" r="2.5" fill="url(#aiGradientLeft)"/>
+                        <line x1="8" y1="8" x2="12" y2="16" stroke="url(#aiGradientLeft)" stroke-width="2" opacity="0.6"/>
+                        <line x1="16" y1="8" x2="12" y2="16" stroke="url(#aiGradientLeft)" stroke-width="2" opacity="0.6"/>
+                        <line x1="8" y1="8" x2="16" y2="8" stroke="url(#aiGradientLeft)" stroke-width="2" opacity="0.4"/>
+                        <circle cx="12" cy="12" r="8" fill="url(#aiGlowLeft)"/>
+                        <circle cx="6" cy="6" r="0.8" fill="#c4b5fd" opacity="0.8"/>
+                        <circle cx="18" cy="6" r="0.8" fill="#c4b5fd" opacity="0.8"/>
+                        <circle cx="10" cy="18" r="0.8" fill="#c4b5fd" opacity="0.8"/>
+                    </svg>
+                    <span class="taskbar-icon-label">AI Assistant</span>
+                </button>
+            </div>
+        </div>
+        <div class="taskbar-center">
+            <div class="search-bar" role="search">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <input
+                    type="text"
+                    placeholder="Search apps, actions, or web... (Ctrl+Shift+A for Quick Actions)"
+                    id="global-search"
+                    aria-label="Search apps, actions, or the web"
+                >
+                <div class="search-hint">Tip: type an app name (like “notes” or “terminal”) or a website, then press Enter.</div>
+            </div>
+        </div>
+        <div class="taskbar-right">
+            <div class="taskbar-windows" id="taskbar-windows"></div>
+            <div class="taskbar-divider"></div>
+            <div class="system-tray" aria-label="System tray">
+                <button class="taskbar-icon notification-center-btn" id="notification-center-btn" title="Notifications" aria-label="Open Notification Center" style="width: 40px; height: 40px; margin-right: 6px; position: relative;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="notifGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" fill="url(#notifGradient)" opacity="0.9"/>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0" fill="url(#notifGradient)" opacity="0.9"/>
+                    </svg>
+                    <span class="notification-badge" id="notification-badge" style="display: none; position: absolute; top: -2px; right: -2px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; border: 2px solid rgba(15, 23, 42, 0.9); box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);">0</span>
+                </button>
+                <button class="taskbar-icon quick-actions-btn" id="quick-actions-btn" title="Quick Actions (Ctrl+Shift+A)" aria-label="Open Quick Actions (Ctrl+Shift+A)" style="width: 40px; height: 40px; margin-right: 6px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="quickGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="12" cy="12" r="10" fill="url(#quickGradient)" opacity="0.9"/>
+                        <line x1="12" y1="8" x2="12" y2="12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <button class="taskbar-icon modern-icon" id="theme-switcher-btn" title="Change Theme (T)" aria-label="Cycle theme (T)" style="width: 40px; height: 40px; margin-right: 6px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="themeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="12" cy="12" r="4" fill="url(#themeGradient)"/>
+                        <line x1="12" y1="2" x2="12" y2="4" stroke="url(#themeGradient)" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="12" y1="20" x2="12" y2="22" stroke="url(#themeGradient)" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="4.93" y1="4.93" x2="6.34" y2="6.34" stroke="url(#themeGradient)" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="17.66" y1="17.66" x2="19.07" y2="19.07" stroke="url(#themeGradient)" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="2" y1="12" x2="4" y2="12" stroke="url(#themeGradient)" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="20" y1="12" x2="22" y2="12" stroke="url(#themeGradient)" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="6.34" y1="17.66" x2="4.93" y2="19.07" stroke="url(#themeGradient)" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="19.07" y1="4.93" x2="17.66" y2="6.34" stroke="url(#themeGradient)" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <button class="taskbar-icon modern-icon" id="power-menu-btn" title="Power Menu" aria-label="Open power menu" aria-haspopup="true" aria-expanded="false" style="width: 40px; height: 40px; margin-right: 8px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="powerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M18.36 6.64a9 9 0 1 1-12.73 0" fill="url(#powerGradient)" opacity="0.9"/>
+                        <line x1="12" y1="2" x2="12" y2="12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <div class="time-date-container">
+                <div class="time-display" id="time-display" aria-label="Current time">00:00</div>
+                <div class="date-display" id="date-display" aria-label="Current date">Mon, Jan 1</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Apps Menu -->
+    <div class="apps-menu glass-effect" id="apps-menu" role="dialog" aria-label="Applications menu">
+        <div class="apps-menu-header">
+            <div>
+                <h2>Applications</h2>
+                <p class="apps-menu-subtitle">Press Alt+Space to open, then start typing an app name or action.</p>
+            </div>
+            <button class="close-menu" data-action="hide-apps-menu">&times;</button>
+        </div>
+        <div class="icon-size-controls" aria-label="Icon size controls">
+            <label>Icon Size:</label>
+            <div class="icon-size-buttons">
+                <button class="icon-size-btn" data-size="small">Small</button>
+                <button class="icon-size-btn active" data-size="medium">Medium</button>
+                <button class="icon-size-btn" data-size="large">Large</button>
+                <button class="icon-size-btn" data-size="extra-large">XL</button>
+            </div>
+            <button class="icon-size-btn" data-action="explore" style="margin-left: auto; background: linear-gradient(135deg, var(--accent), var(--primary)); color: white;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 4px;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                Explore
+            </button>
+        </div>
+        <div class="apps-grid" aria-label="All applications">
+            <div class="app-tile" data-app="tasks">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 11l3 3L22 4"></path>
+                        <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path>
+                    </svg>
+                </div>
+                <div class="app-tile-name">Tasks</div>
+            </div>
+            <div class="app-tile" data-app="notes">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path>
+                        <path d="M14 2v6h6"></path>
+                    </svg>
+                </div>
+                <div class="app-tile-name">Notes</div>
+            </div>
+            <div class="app-tile" data-app="weather">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="weatherGradientGrid" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:1" />
+                                <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="sunGradientGrid" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <!-- Sun rays -->
+                        <circle cx="7" cy="7" r="3.5" fill="url(#sunGradientGrid)" opacity="0.9"/>
+                        <line x1="7" y1="2" x2="7" y2="4" stroke="url(#sunGradientGrid)" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="7" y1="10" x2="7" y2="12" stroke="url(#sunGradientGrid)" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="2" y1="7" x2="4" y2="7" stroke="url(#sunGradientGrid)" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="10" y1="7" x2="12" y2="7" stroke="url(#sunGradientGrid)" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="4.24" y1="4.24" x2="5.66" y2="5.66" stroke="url(#sunGradientGrid)" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="8.34" y1="8.34" x2="9.76" y2="9.76" stroke="url(#sunGradientGrid)" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="9.76" y1="4.24" x2="8.34" y2="5.66" stroke="url(#sunGradientGrid)" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="5.66" y1="8.34" x2="4.24" y2="9.76" stroke="url(#sunGradientGrid)" stroke-width="1.5" stroke-linecap="round"/>
+                        <!-- Cloud -->
+                        <path d="M18 16.5c0 1.38-1.12 2.5-2.5 2.5h-9c-1.38 0-2.5-1.12-2.5-2.5 0-1.04.64-1.93 1.54-2.3-.15-.5-.24-1.02-.24-1.55 0-2.76 2.24-5 5-5 1.2 0 2.3.43 3.16 1.14C14.5 6.5 15.88 7.5 17.5 7.5c1.38 0 2.5 1.12 2.5 2.5 0 .53-.17 1.02-.45 1.43.8.37 1.45 1.26 1.45 2.07z" fill="url(#weatherGradientGrid)" opacity="0.95"/>
+                        <!-- Cloud highlight -->
+                        <ellipse cx="15.5" cy="15" rx="2" ry="1.2" fill="white" opacity="0.3"/>
+                    </svg>
+                </div>
+                <div class="app-tile-name">Weather</div>
+            </div>
+            <div class="app-tile" data-app="ai-chat" data-url="ai-chat.html">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                        <path d="M2 17l10 5 10-5"></path>
+                        <path d="M2 12l10 5 10-5"></path>
+                    </svg>
+                </div>
+                <div class="app-tile-name">AI Assistant</div>
+            </div>
+            <div class="app-tile" data-app="code-editor">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="16 18 22 12 16 6"></polyline>
+                        <polyline points="8 6 2 12 8 18"></polyline>
+                    </svg>
+                </div>
+                <div class="app-tile-name">Code Editor</div>
+            </div>
+            <div class="app-tile" data-app="terminal">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="4 7 4 4 20 4 20 7"></polyline>
+                        <line x1="9" y1="20" x2="15" y2="20"></line>
+                        <line x1="12" y1="4" x2="12" y2="20"></line>
+                    </svg>
+                </div>
+                <div class="app-tile-name">Terminal</div>
+            </div>
+            <div class="app-tile" data-app="music-player">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polygon points="10 8 16 12 10 16 10 8"></polygon>
+                    </svg>
+                </div>
+                <div class="app-tile-name">Music Player</div>
+            </div>
+            <div class="app-tile" data-app="drawing">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                </div>
+                <div class="app-tile-name">Drawing</div>
+            </div>
+            <div class="app-tile" data-app="system-monitor">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                </div>
+                <div class="app-tile-name">System Monitor</div>
+            </div>
+            <div class="app-tile" data-app="gallery">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                </div>
+                <div class="app-tile-name">Photo Gallery</div>
+            </div>
+            <div class="app-tile" data-app="playground">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="9" y1="3" x2="9" y2="21"></line>
+                    </svg>
+                </div>
+                <div class="app-tile-name">Code Playground</div>
+            </div>
+            <div class="app-tile" data-app="browser" data-url="https://www.google.com">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"></path>
+                    </svg>
+                </div>
+                <div class="app-tile-name">Browser</div>
+            </div>
+            <div class="app-tile" data-app="bookmarks">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2v16z"></path>
+                    </svg>
+                </div>
+                <div class="app-tile-name">Bookmarks</div>
+            </div>
+            <div class="app-tile" data-app="college-hub">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="collegeTileGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M12 3L2 8l10 5 10-5-10-5z" fill="url(#collegeTileGradient)"/>
+                        <path d="M2 8l10 5 10-5M2 13l10 5 10-5M2 18l10 5 10-5" stroke="url(#collegeTileGradient)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.6"/>
+                        <rect x="6" y="12" width="12" height="8" rx="1" fill="url(#collegeTileGradient)" opacity="0.3"/>
+                        <path d="M6 12h12M6 16h12" stroke="url(#collegeTileGradient)" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="app-tile-name">College Hub</div>
+            </div>
+            <div class="app-tile" data-app="calculator">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+                        <line x1="8" y1="6" x2="16" y2="6"></line>
+                        <line x1="8" y1="10" x2="16" y2="10"></line>
+                        <line x1="8" y1="14" x2="16" y2="14"></line>
+                        <line x1="8" y1="18" x2="16" y2="18"></line>
+                    </svg>
+                </div>
+                <div class="app-tile-name">Calculator</div>
+            </div>
+            <div class="app-tile" data-app="classroom">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="classroomTileGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#4285f4;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#1967d2;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="url(#classroomTileGradient)" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" fill="url(#classroomTileGradient)" opacity="0.9"/>
+                        <line x1="9" y1="6" x2="18" y2="6" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
+                        <line x1="9" y1="10" x2="18" y2="10" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
+                    </svg>
+                </div>
+                <div class="app-tile-name">Classroom</div>
+            </div>
+            <div class="app-tile" data-app="assignments">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="assignmentsTileGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#f093fb;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#f5576c;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M12 20h9" stroke="url(#assignmentsTileGradient)" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" fill="url(#assignmentsTileGradient)" opacity="0.9"/>
+                        <line x1="10" y1="12" x2="18" y2="12" stroke="url(#assignmentsTileGradient)" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+                    </svg>
+                </div>
+                <div class="app-tile-name">Assignments</div>
+            </div>
+            <div class="app-tile" data-app="announcements">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="announcementsTileGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" fill="url(#announcementsTileGradient)" opacity="0.9"/>
+                        <line x1="9" y1="9" x2="15" y2="9" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
+                        <line x1="9" y1="13" x2="13" y2="13" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
+                    </svg>
+                </div>
+                <div class="app-tile-name">Announcements</div>
+            </div>
+            <div class="app-tile" data-app="student-progress">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="progressTileGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke="url(#progressTileGradient)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    </svg>
+                </div>
+                <div class="app-tile-name">Progress</div>
+            </div>
+            <div class="app-tile" data-app="calendar">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                </div>
+                <div class="app-tile-name">Calendar</div>
+            </div>
+            <div class="app-tile" data-app="files">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.93a2 2 0 01-1.66-.9l-.82-1.2A2 2 0 004.43 2H4a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <div class="app-tile-name">Files</div>
+            </div>
+            <div class="app-tile" data-app="settings">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"></path>
+                    </svg>
+                </div>
+                <div class="app-tile-name">Settings</div>
+            </div>
+            <div class="app-tile" data-app="email">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                </div>
+                <div class="app-tile-name">Email</div>
+            </div>
+            <div class="app-tile" data-app="mail">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="mailTileGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" fill="url(#mailTileGradient)" opacity="0.9"/>
+                        <polyline points="22,6 12,13 2,6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9"/>
+                    </svg>
+                </div>
+                <div class="app-tile-name">Mail</div>
+            </div>
+            <div class="app-tile" data-app="system-intelligence">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"></path>
+                    </svg>
+                </div>
+                <div class="app-tile-name">System Intelligence</div>
+            </div>
+            <div class="app-tile" data-app="news-reader" data-url="news.html" title="News Reader">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"></path>
+                        <path d="M18 14h-8"></path>
+                        <path d="M15 18h-5"></path>
+                    </svg>
+                </div>
+                <div class="app-tile-name">News Reader</div>
+            </div>
+            <div class="app-tile" data-app="user" data-url="user.html" title="User Profile">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </div>
+                <div class="app-tile-name">User Profile</div>
+            </div>
+            <div class="app-tile" data-app="help">
+                <div class="app-tile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </div>
+                <div class="app-tile-name">Help & Instructions</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Windows Container -->
+    <div class="windows-container" id="windows-container"></div>
+
+    <!-- Scripts (deferred for faster initial render) -->
+    <script src="js/utils/storage.js" defer></script>
+    <script src="js/utils/drag.js" defer></script>
+    <script src="js/core/os-store.js" defer></script>
+    <script src="js/core/user-profile.js" defer></script>
+    <script src="js/core/i18n.js" defer></script>
+    <script src="js/core/command-bus.js" defer></script>
+    <script src="js/core/app-registry.js" defer></script>
+    <script src="js/core/notification-system.js" defer></script>
+    <script src="js/core/zoom-detector.js" defer></script>
+    <script src="js/core/performance-manager.js" defer></script>
+    <script src="js/core/theme-system.js" defer></script>
+    <script src="js/core/tooltip-system.js" defer></script>
+    <script src="js/core/clipboard-manager.js" defer></script>
+    <script src="js/core/virtual-desktops.js" defer></script>
+    <script src="js/core/quick-actions.js" defer></script>
+    <script src="js/core/search-suggestions.js" defer></script>
+    <script src="js/core/desktop-widgets.js" defer></script>
+    <script src="js/core/boot-sequence.js" defer></script>
+    <script src="js/core/parallax-controller.js" defer></script>
+    <script src="js/core/window-manager.js" defer></script>
+    <script src="js/core/ai-system.js" defer></script>
+    <script src="js/core/notification-center.js" defer></script>
+    <script src="js/core/mode-manager.js" defer></script>
+    <script src="js/core/global-search.js" defer></script>
+    <script src="js/core/desktop.js" defer></script>
+    <script src="js/core/desktop-icons.js" defer></script>
+    <!-- Terminal Engine - BULLETPROOF (must load before terminal-v2.js) -->
+    <script src="js/core/terminal-engine.js" defer></script>
+    <!-- Virtual File System - Files App Core -->
+    <script src="js/core/virtual-filesystem.js" defer></script>
+    <!-- Markdown support for Notes -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" defer></script>
+    <script src="js/apps/tasks.js" defer></script>
+    <script src="js/apps/notes.js" defer></script>
+    <script src="js/apps/weather.js" defer></script>
+    <script src="js/apps/ai-chat.js" defer></script>
+    <script src="js/apps/browser.js" defer></script>
+    <script src="js/apps/bookmarks.js" defer></script>
+    <script src="js/apps/calculator.js" defer></script>
+    <script src="js/apps/calendar.js" defer></script>
+    <script src="js/apps/files.js" defer></script>
+    <script src="js/apps/files-v2.js" defer></script>
+    <script src="js/apps/settings.js" defer></script>
+    <!-- Old code-editor.js replaced with VS Code-like editor -->
+    <script src="js/apps/code-editor-vscode.js" defer></script>
+    <script src="js/apps/terminal-v2.js" defer></script>
+    <script src="js/apps/music-player.js" defer></script>
+    <script src="js/apps/drawing.js" defer></script>
+    <script src="js/apps/system-monitor.js" defer></script>
+    <script src="js/apps/gallery.js" defer></script>
+    <script src="js/apps/playground.js" defer></script>
+    <script src="js/apps/email.js" defer></script>
+    <script src="js/apps/mail.js" defer></script>
+    <script src="js/apps/system-insights.js" defer></script>
+    <script src="js/apps/news-reader.js" defer></script>
+    <script src="js/apps/news.js" defer></script>
+    <script src="js/apps/help.js" defer></script>
+    <script src="js/main.js" defer></script>
+    
+    <!-- Power Menu & Quick Launch Handler -->
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Power Menu
+        const powerMenuBtn = document.getElementById('power-menu-btn');
+        const powerMenu = document.getElementById('power-menu');
+        
+        if (powerMenuBtn && powerMenu) {
+            powerMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isVisible = powerMenu.classList.toggle('visible');
+                powerMenuBtn.setAttribute('aria-expanded', isVisible);
+            });
+            
+            document.addEventListener('click', (e) => {
+                if (!powerMenu.contains(e.target) && !powerMenuBtn.contains(e.target)) {
+                    powerMenu.classList.remove('visible');
+                    powerMenuBtn.setAttribute('aria-expanded', 'false');
+                }
+            });
+            
+            powerMenu.querySelectorAll('.power-menu-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const action = item.dataset.action;
+                    if (action === 'lock') {
+                        if (typeof notificationSystem !== 'undefined') {
+                            notificationSystem.info('Lock', 'OS locked (demo mode)');
+                        }
+                    } else if (action === 'restart') {
+                        if (confirm('Restart AegisDesk?')) {
+                            window.location.reload();
+                        }
+                    } else if (action === 'shutdown') {
+                        if (confirm('Shutdown AegisDesk? This will reload the page.')) {
+                            window.location.reload();
+                        }
+                    }
+                    powerMenu.classList.remove('visible');
+                    powerMenuBtn.setAttribute('aria-expanded', 'false');
+                });
+            });
+        }
+        
+        // Quick Launch
+        const quickLaunchItems = document.querySelectorAll('.quick-launch-item');
+        quickLaunchItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const appId = item.dataset.app;
+                if (typeof desktop !== 'undefined' && desktop.openApp) {
+                    desktop.openApp(appId);
+                }
+            });
+        });
+        
+        // Add modern-icon class to all icons
+        setTimeout(() => {
+            document.querySelectorAll('.taskbar-icon, .app-tile-icon').forEach(icon => {
+                if (!icon.classList.contains('modern-icon')) {
+                    icon.classList.add('modern-icon');
+                }
+            });
+        }, 500);
+        
+        // Check authentication before loading desktop
+        if (typeof authSystem !== 'undefined' && authSystem) {
+            if (!authSystem.isAuthenticated()) {
+                console.log('[Desktop] Not authenticated, redirecting to login...');
+                window.location.href = 'login.html';
+                return;
+            }
+        } else {
+            // Wait for auth system to load
+            setTimeout(() => {
+                if (typeof authSystem !== 'undefined' && authSystem && !authSystem.isAuthenticated()) {
+                    console.log('[Desktop] Not authenticated, redirecting to login...');
+                    window.location.href = 'login.html';
+                }
+            }, 1000);
+        }
+    });
+    </script>
+</body>
+</html>
+

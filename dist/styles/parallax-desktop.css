@@ -1,0 +1,168 @@
+/* Parallax Desktop Background - 3D Depth Layers */
+
+.desktop-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+/* Far Layer - Optimized Gradient */
+.desktop-layer-far {
+    position: absolute;
+    top: -10%;
+    left: -10%;
+    width: 120%;
+    height: 120%;
+    background: 
+        radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+        linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 50%, #1e293b 75%, #0f172a 100%);
+    background-size: 200% 200%;
+    animation: gradientShift 60s ease infinite;
+    will-change: transform, background-position;
+    transform: translateZ(0); /* GPU acceleration */
+}
+
+@keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+/* Simplified noise texture - removed heavy SVG filter */
+.desktop-layer-far::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.03;
+    background-image: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(99, 102, 241, 0.1) 2px,
+        rgba(99, 102, 241, 0.1) 4px
+    );
+    pointer-events: none;
+    transform: translateZ(0);
+}
+
+/* Mid Layer - Grid Pattern - Optimized */
+.desktop-layer-mid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(rgba(99, 102, 241, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99, 102, 241, 0.06) 1px, transparent 1px);
+    background-size: 60px 60px;
+    will-change: transform;
+    opacity: 0.5;
+    transform: translateZ(0); /* GPU acceleration */
+    contain: layout style paint; /* Performance isolation */
+}
+
+/* Near Layer - Particles + Bokeh */
+.desktop-layer-near {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    will-change: transform;
+    transition: transform 0.2s linear;
+}
+
+.desktop-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(99, 102, 241, 0.4);
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+    animation: particleDrift 20s linear infinite;
+}
+
+.desktop-bokeh {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+    filter: blur(30px); /* Reduced blur for better performance */
+    animation: parallaxFloat 20s ease-in-out infinite;
+    will-change: transform;
+    transform: translateZ(0); /* GPU acceleration */
+    contain: layout style paint;
+}
+
+.desktop-bokeh:nth-child(1) {
+    width: 200px;
+    height: 200px;
+    top: 20%;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.desktop-bokeh:nth-child(2) {
+    width: 150px;
+    height: 150px;
+    top: 60%;
+    left: 70%;
+    animation-delay: 3s;
+}
+
+.desktop-bokeh:nth-child(3) {
+    width: 180px;
+    height: 180px;
+    top: 80%;
+    left: 30%;
+    animation-delay: 6s;
+}
+
+/* Cursor Glow Effect - Optimized */
+.cursor-glow {
+    position: fixed;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 1;
+    transform: translate(-50%, -50%) translateZ(0);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    will-change: transform;
+    contain: layout style paint;
+}
+
+.cursor-glow.active {
+    opacity: 1;
+}
+
+/* Parallax Controller - GPU Accelerated */
+body.parallax-active .desktop-layer-far {
+    transform: translate3d(var(--parallax-x, 0), var(--parallax-y, 0), 0) scale(1.05);
+}
+
+body.parallax-active .desktop-layer-mid {
+    transform: translate3d(calc(var(--parallax-x, 0) * 0.4), calc(var(--parallax-y, 0) * 0.4), 0);
+}
+
+body.parallax-active .desktop-layer-near {
+    transform: translate3d(calc(var(--parallax-x, 0) * 0.25), calc(var(--parallax-y, 0) * 0.25), 0);
+}
+
+body.parallax-active .cursor-glow {
+    transform: translate3d(calc(var(--mouse-x, 0) - 150px), calc(var(--mouse-y, 0) - 150px), 0);
+}

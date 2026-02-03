@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: aegisdesk
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: OPEN_API
+        sync: false
+    healthCheckPath: /
+    autoDeploy: true

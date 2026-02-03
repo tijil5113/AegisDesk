@@ -1,0 +1,138 @@
+/* Boot Sequence - Cinematic OS Startup */
+
+.boot-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    overflow: hidden;
+}
+
+.boot-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--anim-modal-slow) var(--ease-out-expo);
+}
+
+/* Grid Background (keyframes in motion-system.css; GPU-friendly) */
+.boot-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(rgba(99, 102, 241, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99, 102, 241, 0.1) 1px, transparent 1px);
+    background-size: 50px 50px;
+    opacity: 0;
+    animation: bootFadeIn 1s var(--ease-out-expo) 0.3s forwards;
+}
+
+/* Scanline Effect */
+.boot-scanline {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(
+        to bottom,
+        transparent,
+        rgba(99, 102, 241, 0.8),
+        transparent
+    );
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
+    animation: bootScanline 1.5s var(--ease-out-cubic) 0.5s;
+}
+
+/* Logo */
+.boot-logo {
+    position: relative;
+    z-index: 2;
+    font-size: 48px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+    margin-bottom: 40px;
+    opacity: 0;
+    animation: bootLogoPowerOn 1s var(--ease-out-expo) 0.8s forwards;
+    filter: drop-shadow(0 0 16px rgba(99, 102, 241, 0.4));
+}
+
+/* Removed .boot-logo::after pulseGlow - blur(10px) + infinite animation caused lag */
+
+/* System Text */
+.boot-text {
+    position: relative;
+    z-index: 2;
+    color: rgba(148, 163, 184, 0.8);
+    font-size: 14px;
+    text-align: center;
+    line-height: 2;
+    opacity: 0;
+    animation: bootTextReveal 0.6s var(--ease-out-expo) 1.5s forwards;
+}
+
+.boot-text-line {
+    display: block;
+    margin: 8px 0;
+    opacity: 0;
+    animation: bootTextReveal 0.4s var(--ease-out-expo) forwards;
+}
+
+.boot-text-line:nth-child(1) {
+    animation-delay: 1.5s;
+}
+
+.boot-text-line:nth-child(2) {
+    animation-delay: 1.8s;
+}
+
+.boot-text-line:nth-child(3) {
+    animation-delay: 2.1s;
+}
+
+/* Loading Indicator */
+.boot-loader {
+    position: relative;
+    z-index: 2;
+    width: 200px;
+    height: 2px;
+    background: rgba(99, 102, 241, 0.2);
+    border-radius: 1px;
+    margin-top: 30px;
+    overflow: hidden;
+    opacity: 0;
+    animation: bootFadeIn 0.5s var(--ease-out-expo) 2s forwards;
+}
+
+.boot-loader-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    width: 0%;
+    animation: bootLoaderProgress 1s var(--ease-out-expo) 2.2s forwards;
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
+}
+
+/* Progress bar: width used for one-time fill; reduced-motion shortens via motion-system */
+@keyframes bootLoaderProgress {
+    0% { width: 0%; }
+    100% { width: 100%; }
+}
+
+@keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}

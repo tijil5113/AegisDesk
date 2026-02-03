@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Editor | Aegis Desk</title>
+    <link rel="stylesheet" href="styles/code-editor-ide.css">
+    <link rel="preconnect" href="https://unpkg.com">
+</head>
+<body data-theme="dark-pro">
+    <!-- First-open onboarding -->
+    <div id="ide-onboarding" class="onboarding">
+        <div class="onboarding-card">
+            <h1>Code Editor</h1>
+            <p class="onboarding-sub">VS Code–level IDE in your browser</p>
+            <div class="onboarding-section">
+                <h2>What is this?</h2>
+                <p>Edit and run code with Monaco (VS Code engine): syntax highlighting, IntelliSense, multi-cursor, folding, live preview, and AI assistant.</p>
+            </div>
+            <div class="onboarding-section">
+                <h2>Languages</h2>
+                <p>JavaScript, Python, HTML, CSS, Java, C++, TypeScript, JSON, and more.</p>
+            </div>
+            <div class="onboarding-section">
+                <h2>Create & save files</h2>
+                <p>Use the sidebar to create files or folders. <kbd>Ctrl+S</kbd> saves. Use <strong>Save As</strong> or <strong>Download</strong> to export. <strong>Upload</strong> to import files.</p>
+            </div>
+            <div class="onboarding-section">
+                <h2>Run code</h2>
+                <p>Click <strong>Run</strong> or <kbd>Ctrl+Enter</kbd>. JavaScript runs in-browser; Python via Pyodide; HTML/CSS shows live preview. View output in Console and Terminal panels.</p>
+            </div>
+            <div class="onboarding-section">
+                <h2>AI assistant</h2>
+                <p>Use the <strong>AI</strong> menu or sidebar chat: explain code, fix bugs, optimize, generate from prompt, convert English to code. Set <code>OPENAI_API_KEY</code> on the server for AI.</p>
+            </div>
+            <div class="onboarding-section">
+                <h2>Shortcuts</h2>
+                <ul class="shortcuts-list">
+                    <li><kbd>Ctrl+N</kbd> New file</li>
+                    <li><kbd>Ctrl+S</kbd> Save</li>
+                    <li><kbd>Ctrl+F</kbd> Find</li>
+                    <li><kbd>Ctrl+H</kbd> Replace</li>
+                    <li><kbd>Ctrl+Enter</kbd> Run</li>
+                    <li><kbd>Ctrl+Shift+F</kbd> Format document</li>
+                    <li><kbd>Ctrl+Shift+P</kbd> Command palette</li>
+                </ul>
+            </div>
+            <div class="onboarding-section">
+                <h2>Themes</h2>
+                <p>Click <strong>Theme</strong> in the status bar or use the command palette. Your choice is saved.</p>
+            </div>
+            <button type="button" id="onboarding-start" class="onboarding-cta">Start Coding</button>
+        </div>
+    </div>
+
+    <!-- Main IDE -->
+    <div id="ide-root" class="ide-root" style="display: none;">
+        <aside class="ide-sidebar" id="ide-sidebar">
+            <div class="ide-sidebar-views">
+                <button type="button" class="ide-sidebar-view active" data-view="explorer" title="Explorer">📁</button>
+                <button type="button" class="ide-sidebar-view" data-view="search" title="Search">🔍</button>
+                <button type="button" class="ide-sidebar-view" data-view="ai" title="AI Chat">🤖</button>
+            </div>
+            <div class="ide-sidebar-content">
+                <!-- Explorer -->
+                <div id="ide-view-explorer" class="ide-view active">
+                    <div class="ide-sidebar-header">
+                        <span class="ide-sidebar-title">EXPLORER</span>
+                        <div class="ide-sidebar-actions">
+                            <button type="button" class="ide-btn icon-btn" id="ide-new-file" title="New file (Ctrl+N)">+</button>
+                            <button type="button" class="ide-btn icon-btn" id="ide-new-folder" title="New folder">📁</button>
+                            <input type="file" id="ide-upload-input" multiple style="display:none">
+                            <button type="button" class="ide-btn icon-btn" id="ide-upload-btn" title="Upload files">↑</button>
+                        </div>
+                    </div>
+                    <div class="ide-tree" id="ide-file-tree"></div>
+                </div>
+                <!-- Search -->
+                <div id="ide-view-search" class="ide-view">
+                    <div class="ide-sidebar-header">
+                        <span class="ide-sidebar-title">SEARCH</span>
+                    </div>
+                    <div class="ide-search-box">
+                        <input type="text" id="ide-search-input" placeholder="Search in files...">
+                        <button type="button" class="ide-btn" id="ide-search-btn">Search</button>
+                    </div>
+                    <div class="ide-search-results" id="ide-search-results"></div>
+                </div>
+                <!-- AI Chat -->
+                <div id="ide-view-ai" class="ide-view">
+                    <div class="ide-sidebar-header">
+                        <span class="ide-sidebar-title">AI ASSISTANT</span>
+                    </div>
+                    <div class="ide-ai-panel">
+                        <div class="ide-ai-welcome" id="ide-ai-welcome">
+                            <p class="ide-ai-welcome-text">Hi! I'm your coding assistant. I can explain code, fix bugs, improve performance, refactor, generate projects, and answer technical questions. How can I help?</p>
+                            <div class="ide-ai-suggestions" id="ide-ai-suggestions">
+                                <button type="button" class="ide-ai-suggestion-btn" data-suggestion="Explain my code">Explain my code</button>
+                                <button type="button" class="ide-ai-suggestion-btn" data-suggestion="Fix errors in my code">Fix errors</button>
+                                <button type="button" class="ide-ai-suggestion-btn" data-suggestion="Improve performance of my code">Improve performance</button>
+                                <button type="button" class="ide-ai-suggestion-btn" data-suggestion="Generate a small project from scratch">Generate project</button>
+                            </div>
+                        </div>
+                        <div class="ide-ai-messages" id="ide-ai-messages"></div>
+                        <div class="ide-ai-typing" id="ide-ai-typing" style="display:none">
+                            <span class="ide-ai-typing-dot"></span>
+                            <span class="ide-ai-typing-dot"></span>
+                            <span class="ide-ai-typing-dot"></span>
+                            <span class="ide-ai-typing-label">Thinking...</span>
+                        </div>
+                        <div class="ide-ai-input-wrap">
+                            <textarea id="ide-ai-input" placeholder="Ask anything: explain, fix, optimize, generate..." rows="2"></textarea>
+                            <button type="button" class="ide-btn ide-ai-send-btn" id="ide-ai-send">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <div class="ide-main">
+            <div class="ide-toolbar">
+                <button type="button" class="ide-btn" id="ide-new-btn">New</button>
+                <button type="button" class="ide-btn" id="ide-open-btn">Open</button>
+                <input type="file" id="ide-open-input" multiple style="display:none">
+                <button type="button" class="ide-btn" id="ide-save-btn">Save</button>
+                <button type="button" class="ide-btn" id="ide-saveas-btn">Save As</button>
+                <button type="button" class="ide-btn" id="ide-download-btn">Download</button>
+                <span class="ide-toolbar-sep"></span>
+                <button type="button" class="ide-btn" id="ide-run-btn" title="Run (Ctrl+Enter)">▶ Run</button>
+                <button type="button" class="ide-btn" id="ide-format-btn">Format</button>
+                <span class="ide-toolbar-sep"></span>
+                <button type="button" class="ide-btn ide-preview-toggle" id="ide-preview-show-btn" title="Show Live Preview">Show Preview</button>
+                <button type="button" class="ide-btn ide-preview-toggle" id="ide-preview-hide-btn" title="Hide Live Preview" style="display:none">Hide Preview</button>
+                <button type="button" class="ide-btn" id="ide-preview-refresh-btn" title="Refresh Preview" style="display:none">Refresh</button>
+                <span class="ide-toolbar-sep"></span>
+                <div class="ide-ai-wrap">
+                    <button type="button" class="ide-btn" id="ide-ai-btn" title="AI actions">AI ▾</button>
+                    <div id="ide-ai-menu" class="ide-ai-menu" style="display: none;">
+                        <button type="button" data-ai="explain">Explain code</button>
+                        <button type="button" data-ai="fix">Fix bugs</button>
+                        <button type="button" data-ai="optimize">Optimize</button>
+                        <button type="button" data-ai="comment">Add comments</button>
+                        <button type="button" data-ai="generate">Generate from prompt</button>
+                        <button type="button" data-ai="convert">English → Code</button>
+                    </div>
+                </div>
+                <button type="button" class="ide-btn" id="ide-export-zip-btn">Export ZIP</button>
+            </div>
+            <div class="ide-tabs" id="ide-tabs"></div>
+            <div class="ide-editor-row" id="ide-editor-row">
+                <div class="ide-editor-area" id="ide-editor-area">
+                    <div id="monaco-container" class="ide-monaco-container"></div>
+                </div>
+                <div class="ide-resizer ide-resizer-preview" id="ide-resizer-preview" title="Drag to resize" style="display:none"></div>
+                <div class="ide-preview-wrap" id="ide-preview-wrap" style="display:none">
+                    <div class="ide-preview-header">
+                        <span class="ide-preview-title">Live Preview</span>
+                        <span class="ide-preview-status" id="ide-preview-status"></span>
+                    </div>
+                    <iframe id="ide-live-preview-frame" class="ide-live-preview-frame" title="Live Preview" sandbox="allow-scripts allow-same-origin"></iframe>
+                </div>
+            </div>
+            <div class="ide-panel ide-panel-bottom" id="ide-bottom-panel">
+                <div class="ide-resizer ide-resizer-panel" id="ide-resizer-panel" title="Drag to resize panel"></div>
+                <div class="ide-panel-tabs">
+                    <button type="button" class="ide-panel-tab active" data-panel="output">Output</button>
+                    <button type="button" class="ide-panel-tab" data-panel="console">Console</button>
+                    <button type="button" class="ide-panel-tab" data-panel="terminal">Terminal</button>
+                    <button type="button" class="ide-panel-tab" data-panel="problems">Problems</button>
+                </div>
+                <div class="ide-panel-content" id="ide-output">
+                    <pre id="ide-output-pre"></pre>
+                </div>
+                <div class="ide-panel-content" id="ide-console" style="display: none;">
+                    <pre id="ide-console-pre"></pre>
+                </div>
+                <div class="ide-panel-content" id="ide-terminal" style="display: none;">
+                    <div class="ide-terminal-output" id="ide-terminal-output"></div>
+                    <div class="ide-terminal-line">
+                        <span class="ide-terminal-prompt" id="ide-terminal-prompt">$ </span>
+                        <input type="text" class="ide-terminal-input" id="ide-terminal-input" spellcheck="false">
+                    </div>
+                </div>
+                <div class="ide-panel-content" id="ide-problems" style="display: none;">
+                    <div class="ide-problems-list" id="ide-problems-list"></div>
+                </div>
+            </div>
+        </div>
+        <div class="ide-statusbar">
+            <span id="ide-status-position">Ln 1, Col 1</span>
+            <span id="ide-status-language">JavaScript</span>
+            <span id="ide-status-eol">LF</span>
+            <span id="ide-status-encoding">UTF-8</span>
+            <button type="button" class="ide-status-btn" id="ide-theme-btn" title="Change theme">Theme</button>
+        </div>
+        <!-- Find & Replace -->
+        <div id="ide-find-wrap" class="ide-find-wrap" style="display: none;">
+            <input type="text" id="ide-find-input" placeholder="Find">
+            <input type="text" id="ide-replace-input" placeholder="Replace">
+            <button type="button" id="ide-find-prev" title="Previous">↑</button>
+            <button type="button" id="ide-find-next" title="Next">↓</button>
+            <button type="button" id="ide-find-replace-one" title="Replace">Replace</button>
+            <button type="button" id="ide-find-close">×</button>
+        </div>
+        <!-- Command palette -->
+        <div id="ide-command-palette" class="ide-command-palette" style="display: none;">
+            <input type="text" id="ide-command-input" placeholder="Type a command...">
+            <div class="ide-command-list" id="ide-command-list"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/monaco-editor@0.44.0/min/vs/loader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="js/code-editor-ide.js"></script>
+</body>
+</html>

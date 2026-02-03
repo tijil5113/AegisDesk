@@ -1,0 +1,335 @@
+/* Performance Optimizations - Ultra Fast & Smooth */
+
+/* Disable expensive backdrop-filter by default - use only when needed */
+:root {
+    --use-backdrop-filter: 0; /* Set to 1 to enable (slower) */
+}
+
+/* Only apply backdrop-filter to critical elements */
+.taskbar,
+.apps-menu,
+.power-menu,
+.window {
+    backdrop-filter: blur(10px) saturate(150%);
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
+}
+
+/* Remove backdrop-filter from less critical elements */
+.modern-icon,
+.app-tile-icon,
+.taskbar-icon:not(.active) {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+/* Optimize animations - use transform/opacity only (GPU accelerated) */
+.modern-icon,
+.taskbar-icon,
+.app-tile-icon {
+    /* Remove expensive transitions */
+    transition: 
+        transform var(--anim-speed-fast) var(--anim-ease),
+        opacity var(--anim-speed-fast) var(--anim-ease),
+        box-shadow var(--anim-speed-fast) var(--anim-ease);
+    
+    /* Remove will-change when not needed */
+    will-change: auto;
+}
+
+/* Only use will-change during active animation */
+.modern-icon:hover,
+.taskbar-icon:hover,
+.app-tile-icon:hover {
+    will-change: transform, box-shadow;
+}
+
+.modern-icon:not(:hover),
+.taskbar-icon:not(:hover),
+.app-tile-icon:not(:hover) {
+    will-change: auto;
+}
+
+/* Remove expensive shimmer animation */
+.modern-icon::before,
+.taskbar-icon::before {
+    display: none; /* Disable shimmer - too expensive */
+}
+
+/* Simplify icon hover - only transform */
+.modern-icon:hover,
+.taskbar-icon:hover,
+.app-tile-icon:hover {
+    transform: translate3d(0, -2px, 0) scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Remove pulse animation - too expensive */
+.modern-icon.idle {
+    animation: none;
+}
+
+/* Optimize window animations */
+.window {
+    /* Reduce animation duration */
+    animation: windowOpen 200ms var(--anim-ease);
+    /* Remove expensive transitions */
+    transition: 
+        transform var(--anim-speed-fast) var(--anim-ease),
+        opacity var(--anim-speed-fast) var(--anim-ease);
+}
+
+@keyframes windowOpen {
+    0% {
+        opacity: 0;
+        transform: scale(0.95) translate3d(0, 10px, 0);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translate3d(0, 0, 0);
+    }
+}
+
+/* Disable expensive theme transitions on non-critical elements */
+body *:not(.window):not(.taskbar):not(.apps-menu) {
+    transition: 
+        background-color 200ms ease,
+        color 200ms ease,
+        border-color 200ms ease;
+}
+
+/* Optimize parallax - reduce updates */
+.desktop-layer-far {
+    animation-duration: 120s; /* Slower = less CPU */
+    will-change: auto;
+}
+
+.desktop-layer-mid {
+    will-change: auto;
+}
+
+.desktop-bokeh {
+    filter: blur(20px); /* Reduced from 30px */
+    animation-duration: 40s; /* Slower = less CPU */
+    will-change: auto;
+}
+
+/* Disable expensive gradient animations when not visible */
+.desktop-layer-far:not(:hover) {
+    animation-play-state: paused;
+}
+
+/* Optimize taskbar */
+.taskbar {
+    /* Reduce blur */
+    backdrop-filter: blur(8px) saturate(150%);
+    /* Simplify shadow */
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Optimize apps menu */
+.apps-menu {
+    backdrop-filter: blur(10px) saturate(150%);
+}
+
+/* Disable expensive pseudo-elements */
+.modern-icon::after,
+.taskbar-icon::after {
+    display: none;
+}
+
+/* Optimize scrolling */
+* {
+    scroll-behavior: auto; /* Disable smooth scroll - can cause lag */
+    -webkit-overflow-scrolling: touch; /* Keep for mobile */
+}
+
+/* Reduce repaints - use contain */
+.app-tile,
+.taskbar-icon,
+.modern-icon {
+    contain: layout style paint;
+}
+
+/* Optimize tooltips - disable expensive effects */
+.tooltip {
+    backdrop-filter: blur(5px);
+    transition: opacity 100ms ease, transform 100ms ease;
+}
+
+/* Disable expensive widget animations */
+.widget {
+    animation: none;
+    transition: transform var(--anim-speed-fast) var(--anim-ease), opacity var(--anim-speed-fast) var(--anim-ease);
+}
+
+/* Optimize news cards */
+.news-article-card {
+    contain: layout style;
+    will-change: auto;
+}
+
+.news-article-card:hover {
+    will-change: transform;
+}
+
+.news-article-card:not(:hover) {
+    will-change: auto;
+}
+
+/* Remove expensive drop shadows on inactive elements */
+.taskbar-icon:not(:hover):not(.active) svg {
+    filter: none;
+}
+
+/* Optimize gradient backgrounds - use simpler gradients */
+.desktop-layer-far {
+    background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-darker) 100%);
+    /* Remove expensive animated gradients */
+}
+
+/* Disable cursor glow updates if too expensive */
+@media (prefers-reduced-motion: reduce) {
+    .cursor-glow,
+    .desktop-layer-far,
+    .desktop-bokeh {
+        animation: none;
+        transition: none;
+    }
+}
+
+/* Performance mode - disable all animations */
+.performance-mode *,
+.performance-mode *::before,
+.performance-mode *::after {
+    animation: none !important;
+    transition: opacity 100ms ease !important;
+    will-change: auto !important;
+}
+
+/* Optimize icon rendering - batch updates */
+.taskbar-pinned-apps {
+    contain: layout style paint;
+}
+
+.apps-grid {
+    contain: layout style;
+    /* Use virtual scrolling for large grids */
+    content-visibility: auto;
+}
+
+/* Reduce CSS calculations */
+.app-tile {
+    /* Pre-calculate common values */
+    --tile-size: calc(80px * var(--scale-factor));
+    width: var(--tile-size);
+    height: var(--tile-size);
+}
+
+/* Optimize z-index stacking - reduce layers */
+.taskbar { z-index: 1000; }
+.apps-menu { z-index: 999; }
+.window { z-index: 100; }
+.tooltip { z-index: 10000; }
+
+/* Disable expensive filters */
+.modern-icon svg,
+.taskbar-icon svg {
+    filter: none; /* Remove drop-shadow - expensive */
+}
+
+.modern-icon:hover svg,
+.taskbar-icon:hover svg,
+.modern-icon.active svg,
+.taskbar-icon.active svg {
+    filter: brightness(1.1); /* Simpler filter */
+}
+
+/* Optimize font rendering */
+body {
+    text-rendering: optimizeSpeed; /* Faster rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Reduce layout shifts */
+img, svg {
+    height: auto;
+    max-width: 100%;
+}
+
+/* Optimize resize handling */
+@media (max-width: 768px) {
+    /* Disable expensive effects on mobile */
+    .desktop-layer-far,
+    .desktop-bokeh {
+        display: none;
+    }
+    
+    .taskbar {
+        backdrop-filter: blur(5px);
+    }
+}
+
+/* Critical performance fixes */
+* {
+    /* Reduce paint complexity */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    perspective: 1000px;
+    -webkit-perspective: 1000px;
+}
+
+/* Optimize transforms */
+.modern-icon,
+.taskbar-icon,
+.app-tile-icon {
+    transform: translateZ(0); /* Force GPU */
+    -webkit-transform: translateZ(0);
+}
+
+/* Disable expensive scroll behaviors */
+* {
+    scroll-behavior: auto !important; /* Disable smooth scroll */
+}
+
+/* Optimize font loading */
+body {
+    font-display: swap; /* Faster text rendering */
+}
+
+/* Reduce paint complexity */
+.taskbar,
+.apps-menu,
+.window {
+    /* Use simpler backgrounds */
+    background: var(--bg-card);
+}
+
+/* Disable expensive filters on inactive elements */
+.window:not(.active) {
+    filter: none;
+    backdrop-filter: blur(5px); /* Reduced blur */
+}
+
+/* Optimize CSS containment */
+.apps-grid,
+.taskbar-pinned-apps {
+    content-visibility: auto;
+    contain-intrinsic-size: 200px;
+}
+
+/* Disable unnecessary animations */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Batch DOM reads/writes */
+.batch-update {
+    /* Flag for batched updates */
+}

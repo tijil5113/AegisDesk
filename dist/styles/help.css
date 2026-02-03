@@ -1,0 +1,398 @@
+/* Help & Instructions App Styles */
+.help-app {
+    padding: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-dark);
+    overflow: hidden;
+}
+
+.help-header {
+    padding: 32px 32px 24px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+}
+
+.help-header h2 {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    background: linear-gradient(135deg, var(--primary-light), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.help-subtitle {
+    color: var(--text-secondary);
+    font-size: 16px;
+    margin: 0;
+}
+
+.help-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 32px;
+}
+
+.help-section {
+    margin-bottom: 40px;
+}
+
+.help-section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border);
+}
+
+.help-icon {
+    font-size: 28px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+    border-radius: 12px;
+}
+
+.help-section-header h3 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+/* Keyboard Shortcuts Grid */
+.help-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.help-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.help-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.2);
+    border-color: var(--primary);
+}
+
+.help-shortcut {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.help-shortcut kbd {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    min-width: 32px;
+    text-align: center;
+    display: inline-block;
+}
+
+.help-description strong {
+    display: block;
+    color: var(--text-primary);
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+
+.help-description p {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Themes Section */
+.help-themes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.help-theme-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.help-theme-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.2);
+    border-color: var(--primary);
+}
+
+.theme-preview {
+    width: 100%;
+    height: 60px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    border: 2px solid var(--border);
+    position: relative;
+    overflow: hidden;
+}
+
+.theme-preview::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+    animation: shimmer 2s infinite;
+}
+
+.dark-preview {
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+}
+
+.light-preview {
+    background: linear-gradient(135deg, #f8fafc, #ffffff);
+}
+
+.cyberpunk-preview {
+    background: linear-gradient(135deg, #0a0a0f, #00ff88);
+}
+
+.ocean-preview {
+    background: linear-gradient(135deg, #0c1222, #06b6d4);
+}
+
+.sunset-preview {
+    background: linear-gradient(135deg, #1c0a0a, #f97316);
+}
+
+.matrix-preview {
+    background: linear-gradient(135deg, #000000, #00ff41);
+}
+
+.theme-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.theme-info strong {
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.theme-info span {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.help-note {
+    background: rgba(99, 102, 241, 0.1);
+    border-left: 3px solid var(--primary);
+    padding: 12px 16px;
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin: 0;
+}
+
+.help-note kbd {
+    background: var(--bg-card);
+    color: var(--primary);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    border: 1px solid var(--border);
+}
+
+/* Features Section */
+.help-features {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.help-feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.help-feature-item:hover {
+    transform: translateX(8px);
+    border-color: var(--primary);
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.2);
+}
+
+.help-feature-item .feature-icon {
+    font-size: 32px;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+
+.help-feature-item strong {
+    display: block;
+    color: var(--text-primary);
+    font-size: 16px;
+    margin-bottom: 6px;
+}
+
+.help-feature-item p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Tips Section */
+.help-tips {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.help-tip {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--primary);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.help-tip:hover {
+    transform: translateX(8px);
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15);
+}
+
+.tip-number {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.help-tip p {
+    margin: 0;
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+.help-tip strong {
+    color: var(--primary-light);
+}
+
+/* Footer */
+.help-footer {
+    text-align: center;
+    padding: 32px 0 16px;
+    border-top: 1px solid var(--border);
+    margin-top: 32px;
+}
+
+.help-footer p {
+    margin: 8px 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.help-version {
+    color: var(--text-muted) !important;
+    font-size: 12px !important;
+}
+
+/* Scrollbar for help content */
+.help-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.help-content::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+}
+
+.help-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--primary), var(--secondary));
+    border-radius: 4px;
+}
+
+.help-content::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--primary-light), var(--secondary));
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .help-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .help-themes {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .help-header {
+        padding: 24px 20px 20px;
+    }
+    
+    .help-content {
+        padding: 20px;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}

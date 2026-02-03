@@ -1,0 +1,72 @@
+/**
+ * GLASS SYSTEM - Performance-safe glassmorphism (critical path; load before layout).
+ * Rules: blur <= 12px; rgba primary; no nested backdrop-filter; perf-mode = no blur.
+ * Toggle: body.performance-mode (set by performance-manager.js on init or user toggle).
+ */
+
+:root {
+    /* Primary visual layer: semi-opaque background. Stronger opacity = less
+       reliance on blur for readability, which improves rendering performance. */
+    --glass-bg: rgba(15, 23, 42, 0.88);
+    --glass-bg-solid: rgba(15, 23, 42, 0.96);
+
+    /* Border: subtle edge. No performance cost. */
+    --glass-border: rgba(148, 163, 184, 0.2);
+    --glass-border-strong: rgba(99, 102, 241, 0.25);
+
+    /* Blur: capped at 12px. backdrop-filter forces a new compositing layer and
+       repaint of content behind; keeping it low and only on small containers
+       limits the affected area and cost. Never use on full-screen elements. */
+    --glass-blur: blur(10px) saturate(130%);
+
+    /* Shadow: single layer. Multiple box-shadows or large spread increase
+       paint cost; one soft shadow is cheaper than stacked glows. */
+    --glass-shadow: 0 -2px 16px rgba(0, 0, 0, 0.35);
+    --glass-shadow-panel: 0 12px 40px rgba(0, 0, 0, 0.4);
+    --glass-shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* Legacy aliases for compatibility (map to new vars) */
+:root {
+    --glass: var(--glass-bg);
+}
+
+/* ========== PERFORMANCE MODE ==========
+   Disables backdrop-filter and reduces shadows to minimize GPU/paint work.
+   Applied automatically on low-end devices (performance-manager.js) or when
+   user enables "Reduce motion" / performance preference. */
+body.performance-mode,
+:root.performance-mode {
+    /* No blur: removes compositing and repaint cost of backdrop-filter. */
+    --glass-blur: none;
+    -webkit-backdrop-filter: none;
+}
+
+body.performance-mode,
+:root.performance-mode {
+    /* Lighter shadows: fewer/smaller shadows = less paint and blur radius. */
+    --glass-shadow: 0 -1px 8px rgba(0, 0, 0, 0.25);
+    --glass-shadow-panel: 0 4px 16px rgba(0, 0, 0, 0.3);
+    --glass-shadow-elevated: 0 2px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* Force removal of backdrop-filter on all glass elements in performance mode
+   so that stylesheets that use var(--glass-blur) still get none, and any
+   hardcoded backdrop-filter in children is overridden (avoids nested blur). */
+body.performance-mode .taskbar,
+body.performance-mode .apps-menu,
+body.performance-mode .window,
+body.performance-mode .power-menu,
+body.performance-mode .search-bar,
+body.performance-mode [class*="glass"],
+body.performance-mode [class*="modal"],
+:root.performance-mode .taskbar,
+:root.performance-mode .apps-menu,
+:root.performance-mode .window,
+:root.performance-mode .power-menu,
+:root.performance-mode .search-bar,
+:root.performance-mode [class*="glass"],
+:root.performance-mode [class*="modal"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}

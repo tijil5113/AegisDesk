@@ -1,0 +1,189 @@
+/* Performance Optimizations - Smooth, Fast, GPU-Friendly
+   Uses unified animation tokens from motion-system.css (--anim-micro, --anim-modal, --ease-ui, etc.) */
+
+/* Glass: use variables from glass-system.css (blur <= 12px; perf-mode sets --glass-blur: none) */
+.taskbar,
+.apps-menu,
+.power-menu,
+.window {
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+}
+
+/* Avoid nested backdrop-filter: only the panel has blur, not every icon (reduces layers) */
+.modern-icon,
+.app-tile-icon,
+.taskbar-icon:not(.active) {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+/* GPU-friendly transitions - NEVER use "transition: all" */
+/* PERF: Only transform + opacity; use motion-system tokens */
+.modern-icon,
+.taskbar-icon,
+.app-tile-icon {
+    transition: var(--transition-micro);
+    will-change: auto;
+}
+
+.modern-icon:hover,
+.taskbar-icon:hover,
+.app-tile-icon:hover {
+    will-change: transform;
+}
+
+.modern-icon::before,
+.taskbar-icon::before {
+    display: none;
+}
+
+.modern-icon:hover,
+.taskbar-icon:hover,
+.app-tile-icon:hover {
+    transform: translate3d(0, -2px, 0) scale(1.05) translateZ(0);
+    /* Static shadow — do not animate box-shadow (layout trigger); set instantly on hover */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.modern-icon.idle {
+    animation: none;
+}
+
+/* Window - open uses motion-system keyframes (GPU, ≤220ms) */
+.window {
+    animation: windowEnter var(--anim-micro-slow) var(--ease-out-expo) forwards;
+    transition: var(--transition-micro);
+}
+
+/* Parallax - lighter (parallax-desktop.css sets base; we tune) */
+.desktop-layer-far {
+    animation-duration: 90s;
+    will-change: auto;
+}
+
+.desktop-layer-mid {
+    will-change: auto;
+}
+
+/* Bokeh: decorative blur on small elements only; cap at 12px for paint cost */
+.desktop-bokeh {
+    filter: blur(12px);
+    animation-duration: 35s;
+    will-change: auto;
+}
+
+.taskbar {
+    box-shadow: var(--glass-shadow);
+}
+
+.modern-icon::after,
+.taskbar-icon::after {
+    display: none;
+}
+
+/* Smooth scroll - body handles via main.css; avoid * override */
+
+/* Containment for animated elements */
+.app-tile,
+.taskbar-icon,
+.modern-icon {
+    contain: layout style paint;
+}
+
+.tooltip {
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    transition: var(--transition-micro);
+}
+
+.widget {
+    animation: none;
+    transition: var(--transition-micro);
+}
+
+.news-article-card {
+    contain: layout style;
+    will-change: auto;
+}
+
+.news-article-card:hover {
+    will-change: transform;
+}
+
+.taskbar-icon:not(:hover):not(.active) svg {
+    filter: none;
+}
+
+.modern-icon svg,
+.taskbar-icon svg {
+    filter: none;
+}
+
+.modern-icon:hover svg,
+.taskbar-icon:hover svg,
+.modern-icon.active svg,
+.taskbar-icon.active svg {
+    filter: brightness(1.08);
+}
+
+body {
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+img, svg {
+    height: auto;
+    max-width: 100%;
+}
+
+@media (max-width: 768px) {
+    .desktop-layer-far,
+    .desktop-bokeh {
+        display: none;
+    }
+    .taskbar {
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+    }
+}
+
+/* GPU compositing only where needed: taskbar/apps-menu/window animate open; icons get will-change on hover only. */
+.taskbar,
+.apps-menu {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+}
+
+.window {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.window:not(.active) {
+    filter: none;
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+}
+
+.apps-grid,
+.taskbar-pinned-apps {
+    content-visibility: auto;
+    contain-intrinsic-size: 200px;
+}
+
+.performance-mode *,
+.performance-mode *::before,
+.performance-mode *::after {
+    animation: none !important;
+    transition: opacity 0.01ms ease !important;
+    will-change: auto !important;
+}
+
+/* prefers-reduced-motion handled globally in motion-system.css */
+
+
+

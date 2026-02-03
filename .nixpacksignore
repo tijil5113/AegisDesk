@@ -1,0 +1,4 @@
+# Nixpacks ignore patterns
+# Files to exclude from Nixpacks build
+dist/
+*.map

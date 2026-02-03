@@ -1,0 +1,1273 @@
+/**
+ * Standalone Code Editor IDE - code-editor.html only.
+ * Layout, panels, and page-only themes. Do not affect other apps.
+ */
+
+/* ---- Base & layout ---- */
+body {
+    margin: 0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--ide-bg);
+    color: var(--ide-fg);
+    transition: background-color 0.2s ease, color 0.2s ease;
+    overflow: hidden;
+    height: 100vh;
+}
+
+.ide-root {
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.ide-root > .ide-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Resizers */
+.ide-resizer {
+    flex-shrink: 0;
+    background: var(--ide-border);
+    transition: background 0.15s;
+}
+
+.ide-resizer:hover {
+    background: var(--ide-accent, var(--ide-btn-bg));
+}
+
+.ide-resizer-sidebar {
+    width: 4px;
+    cursor: col-resize;
+}
+
+.ide-resizer-panel {
+    height: 6px;
+    cursor: row-resize;
+    flex-shrink: 0;
+}
+
+.ide-sidebar {
+    width: 280px;
+    min-width: 180px;
+    max-width: 60vw;
+    background: var(--ide-sidebar-bg);
+    border-right: 1px solid var(--ide-border);
+    display: flex;
+    flex-direction: row;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.ide-sidebar-views {
+    width: 48px;
+    flex-shrink: 0;
+    background: var(--ide-tabs-bg);
+    border-right: 1px solid var(--ide-border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 0;
+    gap: 4px;
+}
+
+.ide-sidebar-view {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--ide-muted);
+    cursor: pointer;
+    font-size: 18px;
+    border-radius: 4px;
+}
+
+.ide-sidebar-view:hover {
+    color: var(--ide-fg);
+    background: var(--ide-tree-hover);
+}
+
+.ide-sidebar-view.active {
+    color: var(--ide-accent, var(--ide-fg));
+    background: var(--ide-tree-hover);
+}
+
+.ide-sidebar-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.ide-view {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.ide-view.active {
+    display: flex;
+}
+
+.ide-sidebar-header {
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--ide-border);
+}
+
+.ide-sidebar-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--ide-sidebar-fg);
+}
+
+.ide-sidebar-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.ide-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    background: var(--ide-btn-bg);
+    color: var(--ide-btn-fg);
+    border: 1px solid var(--ide-border);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.ide-btn:hover {
+    background: var(--ide-btn-hover);
+}
+
+.ide-tree {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 8px 0;
+    -webkit-overflow-scrolling: touch;
+}
+
+.ide-tree-empty {
+    padding: 12px;
+    font-size: 12px;
+    color: var(--ide-muted);
+}
+
+.ide-tree-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--ide-fg);
+}
+
+.ide-tree-item:hover,
+.ide-tree-item.open {
+    background: var(--ide-tree-hover);
+}
+
+.ide-tree-icon {
+    font-size: 14px;
+}
+
+.ide-tree-folder {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--ide-fg);
+}
+
+.ide-tree-folder:hover {
+    background: var(--ide-tree-hover);
+}
+
+.ide-toolbar-sep {
+    width: 1px;
+    height: 20px;
+    background: var(--ide-border);
+    margin: 0 4px;
+}
+
+.ide-btn.icon-btn {
+    padding: 4px 8px;
+    min-width: 28px;
+}
+
+.ide-tabs {
+    display: flex;
+    align-items: center;
+    background: var(--ide-tabs-bg);
+    border-bottom: 1px solid var(--ide-border);
+    overflow-x: auto;
+    min-height: 36px;
+}
+
+.ide-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    background: var(--ide-tab-bg);
+    color: var(--ide-tab-fg);
+    border-right: 1px solid var(--ide-border);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.ide-tab:hover {
+    background: var(--ide-tab-hover);
+}
+
+.ide-tab.active {
+    background: var(--ide-editor-bg);
+    color: var(--ide-fg);
+}
+
+.tab-dirty {
+    color: var(--ide-dirty);
+    font-size: 10px;
+}
+
+.ide-tab-close {
+    padding: 0 2px;
+    font-size: 16px;
+    line-height: 1;
+    background: none;
+    border: none;
+    color: var(--ide-muted);
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+.ide-tab-close:hover {
+    color: var(--ide-fg);
+    background: var(--ide-btn-hover);
+}
+
+/* Editor row: editor | resizer | live preview */
+.ide-editor-row {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+}
+
+.ide-editor-area {
+    flex: 1;
+    min-width: 200px;
+    min-height: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.ide-resizer-preview {
+    width: 6px;
+    min-width: 6px;
+    cursor: col-resize;
+    flex-shrink: 0;
+    background: var(--ide-border);
+    transition: background 0.15s;
+}
+
+.ide-resizer-preview:hover {
+    background: var(--ide-accent, var(--ide-btn-bg));
+}
+
+.ide-preview-wrap {
+    display: flex;
+    flex-direction: column;
+    min-width: 200px;
+    width: 45%;
+    max-width: 70%;
+    background: var(--ide-panel-bg);
+    border-left: 1px solid var(--ide-border);
+    overflow: hidden;
+}
+
+.ide-preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--ide-tabs-bg);
+    border-bottom: 1px solid var(--ide-border);
+    color: var(--ide-sidebar-fg);
+    flex-shrink: 0;
+}
+
+.ide-preview-title {
+    letter-spacing: 0.03em;
+}
+
+.ide-preview-status {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--ide-muted);
+}
+
+.ide-live-preview-frame {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    border: none;
+    background: #fff;
+}
+
+.ide-monaco-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.ide-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--ide-tabs-bg);
+    border-bottom: 1px solid var(--ide-border);
+}
+
+.ide-toolbar .ide-btn {
+    padding: 5px 10px;
+}
+
+.ide-ai-wrap {
+    position: relative;
+}
+
+.ide-ai-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    min-width: 180px;
+    background: var(--ide-panel-bg);
+    border: 1px solid var(--ide-border);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    z-index: 50;
+    overflow: hidden;
+}
+
+.ide-ai-menu button {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 12px;
+    text-align: left;
+    background: none;
+    border: none;
+    color: var(--ide-fg);
+    cursor: pointer;
+}
+
+.ide-ai-menu button:hover {
+    background: var(--ide-tree-hover);
+}
+
+.ide-panel-bottom {
+    height: 200px;
+    min-height: 120px;
+    max-height: 50vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--ide-panel-bg);
+    border-top: 1px solid var(--ide-border);
+}
+
+.ide-panel-tabs {
+    display: flex;
+    gap: 2px;
+    padding: 4px 8px 0;
+    background: var(--ide-tabs-bg);
+    border-bottom: 1px solid var(--ide-border);
+}
+
+.ide-panel-tab {
+    padding: 8px 14px;
+    font-size: 12px;
+    background: transparent;
+    border: none;
+    color: var(--ide-muted);
+    cursor: pointer;
+    border-radius: 4px 4px 0 0;
+}
+
+.ide-panel-tab:hover {
+    color: var(--ide-fg);
+}
+
+.ide-panel-tab.active {
+    background: var(--ide-panel-bg);
+    color: var(--ide-fg);
+}
+
+.ide-panel-content {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 10px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.ide-panel-content pre {
+    margin: 0;
+    font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--ide-console-fg);
+}
+
+/* Search view */
+.ide-search-box {
+    padding: 10px;
+    display: flex;
+    gap: 8px;
+}
+
+.ide-search-box input {
+    flex: 1;
+    padding: 6px 10px;
+    font-size: 12px;
+    background: var(--ide-editor-bg);
+    color: var(--ide-fg);
+    border: 1px solid var(--ide-border);
+    border-radius: 4px;
+}
+
+.ide-search-results {
+    flex: 1;
+    overflow: auto;
+    font-size: 12px;
+}
+
+.ide-search-empty {
+    padding: 12px;
+    color: var(--ide-muted);
+}
+
+.ide-search-hit {
+    padding: 6px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--ide-border);
+}
+
+.ide-search-hit:hover {
+    background: var(--ide-tree-hover);
+}
+
+.ide-search-loc {
+    color: var(--ide-muted);
+    margin-right: 8px;
+}
+
+/* AI panel */
+.ide-ai-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.ide-ai-welcome {
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--ide-border);
+    flex-shrink: 0;
+}
+
+.ide-ai-welcome-text {
+    margin: 0 0 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ide-muted);
+}
+
+.ide-ai-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.ide-ai-suggestion-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+    background: var(--ide-btn-bg);
+    color: var(--ide-btn-fg);
+    border: 1px solid var(--ide-border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+}
+
+.ide-ai-suggestion-btn:hover {
+    background: var(--ide-btn-hover);
+    transform: translateY(-1px);
+}
+
+.ide-ai-messages {
+    flex: 1;
+    overflow: auto;
+    padding: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.ide-ai-msg {
+    margin-bottom: 10px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    max-width: 95%;
+    animation: ide-ai-msg-in 0.25s ease;
+}
+
+@keyframes ide-ai-msg-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.ide-ai-msg.user {
+    background: var(--ide-btn-bg);
+    color: var(--ide-btn-fg);
+    margin-left: 0;
+}
+
+.ide-ai-msg.assistant {
+    background: var(--ide-tree-hover);
+    color: var(--ide-fg);
+}
+
+.ide-ai-msg.assistant.error {
+    color: var(--ide-dirty, #f48771);
+}
+
+.ide-ai-msg.assistant code,
+.ide-ai-msg pre {
+    background: rgba(0,0,0,0.2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.ide-ai-typing {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--ide-muted);
+}
+
+.ide-ai-typing-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--ide-accent, var(--ide-fg));
+    animation: ide-ai-typing-bounce 1.2s ease-in-out infinite;
+}
+
+.ide-ai-typing-dot:nth-child(1) { animation-delay: 0s; }
+.ide-ai-typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.ide-ai-typing-dot:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes ide-ai-typing-bounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-4px); }
+}
+
+.ide-ai-typing-label {
+    margin-left: 4px;
+}
+
+.ide-ai-input-wrap {
+    padding: 10px;
+    border-top: 1px solid var(--ide-border);
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    flex-shrink: 0;
+}
+
+.ide-ai-input-wrap textarea {
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    background: var(--ide-editor-bg);
+    color: var(--ide-fg);
+    border: 1px solid var(--ide-border);
+    border-radius: 6px;
+    resize: none;
+}
+
+.ide-ai-send-btn {
+    flex-shrink: 0;
+}
+
+/* Terminal panel */
+#ide-terminal {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 0;
+}
+
+.ide-terminal-output {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 10px;
+    font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ide-console-fg);
+    -webkit-overflow-scrolling: touch;
+}
+
+.ide-terminal-line {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    border-top: 1px solid var(--ide-border);
+    flex-shrink: 0;
+}
+
+.ide-terminal-line.cmd {
+    color: var(--ide-accent, var(--ide-fg));
+}
+
+.ide-terminal-prompt {
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.ide-terminal-line .ide-terminal-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--ide-fg);
+    font: inherit;
+    outline: none;
+}
+
+/* Problems panel */
+.ide-problems-list {
+    padding: 10px;
+    font-size: 12px;
+}
+
+.ide-problems-empty {
+    color: var(--ide-muted);
+}
+
+.ide-problem {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--ide-border);
+}
+
+.ide-problem.error {
+    color: var(--ide-dirty, #f48771);
+}
+
+.ide-problem-loc {
+    color: var(--ide-muted);
+    margin-right: 8px;
+}
+
+/* Command palette */
+.ide-command-palette {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 500px;
+    background: var(--ide-panel-bg);
+    border: 1px solid var(--ide-border);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    z-index: 200;
+    overflow: hidden;
+}
+
+.ide-command-palette input {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 14px;
+    background: var(--ide-editor-bg);
+    color: var(--ide-fg);
+    border: none;
+    border-bottom: 1px solid var(--ide-border);
+    outline: none;
+}
+
+.ide-command-list {
+    max-height: 300px;
+    overflow: auto;
+}
+
+.ide-command-item {
+    padding: 10px 16px;
+    cursor: pointer;
+    color: var(--ide-fg);
+}
+
+.ide-command-item:hover,
+.ide-command-item.selected {
+    background: var(--ide-tree-hover);
+}
+
+/* TODO/FIXME in editor */
+.ide-todo-marker,
+.ide-todo-line {
+    opacity: 0.8;
+}
+
+.ide-statusbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 4px 12px;
+    font-size: 12px;
+    background: var(--ide-status-bg);
+    border-top: 1px solid var(--ide-border);
+    color: var(--ide-muted);
+}
+
+.ide-status-btn {
+    margin-left: auto;
+    padding: 2px 8px;
+    font-size: 11px;
+    background: var(--ide-btn-bg);
+    color: var(--ide-btn-fg);
+    border: 1px solid var(--ide-border);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.ide-status-btn:hover {
+    background: var(--ide-btn-hover);
+}
+
+/* Find & Replace overlay */
+.ide-find-wrap {
+    position: absolute;
+    top: 48px;
+    right: 20px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    background: var(--ide-panel-bg);
+    border: 1px solid var(--ide-border);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.ide-find-wrap input {
+    padding: 6px 10px;
+    font-size: 13px;
+    background: var(--ide-editor-bg);
+    color: var(--ide-fg);
+    border: 1px solid var(--ide-border);
+    border-radius: 4px;
+    width: 160px;
+}
+
+.ide-find-wrap input::placeholder {
+    color: var(--ide-muted);
+}
+
+.ide-find-wrap button {
+    padding: 6px 10px;
+    background: var(--ide-btn-bg);
+    color: var(--ide-btn-fg);
+    border: 1px solid var(--ide-border);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.ide-find-wrap button:hover {
+    background: var(--ide-btn-hover);
+}
+
+/* Onboarding */
+.onboarding {
+    position: fixed;
+    inset: 0;
+    background: var(--ide-onboard-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.onboarding-card {
+    max-width: 520px;
+    width: 100%;
+    background: var(--ide-panel-bg);
+    border: 1px solid var(--ide-border);
+    border-radius: 12px;
+    padding: 28px 32px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.onboarding-card h1 {
+    margin: 0 0 4px;
+    font-size: 24px;
+    color: var(--ide-fg);
+}
+
+.onboarding-sub {
+    margin: 0 0 24px;
+    font-size: 14px;
+    color: var(--ide-muted);
+}
+
+.onboarding-section {
+    margin-bottom: 18px;
+}
+
+.onboarding-section h2 {
+    margin: 0 0 6px;
+    font-size: 14px;
+    color: var(--ide-fg);
+}
+
+.onboarding-section p,
+.onboarding-section ul {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ide-muted);
+}
+
+.shortcuts-list {
+    list-style: none;
+    padding: 0;
+}
+
+.shortcuts-list li {
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.shortcuts-list kbd {
+    padding: 2px 6px;
+    font-size: 12px;
+    background: var(--ide-btn-bg);
+    border: 1px solid var(--ide-border);
+    border-radius: 4px;
+    min-width: 100px;
+}
+
+.onboarding-cta {
+    margin-top: 24px;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    background: var(--ide-accent);
+    color: var(--ide-accent-fg);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.onboarding-cta:hover {
+    filter: brightness(1.1);
+}
+
+/* ---- Theme variables: Dark Pro (default) ---- */
+body[data-theme="dark-pro"] {
+    --ide-bg: #1e1e1e;
+    --ide-fg: #d4d4d4;
+    --ide-muted: #858585;
+    --ide-border: #333;
+    --ide-sidebar-bg: #252526;
+    --ide-sidebar-fg: #cccccc;
+    --ide-tree-hover: #2a2d2e;
+    --ide-tabs-bg: #252526;
+    --ide-tab-bg: #2d2d2d;
+    --ide-tab-fg: #969696;
+    --ide-tab-hover: #37373d;
+    --ide-editor-bg: #1e1e1e;
+    --ide-panel-bg: #1e1e1e;
+    --ide-status-bg: #007acc;
+    --ide-btn-bg: #0e639c;
+    --ide-btn-fg: #fff;
+    --ide-btn-hover: #1177bb;
+    --ide-dirty: #f48771;
+    --ide-console-fg: #d4d4d4;
+    --ide-onboard-bg: #1e1e1e;
+    --ide-accent: #0e639c;
+    --ide-accent-fg: #fff;
+}
+
+/* ---- Cyberpunk Neon ---- */
+body[data-theme="cyberpunk-neon"] {
+    --ide-bg: #0a0a12;
+    --ide-fg: #e0f7ff;
+    --ide-muted: #6ee7ff;
+    --ide-border: #00f0ff44;
+    --ide-sidebar-bg: #050508;
+    --ide-sidebar-fg: #6ee7ff;
+    --ide-tree-hover: #00f0ff22;
+    --ide-tabs-bg: #0d0d18;
+    --ide-tab-bg: #15152a;
+    --ide-tab-fg: #6ee7ff;
+    --ide-tab-hover: #00f0ff22;
+    --ide-editor-bg: #0a0a12;
+    --ide-panel-bg: #050508;
+    --ide-status-bg: #00f0ff22;
+    --ide-btn-bg: #00f0ff;
+    --ide-btn-fg: #0a0a12;
+    --ide-btn-hover: #6ee7ff;
+    --ide-dirty: #ff00aa;
+    --ide-console-fg: #e0f7ff;
+    --ide-onboard-bg: #0a0a12;
+    --ide-accent: #00f0ff;
+    --ide-accent-fg: #0a0a12;
+}
+
+/* ---- Matrix Hacker ---- */
+body[data-theme="matrix-hacker"] {
+    --ide-bg: #000;
+    --ide-fg: #00ff41;
+    --ide-muted: #00cc33;
+    --ide-border: #00ff4144;
+    --ide-sidebar-bg: #0a0f0a;
+    --ide-sidebar-fg: #00ff41;
+    --ide-tree-hover: #00ff4122;
+    --ide-tabs-bg: #050805;
+    --ide-tab-bg: #0a100a;
+    --ide-tab-fg: #00cc33;
+    --ide-tab-hover: #00ff4122;
+    --ide-editor-bg: #000;
+    --ide-panel-bg: #050805;
+    --ide-status-bg: #00ff4122;
+    --ide-btn-bg: #00ff41;
+    --ide-btn-fg: #000;
+    --ide-btn-hover: #33ff66;
+    --ide-dirty: #00ff41;
+    --ide-console-fg: #00ff41;
+    --ide-onboard-bg: #000;
+    --ide-accent: #00ff41;
+    --ide-accent-fg: #000;
+}
+
+/* ---- Midnight Purple ---- */
+body[data-theme="midnight-purple"] {
+    --ide-bg: #0f0e25;
+    --ide-fg: #e9d5ff;
+    --ide-muted: #c084fc;
+    --ide-border: #a855f744;
+    --ide-sidebar-bg: #0c0b1a;
+    --ide-sidebar-fg: #e9d5ff;
+    --ide-tree-hover: #a855f722;
+    --ide-tabs-bg: #13122a;
+    --ide-tab-bg: #1a1835;
+    --ide-tab-fg: #c084fc;
+    --ide-tab-hover: #a855f722;
+    --ide-editor-bg: #0f0e25;
+    --ide-panel-bg: #0c0b1a;
+    --ide-status-bg: #6d28d9;
+    --ide-btn-bg: #7c3aed;
+    --ide-btn-fg: #fff;
+    --ide-btn-hover: #8b5cf6;
+    --ide-dirty: #f472b6;
+    --ide-console-fg: #e9d5ff;
+    --ide-onboard-bg: #0f0e25;
+    --ide-accent: #7c3aed;
+    --ide-accent-fg: #fff;
+}
+
+/* ---- Solar Gold ---- */
+body[data-theme="solar-gold"] {
+    --ide-bg: #0f0a05;
+    --ide-fg: #fef3c7;
+    --ide-muted: #f59e0b;
+    --ide-border: #f59e0b44;
+    --ide-sidebar-bg: #0a0704;
+    --ide-sidebar-fg: #fef3c7;
+    --ide-tree-hover: #f59e0b22;
+    --ide-tabs-bg: #151008;
+    --ide-tab-bg: #1a1208;
+    --ide-tab-fg: #fbbf24;
+    --ide-tab-hover: #f59e0b22;
+    --ide-editor-bg: #0f0a05;
+    --ide-panel-bg: #0a0704;
+    --ide-status-bg: #b45309;
+    --ide-btn-bg: #d97706;
+    --ide-btn-fg: #fff;
+    --ide-btn-hover: #f59e0b;
+    --ide-dirty: #fbbf24;
+    --ide-console-fg: #fef3c7;
+    --ide-onboard-bg: #0f0a05;
+    --ide-accent: #d97706;
+    --ide-accent-fg: #fff;
+}
+
+/* ---- Arctic Light ---- */
+body[data-theme="arctic-light"] {
+    --ide-bg: #f0f9ff;
+    --ide-fg: #0c4a6e;
+    --ide-muted: #0369a1;
+    --ide-border: #bae6fd;
+    --ide-sidebar-bg: #e0f2fe;
+    --ide-sidebar-fg: #075985;
+    --ide-tree-hover: #bae6fd;
+    --ide-tabs-bg: #e0f2fe;
+    --ide-tab-bg: #bae6fd;
+    --ide-tab-fg: #0369a1;
+    --ide-tab-hover: #7dd3fc;
+    --ide-editor-bg: #f0f9ff;
+    --ide-panel-bg: #e0f2fe;
+    --ide-status-bg: #0284c7;
+    --ide-btn-bg: #0284c7;
+    --ide-btn-fg: #fff;
+    --ide-btn-hover: #0369a1;
+    --ide-dirty: #b91c1c;
+    --ide-console-fg: #0c4a6e;
+    --ide-onboard-bg: #f0f9ff;
+    --ide-accent: #0284c7;
+    --ide-accent-fg: #fff;
+}
+
+/* ---- Dracula ---- */
+body[data-theme="dracula"] {
+    --ide-bg: #282a36;
+    --ide-fg: #f8f8f2;
+    --ide-muted: #6272a4;
+    --ide-border: #44475a;
+    --ide-sidebar-bg: #21222c;
+    --ide-sidebar-fg: #f8f8f2;
+    --ide-tree-hover: #44475a;
+    --ide-tabs-bg: #21222c;
+    --ide-tab-bg: #282a36;
+    --ide-tab-fg: #6272a4;
+    --ide-tab-hover: #44475a;
+    --ide-editor-bg: #282a36;
+    --ide-panel-bg: #21222c;
+    --ide-status-bg: #bd93f9;
+    --ide-btn-bg: #bd93f9;
+    --ide-btn-fg: #282a36;
+    --ide-btn-hover: #ff79c6;
+    --ide-dirty: #ff5555;
+    --ide-console-fg: #f8f8f2;
+    --ide-onboard-bg: #282a36;
+    --ide-accent: #bd93f9;
+    --ide-accent-fg: #282a36;
+}
+
+/* ---- Nord ---- */
+body[data-theme="nord"] {
+    --ide-bg: #2e3440;
+    --ide-fg: #d8dee9;
+    --ide-muted: #4c566a;
+    --ide-border: #3b4252;
+    --ide-sidebar-bg: #2e3440;
+    --ide-sidebar-fg: #d8dee9;
+    --ide-tree-hover: #3b4252;
+    --ide-tabs-bg: #2e3440;
+    --ide-tab-bg: #3b4252;
+    --ide-tab-fg: #4c566a;
+    --ide-tab-hover: #434c5e;
+    --ide-editor-bg: #2e3440;
+    --ide-panel-bg: #2e3440;
+    --ide-status-bg: #5e81ac;
+    --ide-btn-bg: #5e81ac;
+    --ide-btn-fg: #fff;
+    --ide-btn-hover: #81a1c1;
+    --ide-dirty: #bf616a;
+    --ide-console-fg: #d8dee9;
+    --ide-onboard-bg: #2e3440;
+    --ide-accent: #5e81ac;
+    --ide-accent-fg: #fff;
+}
+
+/* ---- Monokai ---- */
+body[data-theme="monokai"] {
+    --ide-bg: #272822;
+    --ide-fg: #f8f8f2;
+    --ide-muted: #75715e;
+    --ide-border: #3e3d32;
+    --ide-sidebar-bg: #1e1f1c;
+    --ide-sidebar-fg: #f8f8f2;
+    --ide-tree-hover: #3e3d32;
+    --ide-tabs-bg: #1e1f1c;
+    --ide-tab-bg: #272822;
+    --ide-tab-fg: #75715e;
+    --ide-tab-hover: #3e3d32;
+    --ide-editor-bg: #272822;
+    --ide-panel-bg: #1e1f1c;
+    --ide-status-bg: #a6e22e;
+    --ide-btn-bg: #a6e22e;
+    --ide-btn-fg: #272822;
+    --ide-btn-hover: #f92672;
+    --ide-dirty: #f92672;
+    --ide-console-fg: #f8f8f2;
+    --ide-onboard-bg: #272822;
+    --ide-accent: #a6e22e;
+    --ide-accent-fg: #272822;
+}
+
+/* ---- Rose Quartz ---- */
+body[data-theme="rose-quartz"] {
+    --ide-bg: #1f0f18;
+    --ide-fg: #fdf2f8;
+    --ide-muted: #f9a8d4;
+    --ide-border: #83184344;
+    --ide-sidebar-bg: #180a12;
+    --ide-sidebar-fg: #fdf2f8;
+    --ide-tree-hover: #83184333;
+    --ide-tabs-bg: #2d1522;
+    --ide-tab-bg: #3d1f30;
+    --ide-tab-fg: #f9a8d4;
+    --ide-tab-hover: #83184333;
+    --ide-editor-bg: #1f0f18;
+    --ide-panel-bg: #180a12;
+    --ide-status-bg: #be185d;
+    --ide-btn-bg: #be185d;
+    --ide-btn-fg: #fff;
+    --ide-btn-hover: #ec4899;
+    --ide-dirty: #f472b6;
+    --ide-console-fg: #fdf2f8;
+    --ide-onboard-bg: #1f0f18;
+    --ide-accent: #be185d;
+    --ide-accent-fg: #fff;
+}
+
+/* ---- Dark+ (VS Code) ---- */
+body[data-theme="vs-dark"] {
+    --ide-bg: #1e1e1e;
+    --ide-fg: #d4d4d4;
+    --ide-muted: #858585;
+    --ide-border: #333;
+    --ide-sidebar-bg: #252526;
+    --ide-sidebar-fg: #cccccc;
+    --ide-tree-hover: #2a2d2e;
+    --ide-tabs-bg: #252526;
+    --ide-tab-bg: #2d2d2d;
+    --ide-tab-fg: #969696;
+    --ide-tab-hover: #37373d;
+    --ide-editor-bg: #1e1e1e;
+    --ide-panel-bg: #1e1e1e;
+    --ide-status-bg: #007acc;
+    --ide-btn-bg: #0e639c;
+    --ide-btn-fg: #fff;
+    --ide-btn-hover: #1177bb;
+    --ide-dirty: #f48771;
+    --ide-console-fg: #d4d4d4;
+    --ide-onboard-bg: #1e1e1e;
+    --ide-accent: #0e639c;
+    --ide-accent-fg: #fff;
+}
+
+/* ---- Light+ (VS Code) ---- */
+body[data-theme="vs"] {
+    --ide-bg: #fffffe;
+    --ide-fg: #383a42;
+    --ide-muted: #6a737d;
+    --ide-border: #e1e4e8;
+    --ide-sidebar-bg: #f3f3f3;
+    --ide-sidebar-fg: #383a42;
+    --ide-tree-hover: #e8e8e8;
+    --ide-tabs-bg: #f3f3f3;
+    --ide-tab-bg: #e8e8e8;
+    --ide-tab-fg: #6a737d;
+    --ide-tab-hover: #ddd;
+    --ide-editor-bg: #fffffe;
+    --ide-panel-bg: #f3f3f3;
+    --ide-status-bg: #007acc;
+    --ide-btn-bg: #007acc;
+    --ide-btn-fg: #fff;
+    --ide-btn-hover: #005a9e;
+    --ide-dirty: #c72e0c;
+    --ide-console-fg: #383a42;
+    --ide-onboard-bg: #fffffe;
+    --ide-accent: #007acc;
+    --ide-accent-fg: #fff;
+}
+
+/* ---- Aurora Glow ---- */
+body[data-theme="aurora-glow"] {
+    --ide-bg: #0d1117;
+    --ide-fg: #58a6ff;
+    --ide-muted: #8b949e;
+    --ide-border: #21262d;
+    --ide-sidebar-bg: #010409;
+    --ide-sidebar-fg: #58a6ff;
+    --ide-tree-hover: #161b22;
+    --ide-tabs-bg: #0d1117;
+    --ide-tab-bg: #161b22;
+    --ide-tab-fg: #8b949e;
+    --ide-tab-hover: #21262d;
+    --ide-editor-bg: #0d1117;
+    --ide-panel-bg: #010409;
+    --ide-status-bg: #238636;
+    --ide-btn-bg: #238636;
+    --ide-btn-fg: #fff;
+    --ide-btn-hover: #2ea043;
+    --ide-dirty: #f85149;
+    --ide-console-fg: #58a6ff;
+    --ide-onboard-bg: #0d1117;
+    --ide-accent: #58a6ff;
+    --ide-accent-fg: #0d1117;
+}
+
+/* ---- Hacker Green Terminal ---- */
+body[data-theme="hacker-green"] {
+    --ide-bg: #0a0f0a;
+    --ide-fg: #00ff88;
+    --ide-muted: #00cc6a;
+    --ide-border: #00ff8844;
+    --ide-sidebar-bg: #050805;
+    --ide-sidebar-fg: #00ff88;
+    --ide-tree-hover: #00ff8822;
+    --ide-tabs-bg: #050805;
+    --ide-tab-bg: #0a100a;
+    --ide-tab-fg: #00cc6a;
+    --ide-tab-hover: #00ff8822;
+    --ide-editor-bg: #0a0f0a;
+    --ide-panel-bg: #050805;
+    --ide-status-bg: #00ff8822;
+    --ide-btn-bg: #00ff88;
+    --ide-btn-fg: #0a0f0a;
+    --ide-btn-hover: #33ffaa;
+    --ide-dirty: #00ff88;
+    --ide-console-fg: #00ff88;
+    --ide-onboard-bg: #0a0f0a;
+    --ide-accent: #00ff88;
+    --ide-accent-fg: #0a0f0a;
+}

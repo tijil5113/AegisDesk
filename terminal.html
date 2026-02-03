@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal - AegisDesk</title>
+    <meta name="theme-color" content="#10b981">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/terminal-v2.css">
+    <!-- Local xterm.js CSS -->
+    <link rel="stylesheet" href="vendor/xterm/xterm.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0f172a;
+            overflow: hidden;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        .standalone-terminal {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .standalone-terminal .terminal-v2-container {
+            border-radius: 0;
+            height: 100%;
+        }
+        
+        .standalone-terminal .window-content {
+            height: 100%;
+        }
+        
+        .terminal-containers {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .terminal-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="standalone-terminal">
+        <div class="terminal-v2-container">
+            <div class="terminal-v2-header">
+                <div class="terminal-tabs" id="terminal-tabs"></div>
+                <div class="terminal-actions">
+                    <button class="terminal-action-btn terminal-action-btn-primary" id="terminal-instructions" title="Terminal Instructions">Instructions</button>
+                    <button class="terminal-action-btn" id="terminal-new-tab" title="New Terminal (Ctrl+Shift+T)">➕</button>
+                    <button class="terminal-action-btn" id="terminal-clear" title="Clear (Ctrl+Shift+C)">Clear</button>
+                    <button class="terminal-action-btn" id="terminal-search" title="Search (Ctrl+F)">🔍</button>
+                    <button class="terminal-action-btn" id="terminal-theme" title="Change Theme">🎨</button>
+                    <button class="terminal-action-btn" id="terminal-settings" title="Settings">⚙️</button>
+                    <a class="terminal-action-btn" href="desktop.html" target="_blank" title="Open Aegis Desk">🖥️</a>
+                </div>
+            </div>
+            <div id="terminal-search-bar" class="terminal-search-bar" style="display:none;">
+                <input type="text" id="terminal-search-input" placeholder="Search output..." />
+                <button type="button" id="terminal-search-prev">▲ Prev</button>
+                <button type="button" id="terminal-search-next">▼ Next</button>
+                <button type="button" id="terminal-search-close">Close</button>
+            </div>
+            <div id="terminal-reverse-search-bar" class="terminal-reverse-search-bar" style="display:none;">
+                <span class="terminal-reverse-prompt">(reverse-i-search)\`</span>
+                <input type="text" id="terminal-reverse-search-input" placeholder="" />
+                <span class="terminal-reverse-suffix">\': </span>
+            </div>
+            <div class="terminal-v2-content">
+                <div id="terminal-containers" class="terminal-containers"></div>
+                <div id="terminal-hint-bar" class="terminal-hint-bar" aria-live="polite">
+                    <span class="terminal-hint-label">Hint:</span>
+                    <span class="terminal-hint-text" id="terminal-hint-text">Type a command (e.g. help, ls) or press Tab to autocomplete.</span>
+                </div>
+            </div>
+            <div id="terminal-instructions-modal" class="terminal-instructions-modal" style="display:none;" role="dialog" aria-labelledby="terminal-instructions-title" aria-modal="true">
+                <div class="terminal-instructions-panel">
+                    <div class="terminal-instructions-header">
+                        <h2 id="terminal-instructions-title">Terminal Instructions</h2>
+                        <button type="button" class="terminal-instructions-close" id="terminal-instructions-close" aria-label="Close">×</button>
+                    </div>
+                    <div class="terminal-instructions-body">
+                        <section><h3>How to type commands</h3><p>Type your command at the prompt and press <kbd>Enter</kbd>. Example: <code>ls</code> then Enter.</p></section>
+                        <section><h3>Common commands</h3><ul><li><code>ls</code> — List files</li><li><code>cd folder</code> — Change directory</li><li><code>pwd</code> — Show path</li><li><code>mkdir project</code> — Create folder</li><li><code>node file.js</code> — Run JS</li><li><code>help</code> — Show all commands</li></ul></section>
+                        <section><h3>AI commands</h3><ul><li><code>ai help</code></li><li><code>ai explain &lt;thing&gt;</code></li><li><code>ai fix error</code></li></ul></section>
+                        <section><h3>Shortcuts</h3><p><kbd>Tab</kbd> autocomplete · <kbd>Ctrl+F</kbd> search · <kbd>↑</kbd><kbd>↓</kbd> history</p></section>
+                    </div>
+                </div>
+            </div>
+            <div id="terminal-settings-modal" class="terminal-settings-modal" style="display:none;">
+                <div class="terminal-settings-content">
+                    <h3>Terminal Settings</h3>
+                    <div class="terminal-settings-grid">
+                        <label>Theme</label>
+                        <select id="terminal-setting-theme"></select>
+                        <label>Font size</label>
+                        <input type="number" id="terminal-setting-fontsize" min="10" max="28" value="14" />
+                        <label>Font family</label>
+                        <input type="text" id="terminal-setting-font" placeholder="Monospace font" />
+                        <label>Cursor style</label>
+                        <select id="terminal-setting-cursor"><option value="block">Block</option><option value="bar">Bar</option><option value="underline">Underline</option></select>
+                        <label>Cursor blink</label>
+                        <input type="checkbox" id="terminal-setting-blink" checked />
+                        <label>Scrollback lines</label>
+                        <input type="number" id="terminal-setting-scrollback" min="100" max="10000" value="1000" />
+                        <label>Copy on select</label>
+                        <input type="checkbox" id="terminal-setting-copyselect" checked />
+                        <label>Right-click paste</label>
+                        <input type="checkbox" id="terminal-setting-rightpaste" checked />
+                    </div>
+                    <div class="terminal-settings-actions">
+                        <button type="button" id="terminal-settings-apply">Apply</button>
+                        <button type="button" id="terminal-settings-close">Close</button>
+                    </div>
+                </div>
+            </div>
+            <div id="terminal-context-menu" class="terminal-context-menu" style="display:none;">
+                <div class="terminal-context-item" data-action="copy">Copy</div>
+                <div class="terminal-context-item" data-action="paste">Paste</div>
+                <div class="terminal-context-item" data-action="selectall">Select All</div>
+                <div class="terminal-context-item" data-action="clear">Clear</div>
+                <div class="terminal-context-divider"></div>
+                <div class="terminal-context-item" data-action="split">Split Pane</div>
+                <div class="terminal-context-item" data-action="duplicate">Duplicate Tab</div>
+                <div class="terminal-context-item" data-action="settings">Settings</div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/utils/storage.js"></script>
+    <script src="js/core/terminal-engine.js"></script>
+    <script src="js/core/terminal-vfs.js"></script>
+    
+    <!-- Standalone Terminal Logic -->
+    <script>
+        const TERMINAL_THEMES = ['vs-code-dark', 'dracula', 'nord', 'gruvbox', 'one-dark', 'solarized-dark', 'matrix-green', 'cyberpunk-neon', 'midnight-purple', 'solar-gold', 'retro-amber', 'oled-black'];
+        class StandaloneTerminalManager {
+            constructor() {
+                this.terminalEngines = new Map();
+                this.activeTabId = null;
+                this.tabs = [];
+                this.nextTabId = 1;
+                this.commandHistory = storage.get('terminalHistory', []) || [];
+                this.currentDir = '/home/user';
+                this.environment = { HOME: '/home/user', USER: 'user' };
+                this.theme = storage.get('terminalTheme', 'vs-code-dark');
+                this.fontFamily = storage.get('terminalFont', 'JetBrains Mono, Fira Code, Source Code Pro, Consolas, monospace') || 'JetBrains Mono, Consolas, monospace';
+                this.fontSize = storage.get('terminalFontSize', 14) || 14;
+                this.cursorStyle = storage.get('terminalCursorStyle', 'block') || 'block';
+                this.cursorBlink = storage.get('terminalCursorBlink', true) !== false;
+                this.scrollback = Math.min(Math.max(parseInt(storage.get('terminalScrollback'), 10) || 1000, 100), 10000);
+                this.copyOnSelect = storage.get('terminalCopyOnSelect', true) !== false;
+                this.rightClickPaste = storage.get('terminalRightClickPaste', true) !== false;
+                this.vfs = typeof TerminalVFS !== 'undefined' ? new TerminalVFS() : null;
+                this.init();
+            }
+            
+            async init() {
+                // Wait for TerminalEngine to be available
+                if (typeof TerminalEngine === 'undefined') {
+                    await this.waitForTerminalEngine();
+                }
+                
+                this.attachEvents();
+                const savedTabs = storage.get('terminalTabs', null);
+                if (savedTabs && Array.isArray(savedTabs) && savedTabs.length > 0) {
+                    savedTabs.forEach((name) => { this.createTab(name, true); });
+                    const firstId = this.tabs[0]?.id;
+                    if (firstId) setTimeout(() => this.activateTab(firstId), 50);
+                } else {
+                    this.createTab();
+                }
+                this.persistTabs();
+            }
+            persistTabs() {
+                storage.set('terminalTabs', this.tabs.map(t => t.name));
+                storage.set('terminalActiveTabId', this.activeTabId);
+            }
+            
+            waitForTerminalEngine() {
+                return new Promise((resolve) => {
+                    let attempts = 0;
+                    const checkInterval = setInterval(() => {
+                        attempts++;
+                        if (typeof TerminalEngine !== 'undefined') {
+                            clearInterval(checkInterval);
+                            resolve();
+                        } else if (attempts > 100) {
+                            clearInterval(checkInterval);
+                            console.error('❌ TerminalEngine failed to load');
+                            resolve(); // Continue anyway
+                        }
+                    }, 100);
+                });
+            }
+            
+            createTab(tabName = null, noActivate = false) {
+                const tabId = `tab-${this.nextTabId++}`;
+                const name = tabName || `Terminal ${this.tabs.length + 1}`;
+                this.tabs.push({ id: tabId, name, active: false });
+                const tabsContainer = document.querySelector('#terminal-tabs');
+                const tabButton = document.createElement('div');
+                tabButton.className = 'terminal-tab';
+                tabButton.dataset.tabId = tabId;
+                tabButton.innerHTML = `<span class="tab-title">${name}</span><button class="tab-close" data-tab-id="${tabId}" title="Close (Ctrl+W)">×</button>`;
+                const titleSpan = tabButton.querySelector('.tab-title');
+                const closeBtn = tabButton.querySelector('.tab-close');
+                
+                // Create container
+                const containersDiv = document.querySelector('#terminal-containers');
+                const container = document.createElement('div');
+                container.className = 'terminal-container';
+                container.id = `terminal-container-${tabId}`;
+                container.style.display = 'none';
+                containersDiv.appendChild(container);
+                
+                // Create terminal engine
+                const engine = new TerminalEngine(container, {
+                    fontFamily: this.fontFamily,
+                    fontSize: this.fontSize,
+                    theme: this.theme,
+                    cursorBlink: true,
+                    cursorStyle: 'block',
+                    scrollback: 1000
+                });
+                
+                engine.setHistory(this.commandHistory);
+                engine.setDirectory(this.currentDir);
+                engine.setEnvironment(this.environment);
+                
+                // Setup command handler
+                engine.onLine((command) => { this.executeCommand(engine, command); });
+                if (engine.onData) engine.onData(() => { if (this.activeTabId === tabId) setTimeout(() => this.updateHintBar(), 0); });
+                
+                this.terminalEngines.set(tabId, engine);
+                if (!noActivate) { this.activeTabId = tabId; this.activateTab(tabId); }
+                titleSpan.addEventListener('click', () => this.activateTab(tabId));
+                titleSpan.addEventListener('dblclick', () => {
+                    const newName = prompt('Rename tab', name);
+                    if (newName != null && newName.trim()) {
+                        const t = this.tabs.find(x => x.id === tabId);
+                        if (t) { t.name = newName.trim(); titleSpan.textContent = t.name; this.persistTabs(); }
+                    }
+                });
+                closeBtn.addEventListener('click', (e) => { e.stopPropagation(); this.closeTab(tabId); });
+                tabsContainer.appendChild(tabButton);
+                
+                // Write welcome message
+                setTimeout(() => {
+                    this.writeWelcome(engine);
+                    engine.focus();
+                }, 200);
+                
+                return tabId;
+            }
+            
+            activateTab(tabId) {
+                this.tabs.forEach(tab => {
+                    tab.active = tab.id === tabId;
+                });
+                
+                const tabs = document.querySelectorAll('.terminal-tab');
+                tabs.forEach(tab => {
+                    if (tab.dataset.tabId === tabId) {
+                        tab.classList.add('active');
+                    } else {
+                        tab.classList.remove('active');
+                    }
+                });
+                
+                const containers = document.querySelectorAll('.terminal-container');
+                containers.forEach(container => {
+                    if (container.id === `terminal-container-${tabId}`) {
+                        container.style.display = 'block';
+                    } else {
+                        container.style.display = 'none';
+                    }
+                });
+                
+                this.activeTabId = tabId;
+                
+                const engine = this.terminalEngines.get(tabId);
+                if (engine) {
+                    setTimeout(() => engine.focus(), 50);
+                }
+            }
+            
+            closeTab(tabId) {
+                if (this.tabs.length <= 1) {
+                    const engine = this.terminalEngines.get(tabId);
+                    if (engine) {
+                        engine.clear();
+                        this.writeWelcome(engine);
+                    }
+                    return;
+                }
+                
+                const tabIndex = this.tabs.findIndex(t => t.id === tabId);
+                if (tabIndex !== -1) {
+                    this.tabs.splice(tabIndex, 1);
+                }
+                
+                const tabButton = document.querySelector(`.terminal-tab[data-tab-id="${tabId}"]`);
+                if (tabButton) tabButton.remove();
+                
+                const container = document.querySelector(`#terminal-container-${tabId}`);
+                if (container) {
+                    const engine = this.terminalEngines.get(tabId);
+                    if (engine) {
+                        engine.destroy();
+                    }
+                    container.remove();
+                }
+                
+                this.terminalEngines.delete(tabId);
+                if (this.activeTabId === tabId) {
+                    const nextTab = this.tabs[0];
+                    if (nextTab) this.activateTab(nextTab.id);
+                }
+                this.persistTabs();
+            }
+            duplicateTab(tabId) {
+                const tab = this.tabs.find(t => t.id === tabId);
+                if (!tab) return;
+                this.createTab(tab.name + ' (copy)');
+                this.persistTabs();
+            }
+            writeWelcome(engine) {
+                const welcome = `\x1b[36m╔═══════════════════════════════════════════╗\x1b[0m\n\x1b[36m║\x1b[0m     \x1b[32mAEGIS DESK TERMINAL\x1b[0m                   \x1b[36m║\x1b[0m\n\x1b[36m╚═══════════════════════════════════════════╝\x1b[0m\n\n\x1b[1;97mWelcome to Aegis Desk Terminal.\x1b[0m\n\x1b[33mClick \x1b[1mInstructions\x1b[0m\x1b[33m or type \x1b[36mhelp\x1b[0m\x1b[33m.\x1b[0m\n\n`;
+                engine.write(welcome);
+                // Write prompt after welcome - ensure it's visible
+                if (typeof engine.getPrompt === 'function') {
+                    engine.write(engine.getPrompt());
+                } else {
+                    const env = engine.getEnvironment ? engine.getEnvironment() : { USER: 'user' };
+                    const dir = engine.getDirectory ? engine.getDirectory() : '/home/user';
+                    engine.write(`\x1b[32m${env.USER}@aegisdesk\x1b[0m:\x1b[36m${dir}\x1b[0m$ `);
+                }
+            }
+            
+            getActiveEngine() {
+                if (!this.activeTabId) return null;
+                return this.terminalEngines.get(this.activeTabId);
+            }
+            
+            executeCommand(engine, command) {
+                const parts = command.trim().split(/\s+/);
+                const cmd = parts[0].toLowerCase();
+                const args = parts.slice(1);
+                
+                if (cmd === 'ai') {
+                    this.handleAICommand(engine, args);
+                    return;
+                }
+                
+                switch (cmd) {
+                    case 'help':
+                        this.showHelp(engine);
+                        break;
+                    case 'clear':
+                        engine.clear();
+                        break;
+                    case 'echo':
+                        engine.writeln(args.join(' '));
+                        break;
+                    case 'date':
+                        engine.writeln(new Date().toString());
+                        break;
+                    case 'whoami':
+                        engine.writeln(engine.getEnvironment().USER);
+                        break;
+                    case 'pwd':
+                        engine.writeln(engine.getDirectory());
+                        break;
+                    case 'ls':
+                        this.listFiles(engine, args);
+                        break;
+                    case 'cd':
+                        this.changeDirectory(engine, args[0] || '~');
+                        break;
+                    case 'mkdir': this.vfsMkdir(engine, args[0]); break;
+                    case 'touch': this.vfsTouch(engine, args[0]); break;
+                    case 'rm': this.vfsRm(engine, args); break;
+                    case 'mv': this.vfsMv(engine, args[0], args[1]); break;
+                    case 'cp': this.vfsCp(engine, args[0], args[1]); break;
+                    case 'cat': this.vfsCat(engine, args[0]); break;
+                    case 'notify': this.cmdNotify(engine, args.join(' ')); break;
+                    case 'workspace':
+                        if (args[0] === 'set' && ['work','study','personal'].includes((args[1]||'').toLowerCase())) {
+                            storage.set('terminalWorkspace', (args[1]||'').toLowerCase());
+                            engine.writeln('\x1b[32m✓ Workspace set\x1b[0m');
+                        } else engine.writeln('\x1b[33mUsage: workspace set work|study|personal\x1b[0m');
+                        break;
+                    case 'theme':
+                        const themeArg = (args[0] === 'set' && args[1]) ? args[1] : args[0];
+                        if (themeArg && TERMINAL_THEMES.includes(themeArg)) {
+                            this.theme = themeArg;
+                            storage.set('terminalTheme', themeArg);
+                            this.terminalEngines.forEach(e => e.setTheme(themeArg));
+                            engine.writeln(`\x1b[32m✓ Theme: ${themeArg}\x1b[0m`);
+                        } else engine.writeln('\x1b[33mThemes: ' + TERMINAL_THEMES.join(', ') + '\x1b[0m');
+                        break;
+                    case 'node': this.runNode(engine, args[0]); break;
+                    case 'python': case 'python3': this.runPython(engine, args[0]); break;
+                    case 'history':
+                        const history = engine.getHistory();
+                        if (history.length === 0) {
+                            engine.writeln('\x1b[33mNo command history.\x1b[0m');
+                        } else {
+                            history.slice(-20).forEach((cmd, i) => {
+                                engine.writeln(`  ${i + 1}. ${cmd}`);
+                            });
+                        }
+                        break;
+                    default:
+                        if (cmd.endsWith('.html') && args.length === 0) this.previewHtml(engine, cmd);
+                        else {
+                            engine.writeln(`\x1b[31mCommand not found.\x1b[0m Try \x1b[36mhelp\x1b[0m or \x1b[33mInstructions\x1b[0m.`);
+                        }
+                }
+                // Write prompt after command execution (for sync commands)
+                // Async commands should write their own prompt
+                if (cmd !== 'clear' && typeof engine.writePrompt === 'function') {
+                    setTimeout(() => engine.writePrompt(), 10);
+                }
+            }
+            async listFiles(engine, args) {
+                if (!this.vfs) { engine.writeln('\x1b[34mDocuments\x1b[0m  \x1b[34mDownloads\x1b[0m  \x1b[34mDesktop\x1b[0m'); return; }
+                const list = await this.vfs.ls(engine.getDirectory(), args[0] || null);
+                if (list === null) { engine.writeln('\x1b[31mNo such directory\x1b[0m'); return; }
+                engine.writeln(list.map(e => e.type === 'dir' ? '\x1b[34m' + e.name + '\x1b[0m' : e.name).join('  '));
+            }
+            async changeDirectory(engine, dir) {
+                let newDir = dir === '~' || !dir ? engine.getEnvironment().HOME : dir.startsWith('/') ? dir : (engine.getDirectory() + '/' + dir).replace(/\/+/g, '/');
+                if (dir === '..') { const p = engine.getDirectory().split('/').filter(Boolean); p.pop(); newDir = '/' + p.join('/') || '/'; }
+                if (this.vfs) { const list = await this.vfs.ls(newDir, ''); if (list === null) { engine.writeln('\x1b[31mNo such directory\x1b[0m'); return; } }
+                engine.setDirectory(newDir);
+                this.currentDir = newDir;
+            }
+            async vfsMkdir(engine, name) {
+                if (!name) { engine.writeln('\x1b[31mUsage: mkdir <name>\x1b[0m'); return; }
+                if (!this.vfs) { engine.writeln('\x1b[33mVFS not available\x1b[0m'); return; }
+                const ok = await this.vfs.mkdir(engine.getDirectory(), name);
+                engine.writeln(ok ? '\x1b[32m✓ Created directory\x1b[0m' : '\x1b[31mfailed\x1b[0m');
+            }
+            async vfsTouch(engine, name) {
+                if (!name) { engine.writeln('\x1b[31mUsage: touch <name>\x1b[0m'); return; }
+                if (!this.vfs) { engine.writeln('\x1b[33mVFS not available\x1b[0m'); return; }
+                const ok = await this.vfs.touch(engine.getDirectory(), name);
+                engine.writeln(ok ? '\x1b[32m✓ Created file\x1b[0m' : '\x1b[31mfailed\x1b[0m');
+            }
+            async vfsRm(engine, args) {
+                const target = args.filter(a => a !== '-r' && a !== '-rf')[0];
+                if (!target || !this.vfs) { engine.writeln('\x1b[31mUsage: rm <path> [-r]\x1b[0m'); return; }
+                const ok = await this.vfs.rm(engine.getDirectory(), target, args.includes('-r') || args.includes('-rf'));
+                engine.writeln(ok === true ? '\x1b[32m✓ Removed\x1b[0m' : ok === null ? '\x1b[31mDir not empty. Use -r\x1b[0m' : '\x1b[31mfailed\x1b[0m');
+            }
+            async vfsMv(engine, from, to) {
+                if (!from || !to || !this.vfs) { engine.writeln('\x1b[31mUsage: mv <from> <to>\x1b[0m'); return; }
+                engine.writeln((await this.vfs.mv(engine.getDirectory(), from, to)) ? '\x1b[32m✓ Moved\x1b[0m' : '\x1b[31mfailed\x1b[0m');
+            }
+            async vfsCp(engine, from, to) {
+                if (!from || !to || !this.vfs) { engine.writeln('\x1b[31mUsage: cp <from> <to>\x1b[0m'); return; }
+                engine.writeln((await this.vfs.cp(engine.getDirectory(), from, to)) ? '\x1b[32m✓ Copied\x1b[0m' : '\x1b[31mfailed\x1b[0m');
+            }
+            async vfsCat(engine, name) {
+                if (!name || !this.vfs) { engine.writeln('\x1b[31mUsage: cat <file>\x1b[0m'); return; }
+                const r = await this.vfs.cat(engine.getDirectory(), name);
+                if (r === null) engine.writeln('\x1b[31mNo such file\x1b[0m'); else if (r.dir) engine.writeln('\x1b[31mIs a directory\x1b[0m'); else engine.writeln(r.content || '');
+            }
+            cmdNotify(engine, msg) {
+                const m = (msg || '').replace(/^["']|["']$/g, '');
+                if (window.Notification && Notification.permission === 'granted') { new Notification('Aegis Desk', { body: m || 'Notification' }); engine.writeln('\x1b[32m✓ Sent\x1b[0m'); }
+                else engine.writeln('\x1b[33mAllow notifications\x1b[0m');
+            }
+            async runNode(engine, file) {
+                if (!file || !this.vfs) { engine.writeln('\x1b[31mUsage: node <file.js>\x1b[0m'); return; }
+                const r = await this.vfs.cat(engine.getDirectory(), file);
+                if (!r || r.dir) { engine.writeln('\x1b[31mFile not found\x1b[0m'); return; }
+                try {
+                    const mock = { log: (...a) => engine.writeln(a.map(x => String(x)).join(' ')), error: (...a) => engine.writeln('\x1b[31m' + a.join(' ') + '\x1b[0m') };
+                    (new Function('console', r.content))(mock);
+                } catch (e) { engine.writeln('\x1b[31m' + (e.message || e) + '\x1b[0m'); }
+            }
+            async runPython(engine, file) {
+                if (!file || !this.vfs) { engine.writeln('\x1b[31mUsage: python file.py\x1b[0m'); return; }
+                const r = await this.vfs.cat(engine.getDirectory(), file);
+                if (!r || r.dir) { engine.writeln('\x1b[31mFile not found\x1b[0m'); return; }
+                if (typeof loadPyodide !== 'undefined') { try { const py = await loadPyodide(); await py.runPythonAsync(r.content); } catch (e) { engine.writeln('\x1b[31m' + e.message + '\x1b[0m'); } }
+                else engine.writeln('\x1b[33mPyodide not loaded\x1b[0m');
+            }
+            previewHtml(engine, file) {
+                if (!this.vfs) return;
+                this.vfs.cat(engine.getDirectory(), file).then(r => {
+                    if (!r || r.dir) engine.writeln('\x1b[31mNot found\x1b[0m');
+                    else { const w = window.open('', '_blank'); if (w) { w.document.write(r.content); w.document.close(); engine.writeln('\x1b[32m✓ Preview\x1b[0m'); } }
+                });
+            }
+            async handleAICommand(engine, args) {
+                if (!args || !args.length) {
+                    engine.writeln('\x1b[33mAI: ai explain <cmd> | ai fix error | ai generate script for <goal> | ai optimize command | ai translate <text> | ai help\x1b[0m');
+                    return;
+                }
+                const sub = args[0].toLowerCase();
+                const query = args.slice(1).join(' ');
+                engine.write('\x1b[33m🤖 AI: \x1b[0m');
+                try {
+                    let prompt = '';
+                    if (sub === 'explain') prompt = 'Explain briefly: ' + query;
+                    else if (sub === 'fix' || sub === 'debug') prompt = 'Step-by-step fix for this error: ' + query;
+                    else if (sub === 'generate') prompt = 'Generate a short script/command for: ' + query;
+                    else if (sub === 'optimize') prompt = 'Suggest simpler/faster command: ' + query;
+                    else if (sub === 'translate') prompt = 'Convert to one shell command: ' + query;
+                    else if (sub === 'suggest') prompt = 'Suggest 3-5 useful terminal commands.';
+                    else { engine.writeln('\x1b[31mUnknown. ai help\x1b[0m'); return; }
+                    const url = (window.location.origin || '') + '/api/chat';
+                    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: [{ role: 'system', content: 'Be concise. Terminal assistant.' }, { role: 'user', content: prompt }] }) });
+                    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || res.statusText);
+                    const data = await res.json();
+                    const text = data.choices?.[0]?.message?.content || '';
+                    engine.writeln('\x1b[36m' + text + '\x1b[0m');
+                } catch (e) { engine.writeln('\x1b[31m' + e.message + '\x1b[0m'); }
+            }
+            showHelp(engine) {
+                engine.writeln('\x1b[33mCommands:\x1b[0m ls cd pwd mkdir touch cat rm mv cp | node file.js | python file.py | theme set <name> | notify "msg" | workspace set work|study|personal | ai help');
+            }
+            
+            openInstructionsModal() {
+                const modal = document.getElementById('terminal-instructions-modal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                    modal.setAttribute('aria-hidden', 'false');
+                    const panel = modal.querySelector('.terminal-instructions-panel');
+                    if (panel) panel.scrollTop = 0;
+                    // Focus the close button for accessibility
+                    const closeBtn = modal.querySelector('.terminal-instructions-close');
+                    if (closeBtn) setTimeout(() => closeBtn.focus(), 100);
+                } else {
+                    console.warn('Instructions modal not found');
+                }
+            }
+            closeInstructionsModal() {
+                const modal = document.getElementById('terminal-instructions-modal');
+                if (modal) {
+                    modal.style.display = 'none';
+                    modal.setAttribute('aria-hidden', 'true');
+                    // Return focus to terminal
+                    const engine = this.getActiveEngine();
+                    if (engine) setTimeout(() => engine.focus(), 50);
+                }
+            }
+            
+            openSettingsModal() {
+                const modal = document.getElementById('terminal-settings-modal');
+                if (!modal) return;
+                document.getElementById('terminal-setting-theme').value = this.theme;
+                document.getElementById('terminal-setting-fontsize').value = this.fontSize;
+                document.getElementById('terminal-setting-font').value = this.fontFamily;
+                document.getElementById('terminal-setting-cursor').value = this.cursorStyle;
+                document.getElementById('terminal-setting-blink').checked = this.cursorBlink;
+                document.getElementById('terminal-setting-scrollback').value = this.scrollback;
+                document.getElementById('terminal-setting-copyselect').checked = this.copyOnSelect;
+                document.getElementById('terminal-setting-rightpaste').checked = this.rightClickPaste;
+                modal.style.display = 'flex';
+            }
+            applySettings() {
+                const g = id => document.getElementById(id);
+                this.theme = g('terminal-setting-theme').value;
+                this.fontSize = Math.min(28, Math.max(10, parseInt(g('terminal-setting-fontsize').value, 10) || 14));
+                this.fontFamily = g('terminal-setting-font').value || this.fontFamily;
+                this.cursorStyle = g('terminal-setting-cursor').value;
+                this.cursorBlink = g('terminal-setting-blink').checked;
+                this.scrollback = Math.min(10000, Math.max(100, parseInt(g('terminal-setting-scrollback').value, 10) || 1000));
+                this.copyOnSelect = g('terminal-setting-copyselect').checked;
+                this.rightClickPaste = g('terminal-setting-rightpaste').checked;
+                ['terminalTheme','terminalFontSize','terminalFont','terminalCursorStyle','terminalCursorBlink','terminalScrollback','terminalCopyOnSelect','terminalRightClickPaste'].forEach((k, i) => storage.set(k, [this.theme, this.fontSize, this.fontFamily, this.cursorStyle, this.cursorBlink, this.scrollback, this.copyOnSelect, this.rightClickPaste][i]));
+                this.terminalEngines.forEach(eng => { if (eng.setOptions) eng.setOptions({ fontFamily: this.fontFamily, fontSize: this.fontSize, theme: this.theme, cursorBlink: this.cursorBlink, cursorStyle: this.cursorStyle, scrollback: this.scrollback }); else eng.setTheme(this.theme); });
+                document.getElementById('terminal-settings-modal').style.display = 'none';
+            }
+            attachEvents() {
+                document.getElementById('terminal-new-tab')?.addEventListener('click', () => this.createTab());
+                document.getElementById('terminal-clear')?.addEventListener('click', () => { const e = this.getActiveEngine(); if (e) { e.clear(); this.writeWelcome(e); } });
+                document.getElementById('terminal-theme')?.addEventListener('click', () => {
+                    const e = this.getActiveEngine();
+                    if (e) { const i = TERMINAL_THEMES.indexOf(this.theme); this.theme = TERMINAL_THEMES[(i + 1) % TERMINAL_THEMES.length]; storage.set('terminalTheme', this.theme); this.terminalEngines.forEach(eng => eng.setTheme(this.theme)); }
+                });
+                document.getElementById('terminal-settings')?.addEventListener('click', () => this.openSettingsModal());
+                const instructionsBtn = document.getElementById('terminal-instructions');
+                if (instructionsBtn) {
+                    instructionsBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.openInstructionsModal();
+                    });
+                }
+                const instructionsClose = document.getElementById('terminal-instructions-close');
+                if (instructionsClose) {
+                    instructionsClose.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.closeInstructionsModal();
+                    });
+                }
+                document.getElementById('terminal-instructions-modal')?.addEventListener('click', e => { if (e.target.id === 'terminal-instructions-modal') this.closeInstructionsModal(); });
+                const searchBar = document.getElementById('terminal-search-bar');
+                const searchInput = document.getElementById('terminal-search-input');
+                const revBar = document.getElementById('terminal-reverse-search-bar');
+                const revInput = document.getElementById('terminal-reverse-search-input');
+                document.getElementById('terminal-search')?.addEventListener('click', () => { searchBar.style.display = 'flex'; searchInput?.focus(); });
+                document.getElementById('terminal-search-close')?.addEventListener('click', () => { searchBar.style.display = 'none'; this.getActiveEngine()?.searchClear?.(); });
+                document.getElementById('terminal-search-next')?.addEventListener('click', () => this.getActiveEngine()?.searchFindNext?.(searchInput?.value || ''));
+                document.getElementById('terminal-search-prev')?.addEventListener('click', () => this.getActiveEngine()?.searchFindPrevious?.(searchInput?.value || ''));
+                searchInput?.addEventListener('keydown', e => { if (e.key === 'Escape') searchBar.style.display = 'none'; if (e.key === 'Enter') this.getActiveEngine()?.searchFindNext?.(searchInput.value); });
+                revInput?.addEventListener('keydown', e => {
+                    if (e.key === 'Escape') { revBar.style.display = 'none'; revInput.value = ''; }
+                    if (e.key === 'Enter') { const eng = this.getActiveEngine(); const hist = eng?.getHistory() || []; const q = revInput.value.toLowerCase(); const m = hist.filter(h => h.toLowerCase().includes(q)).pop(); if (m && eng) eng.pasteText(m + '\n'); revBar.style.display = 'none'; }
+                });
+                document.getElementById('terminal-settings-close')?.addEventListener('click', () => { document.getElementById('terminal-settings-modal').style.display = 'none'; });
+                document.getElementById('terminal-settings-apply')?.addEventListener('click', () => this.applySettings());
+                document.getElementById('terminal-settings-modal')?.addEventListener('click', e => { if (e.target.id === 'terminal-settings-modal') e.target.style.display = 'none'; });
+                document.querySelectorAll('#terminal-context-menu .terminal-context-item').forEach(el => {
+                    el.addEventListener('click', () => {
+                        const action = el.dataset.action;
+                        const menu = document.getElementById('terminal-context-menu');
+                        const tabId = menu?.dataset?.tabContextId || this.activeTabId;
+                        menu.style.display = 'none';
+                        const engine = this.getActiveEngine();
+                        if (action === 'copy' && engine?.getSelectionText) { const s = engine.getSelectionText(); if (s && navigator.clipboard) navigator.clipboard.writeText(s); }
+                        else if (action === 'paste' && engine && navigator.clipboard) navigator.clipboard.readText().then(t => engine.pasteText(t));
+                        else if (action === 'selectall' && engine?.terminal?.selectAll) engine.terminal.selectAll();
+                        else if (action === 'clear' && engine) { engine.clear(); this.writeWelcome(engine); }
+                        else if (action === 'split') this.createTab();
+                        else if (action === 'duplicate' && tabId) this.duplicateTab(tabId);
+                        else if (action === 'settings') this.openSettingsModal();
+                    });
+                });
+                document.addEventListener('click', () => { const m = document.getElementById('terminal-context-menu'); if (m) m.style.display = 'none'; });
+                document.getElementById('terminal-containers')?.addEventListener('contextmenu', e => {
+                    e.preventDefault();
+                    const menu = document.getElementById('terminal-context-menu');
+                    menu.dataset.tabContextId = this.activeTabId;
+                    menu.style.display = 'block';
+                    menu.style.left = e.clientX + 'px';
+                    menu.style.top = e.clientY + 'px';
+                });
+                document.addEventListener('keydown', e => {
+                    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'T') { e.preventDefault(); this.createTab(); }
+                    else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'C') { e.preventDefault(); const eng = this.getActiveEngine(); if (eng) { eng.clear(); this.writeWelcome(eng); } }
+                    else if ((e.ctrlKey || e.metaKey) && e.key === 'f') { e.preventDefault(); searchBar.style.display = 'flex'; searchInput?.focus(); }
+                    else if ((e.ctrlKey || e.metaKey) && e.key === 'r') { e.preventDefault(); revBar.style.display = 'flex'; revInput.value = ''; revInput?.focus(); }
+                    else if ((e.ctrlKey || e.metaKey) && e.key === 'w') { e.preventDefault(); if (this.activeTabId) this.closeTab(this.activeTabId); }
+                    else if ((e.ctrlKey || e.metaKey) && e.key === 'l') { e.preventDefault(); const eng = this.getActiveEngine(); if (eng) { eng.clear(); this.writeWelcome(eng); } }
+                });
+                window.addEventListener('resize', () => this.terminalEngines.forEach(eng => eng.resize()));
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const sel = document.getElementById('terminal-setting-theme');
+            if (sel) TERMINAL_THEMES.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o); });
+            window.standaloneTerminal = new StandaloneTerminalManager();
+        });
+    </script>
+</body>
+</html>

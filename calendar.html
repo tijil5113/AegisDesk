@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar - AegisDesk</title>
+    <meta name="theme-color" content="#6366f1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/calendar-v2.css">
+</head>
+<body class="calendar-page">
+    <div id="calendar-app-container" class="calendar-container">
+        <!-- Header Toolbar -->
+        <header class="calendar-header" role="banner">
+            <div class="calendar-header-left">
+                <button class="calendar-back-btn" id="calendar-back-btn" aria-label="Close" onclick="window.close()" title="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+                <div class="calendar-logo">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <div>
+                        <h1 class="calendar-title">Calendar</h1>
+                        <p class="calendar-subtitle" id="calendar-subtitle">Your Schedule</p>
+                    </div>
+                </div>
+            </div>
+            <div class="calendar-header-center">
+                <button class="calendar-nav-btn" id="calendar-prev" title="Previous">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+                <button class="calendar-today-btn" id="calendar-today">Today</button>
+                <button class="calendar-nav-btn" id="calendar-next" title="Next">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
+                <div class="calendar-date-display" id="calendar-date-display"></div>
+            </div>
+            <div class="calendar-header-right">
+                <!-- Search Bar -->
+                <div class="calendar-search-wrapper">
+                    <input type="text" class="calendar-search-input" id="calendar-search" placeholder="Search events..." autocomplete="off">
+                    <svg class="calendar-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </div>
+                <!-- View Switcher -->
+                <div class="calendar-view-switcher">
+                    <button class="calendar-view-btn active" data-view="month" title="Month View">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                    </button>
+                    <button class="calendar-view-btn" data-view="week" title="Week View">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                    </button>
+                    <button class="calendar-view-btn" data-view="day" title="Day View">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                    </button>
+                    <button class="calendar-view-btn" data-view="agenda" title="Agenda View">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="8" y1="6" x2="21" y2="6"></line>
+                            <line x1="8" y1="12" x2="21" y2="12"></line>
+                            <line x1="8" y1="18" x2="21" y2="18"></line>
+                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <!-- Action Buttons -->
+                <button class="calendar-action-btn" id="calendar-create-btn" title="Create Event">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span>New Event</span>
+                </button>
+                <button class="calendar-action-btn calendar-settings-btn" id="calendar-settings-btn" title="Settings">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3m15.364 6.364l-4.243-4.243m-4.242 0L5.636 18.364M18.364 5.636l-4.243 4.243m-4.242 0L5.636 5.636"></path>
+                    </svg>
+                </button>
+                <button class="calendar-action-btn calendar-help-btn" id="calendar-help-btn" title="Help & Shortcuts">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <div class="calendar-content-wrapper">
+            <!-- Left Sidebar -->
+            <aside class="calendar-sidebar" id="calendar-sidebar">
+                <button class="calendar-sidebar-toggle" id="calendar-sidebar-toggle" title="Toggle Sidebar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <div class="calendar-sidebar-content">
+                    <!-- Quick Create -->
+                    <button class="calendar-quick-create-btn" id="calendar-quick-create">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span>Create Event</span>
+                    </button>
+                    
+                    <!-- Mini Month Picker -->
+                    <div class="calendar-mini-month" id="calendar-mini-month">
+                        <!-- Rendered dynamically -->
+                    </div>
+                    
+                    <!-- Calendars List -->
+                    <div class="calendar-calendars-section">
+                        <h3 class="calendar-section-title">Calendars</h3>
+                        <div class="calendar-calendars-list" id="calendar-calendars-list">
+                            <!-- Rendered dynamically -->
+                        </div>
+                    </div>
+                    
+                    <!-- Tags/Colors Legend -->
+                    <div class="calendar-tags-section">
+                        <h3 class="calendar-section-title">Tags</h3>
+                        <div class="calendar-tags-list" id="calendar-tags-list">
+                            <!-- Rendered dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Calendar Views -->
+            <main class="calendar-main" role="main">
+                <!-- Month View -->
+                <div class="calendar-view calendar-month-view active" id="calendar-month-view">
+                    <div class="calendar-month-header">
+                        <div class="calendar-weekday-header" id="calendar-weekday-header">
+                            <!-- Rendered dynamically -->
+                        </div>
+                    </div>
+                    <div class="calendar-month-grid" id="calendar-month-grid">
+                        <!-- Month grid will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Week View -->
+                <div class="calendar-view calendar-week-view" id="calendar-week-view" style="display: none;">
+                    <div class="calendar-week-header" id="calendar-week-header">
+                        <!-- Week header will be rendered here -->
+                    </div>
+                    <div class="calendar-week-timeline" id="calendar-week-timeline">
+                        <!-- Week timeline will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Day View -->
+                <div class="calendar-view calendar-day-view" id="calendar-day-view" style="display: none;">
+                    <div class="calendar-day-header" id="calendar-day-header">
+                        <!-- Day header will be rendered here -->
+                    </div>
+                    <div class="calendar-day-timeline" id="calendar-day-timeline">
+                        <!-- Day timeline will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Agenda View -->
+                <div class="calendar-view calendar-agenda-view" id="calendar-agenda-view" style="display: none;">
+                    <div class="calendar-agenda-list" id="calendar-agenda-list">
+                        <!-- Agenda list will be rendered here -->
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right AI Panel -->
+            <aside class="calendar-ai-panel" id="calendar-ai-panel">
+                <button class="calendar-ai-toggle" id="calendar-ai-toggle" title="Toggle AI Assistant">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                        <path d="M2 17l10 5 10-5"></path>
+                        <path d="M2 12l10 5 10-5"></path>
+                    </svg>
+                </button>
+                <div class="calendar-ai-content" id="calendar-ai-content">
+                    <div class="calendar-ai-header">
+                        <h3>AI Assistant</h3>
+                    </div>
+                    <div class="calendar-ai-actions">
+                        <button class="calendar-ai-action-btn" data-action="schedule">Schedule for me</button>
+                        <button class="calendar-ai-action-btn" data-action="conflicts">Find conflicts</button>
+                        <button class="calendar-ai-action-btn" data-action="optimize">Optimize my day</button>
+                        <button class="calendar-ai-action-btn" data-action="auto-plan">Auto-plan study</button>
+                        <button class="calendar-ai-action-btn" data-action="explain">Explain my week</button>
+                    </div>
+                    <div class="calendar-ai-response" id="calendar-ai-response">
+                        <p class="calendar-ai-placeholder">Ask me anything about your schedule!</p>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Event Editor Modal -->
+    <div class="calendar-modal-overlay" id="calendar-event-modal" style="display: none;">
+        <div class="calendar-event-modal">
+            <div class="calendar-modal-header">
+                <h2 id="calendar-event-modal-title">New Event</h2>
+                <button class="calendar-modal-close" onclick="calendarApp.hideEventEditor()">&times;</button>
+            </div>
+            <div class="calendar-modal-body" id="calendar-event-editor">
+                <!-- Event editor form will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="calendar-modal-overlay" id="calendar-settings-modal" style="display: none;">
+        <div class="calendar-event-modal calendar-settings-modal">
+            <div class="calendar-modal-header">
+                <h2>Calendar Settings</h2>
+                <button class="calendar-modal-close" onclick="calendarApp.hideSettings()">&times;</button>
+            </div>
+            <div class="calendar-modal-body" id="calendar-settings-content">
+                <!-- Settings content will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="calendar-modal-overlay" id="calendar-help-modal" style="display: none;">
+        <div class="calendar-event-modal calendar-help-modal">
+            <div class="calendar-modal-header">
+                <h2>Help & Keyboard Shortcuts</h2>
+                <button class="calendar-modal-close" onclick="calendarApp.hideHelp()">&times;</button>
+            </div>
+            <div class="calendar-modal-body" id="calendar-help-content">
+                <!-- Help content will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div class="calendar-context-menu" id="calendar-context-menu" style="display: none;">
+        <!-- Rendered dynamically -->
+    </div>
+
+    <script src="js/utils/storage.js"></script>
+    <script src="js/core/notification-system.js"></script>
+    <script src="js/core/calendar-engine.js" defer></script>
+    <script src="js/apps/calendar-v2.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classroom - AegisDesk</title>
+    <meta name="theme-color" content="#4285f4">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/classroom.css">
+</head>
+<body class="classroom-page">
+    <div id="classroom-app-container" class="classroom-container">
+        <!-- Header -->
+        <header class="classroom-header" role="banner">
+            <div class="classroom-header-left">
+                <button class="classroom-back-btn" id="classroom-back-btn" aria-label="Close" onclick="window.close()" title="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+                <div class="classroom-logo">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
+                    <div>
+                        <h1 class="classroom-title">Classroom</h1>
+                        <p class="classroom-subtitle">Your Courses</p>
+                    </div>
+                </div>
+            </div>
+            <div class="classroom-header-right">
+                <button class="classroom-header-btn" id="classroom-join-btn" title="Join Class">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <line x1="20" y1="8" x2="20" y2="14"></line>
+                        <line x1="23" y1="11" x2="17" y2="11"></line>
+                    </svg>
+                    <span>Join</span>
+                </button>
+                <button class="classroom-header-btn" id="classroom-create-btn" title="Create Class">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span>Create</span>
+                </button>
+                <button class="classroom-header-btn" id="classroom-sync-btn" title="Sync with Google Classroom">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <polyline points="1 20 1 14 7 14"></polyline>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                    <span>Sync</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="classroom-main" role="main">
+            <!-- Courses Grid -->
+            <div class="classroom-courses-grid" id="classroom-courses-grid">
+                <!-- Course cards will be rendered here -->
+            </div>
+
+            <!-- Empty State -->
+            <div class="classroom-empty-state" id="classroom-empty-state" style="display: none;">
+                <svg width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity="0.3">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+                <h2>No Classes Yet</h2>
+                <p>Join a class with a class code or create your own</p>
+                <div class="classroom-empty-actions">
+                    <button class="classroom-primary-btn" onclick="classroomApp.showJoinDialog()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="8.5" cy="7" r="4"></circle>
+                            <line x1="20" y1="8" x2="20" y2="14"></line>
+                            <line x1="23" y1="11" x2="17" y2="11"></line>
+                        </svg>
+                        Join Class
+                    </button>
+                    <button class="classroom-secondary-btn" onclick="classroomApp.showCreateDialog()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Create Class
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Join Class Dialog -->
+    <div class="classroom-modal-overlay" id="classroom-join-modal" style="display: none;">
+        <div class="classroom-modal">
+            <div class="classroom-modal-header">
+                <h2>Join Class</h2>
+                <button class="classroom-modal-close" onclick="classroomApp.hideJoinDialog()">&times;</button>
+            </div>
+            <div class="classroom-modal-body">
+                <p>Enter the class code given by your instructor</p>
+                <input type="text" class="classroom-input" id="classroom-join-code" placeholder="Class code" maxlength="7">
+                <div class="classroom-modal-actions">
+                    <button class="classroom-secondary-btn" onclick="classroomApp.hideJoinDialog()">Cancel</button>
+                    <button class="classroom-primary-btn" onclick="classroomApp.joinClass()">Join</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Class Dialog -->
+    <div class="classroom-modal-overlay" id="classroom-create-modal" style="display: none;">
+        <div class="classroom-modal">
+            <div class="classroom-modal-header">
+                <h2>Create Class</h2>
+                <button class="classroom-modal-close" onclick="classroomApp.hideCreateDialog()">&times;</button>
+            </div>
+            <div class="classroom-modal-body">
+                <div class="classroom-form-group">
+                    <label>Class Name</label>
+                    <input type="text" class="classroom-input" id="classroom-create-name" placeholder="e.g., Computer Science 101">
+                </div>
+                <div class="classroom-form-group">
+                    <label>Section</label>
+                    <input type="text" class="classroom-input" id="classroom-create-section" placeholder="e.g., Section A">
+                </div>
+                <div class="classroom-form-group">
+                    <label>Subject</label>
+                    <input type="text" class="classroom-input" id="classroom-create-subject" placeholder="e.g., Computer Science">
+                </div>
+                <div class="classroom-form-group">
+                    <label>Room</label>
+                    <input type="text" class="classroom-input" id="classroom-create-room" placeholder="e.g., Room 301">
+                </div>
+                <div class="classroom-modal-actions">
+                    <button class="classroom-secondary-btn" onclick="classroomApp.hideCreateDialog()">Cancel</button>
+                    <button class="classroom-primary-btn" onclick="classroomApp.createClass()">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Detail Modal -->
+    <div class="classroom-modal-overlay" id="classroom-course-modal" style="display: none;">
+        <div class="classroom-course-modal">
+            <!-- Course detail content will be rendered here -->
+        </div>
+    </div>
+
+    <script src="js/apps/classroom.js" defer></script>
+</body>
+</html>

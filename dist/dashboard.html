@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - AegisDesk</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/dashboard.css">
+</head>
+<body class="dashboard-page">
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="dashboard-header-content">
+            <h1 class="dashboard-title" id="dashboard-greeting">Good Morning</h1>
+            <p class="dashboard-subtitle" id="dashboard-date"></p>
+        </div>
+        <div class="dashboard-header-actions">
+            <button class="dashboard-btn" id="dashboard-settings-btn" title="Settings">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"></path>
+                </svg>
+            </button>
+            <button class="dashboard-btn" id="dashboard-close-btn" title="Close">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <!-- AI Briefing Section -->
+        <section class="dashboard-section dashboard-briefing" id="dashboard-briefing">
+            <div class="dashboard-section-header">
+                <h2>Your Daily Briefing</h2>
+                <button class="dashboard-refresh-btn" id="dashboard-refresh-briefing" title="Refresh">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <polyline points="1 20 1 14 7 14"></polyline>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="dashboard-briefing-content" id="dashboard-briefing-content">
+                <div class="dashboard-loading">Generating your briefing...</div>
+            </div>
+        </section>
+
+        <!-- Quick Stats -->
+        <section class="dashboard-stats">
+            <div class="dashboard-stat-card">
+                <div class="dashboard-stat-icon">✓</div>
+                <div class="dashboard-stat-content">
+                    <div class="dashboard-stat-value" id="dashboard-tasks-completed">0</div>
+                    <div class="dashboard-stat-label">Tasks Completed</div>
+                </div>
+            </div>
+            <div class="dashboard-stat-card">
+                <div class="dashboard-stat-icon">📝</div>
+                <div class="dashboard-stat-content">
+                    <div class="dashboard-stat-value" id="dashboard-notes-count">0</div>
+                    <div class="dashboard-stat-label">Notes</div>
+                </div>
+            </div>
+            <div class="dashboard-stat-card">
+                <div class="dashboard-stat-icon">📰</div>
+                <div class="dashboard-stat-content">
+                    <div class="dashboard-stat-value" id="dashboard-news-read">0</div>
+                    <div class="dashboard-stat-label">News Read Today</div>
+                </div>
+            </div>
+            <div class="dashboard-stat-card">
+                <div class="dashboard-stat-icon">⭐</div>
+                <div class="dashboard-stat-content">
+                    <div class="dashboard-stat-value" id="dashboard-focus-score">--</div>
+                    <div class="dashboard-stat-label">Focus Score</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Today's Tasks -->
+        <section class="dashboard-section">
+            <div class="dashboard-section-header">
+                <h2>Today's Tasks</h2>
+                <a href="#" class="dashboard-link" id="dashboard-view-all-tasks">View All</a>
+            </div>
+            <div class="dashboard-tasks" id="dashboard-tasks">
+                <div class="dashboard-loading">Loading tasks...</div>
+            </div>
+        </section>
+
+        <!-- Top News -->
+        <section class="dashboard-section">
+            <div class="dashboard-section-header">
+                <h2>Top News</h2>
+                <a href="news.html" class="dashboard-link">View All News</a>
+            </div>
+            <div class="dashboard-news" id="dashboard-news">
+                <div class="dashboard-loading">Loading news...</div>
+            </div>
+        </section>
+
+        <!-- Weather -->
+        <section class="dashboard-section dashboard-weather">
+            <div class="dashboard-section-header">
+                <h2>Weather</h2>
+            </div>
+            <div class="dashboard-weather-content" id="dashboard-weather">
+                <div class="dashboard-loading">Loading weather...</div>
+            </div>
+        </section>
+
+        <!-- Focus Suggestion -->
+        <section class="dashboard-section dashboard-focus">
+            <div class="dashboard-section-header">
+                <h2>Focus Suggestion</h2>
+            </div>
+            <div class="dashboard-focus-content" id="dashboard-focus">
+                <div class="dashboard-loading">Analyzing your patterns...</div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Scripts -->
+    <script src="js/utils/storage.js"></script>
+    <script src="js/core/os-store.js"></script>
+    <script src="js/core/user-profile.js"></script>
+    <script src="js/core/ai-system.js"></script>
+    <script src="js/core/i18n.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

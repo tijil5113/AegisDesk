@@ -1,0 +1,269 @@
+/* World-Class Enhancements - Premium Polish */
+
+/* Enhanced Taskbar */
+.taskbar {
+    backdrop-filter: blur(40px) saturate(200%);
+    background: linear-gradient(
+        to top,
+        rgba(15, 23, 42, 0.95) 0%,
+        rgba(15, 23, 42, 0.85) 100%
+    );
+    border-top: 1px solid rgba(99, 102, 241, 0.3);
+    box-shadow: 
+        0 -8px 32px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0 60px rgba(99, 102, 241, 0.1);
+}
+
+/* Enhanced App Tiles */
+.app-tile {
+    background: linear-gradient(
+        135deg,
+        rgba(30, 41, 59, 0.8) 0%,
+        rgba(30, 41, 59, 0.6) 100%
+    );
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 2px solid rgba(99, 102, 241, 0.2);
+    box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.app-tile:hover {
+    background: linear-gradient(
+        135deg,
+        rgba(99, 102, 241, 0.25) 0%,
+        rgba(139, 92, 246, 0.25) 100%
+    );
+    border-color: rgba(99, 102, 241, 0.6);
+    box-shadow: 
+        0 20px 48px rgba(99, 102, 241, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    transform: translateY(-12px) scale(1.1);
+}
+
+.app-tile-icon {
+    background: linear-gradient(
+        135deg,
+        rgba(99, 102, 241, 0.3) 0%,
+        rgba(139, 92, 246, 0.3) 100%
+    );
+    box-shadow: 
+        0 10px 30px rgba(99, 102, 241, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 0 0 1px rgba(99, 102, 241, 0.3);
+}
+
+.app-tile:hover .app-tile-icon {
+    background: linear-gradient(
+        135deg,
+        rgba(99, 102, 241, 0.6) 0%,
+        rgba(139, 92, 246, 0.6) 100%
+    );
+    box-shadow: 
+        0 16px 40px rgba(99, 102, 241, 0.7),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        0 0 0 2px rgba(99, 102, 241, 0.5);
+    transform: scale(1.15) rotate(5deg);
+}
+
+/* Enhanced Windows */
+.window {
+    backdrop-filter: blur(30px) saturate(180%);
+    background: linear-gradient(
+        to bottom,
+        rgba(30, 41, 59, 0.95) 0%,
+        rgba(30, 41, 59, 0.9) 100%
+    );
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.5),
+        0 0 40px rgba(99, 102, 241, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+/* Enhanced Buttons */
+.taskbar-icon,
+.taskbar-app-icon {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.taskbar-icon::before,
+.taskbar-app-icon::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: -1;
+    filter: blur(12px);
+}
+
+.taskbar-icon:hover::before,
+.taskbar-app-icon:hover::before {
+    opacity: 0.6;
+}
+
+.taskbar-icon:hover,
+.taskbar-app-icon:hover {
+    transform: translateY(-8px) scale(1.15);
+}
+
+/* Enhanced Search Bar */
+.search-bar input {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.search-bar:focus-within svg {
+    color: var(--primary-light);
+    transform: scale(1.1) rotate(5deg);
+    filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.5));
+}
+
+/* Smooth Animations */
+* {
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced Cursor Glow */
+.cursor-glow {
+    background: radial-gradient(
+        circle,
+        rgba(99, 102, 241, 0.15) 0%,
+        rgba(139, 92, 246, 0.1) 40%,
+        transparent 70%
+    );
+    filter: blur(20px);
+    transition: opacity 0.3s, transform 0.1s;
+}
+
+/* Premium Glass Effect */
+.glass-effect {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(40px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Enhanced Scrollbars */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.8);
+    border-radius: 6px;
+    border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+        180deg,
+        rgba(99, 102, 241, 0.8) 0%,
+        rgba(139, 92, 246, 0.8) 100%
+    );
+    border-radius: 6px;
+    border: 2px solid rgba(15, 23, 42, 0.8);
+    box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(
+        180deg,
+        rgba(99, 102, 241, 1) 0%,
+        rgba(139, 92, 246, 1) 100%
+    );
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.6);
+}
+
+/* Premium Loading States */
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+.loading-shimmer {
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(99, 102, 241, 0.1) 50%,
+        transparent 100%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
+}
+
+/* Enhanced Focus States */
+*:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Premium Hover Effects */
+.interactive {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.interactive:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+/* Enhanced Text Shadows */
+h1, h2, h3 {
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Premium Gradients */
+.gradient-primary {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+.gradient-accent {
+    background: linear-gradient(135deg, var(--accent), var(--primary));
+}
+
+/* Enhanced Shadows */
+.shadow-premium {
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.4),
+        0 0 40px rgba(99, 102, 241, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Smooth Transitions */
+.smooth-transition {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Premium Glow Effects */
+.glow-primary {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+}
+
+.glow-accent {
+    box-shadow: 0 0 20px rgba(236, 72, 153, 0.5);
+}
+
+/* Enhanced Responsive Design */
+@media (max-width: 768px) {
+    .taskbar {
+        backdrop-filter: blur(30px) saturate(150%);
+    }
+    
+    .app-tile:hover {
+        transform: translateY(-6px) scale(1.05);
+    }
+}

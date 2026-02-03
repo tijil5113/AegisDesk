@@ -1,0 +1,208 @@
+/**
+ * UNIFIED ANIMATION SYSTEM - Desktop OS
+ *
+ * Rules:
+ * - All animations use cubic-bezier curves tuned for desktop OS feel.
+ * - Use transform: translate3d() to force GPU compositing.
+ * - Micro-interactions (hover, focus, buttons): max 220ms.
+ * - Modal/launcher open/close: max 320ms.
+ * - prefers-reduced-motion: durations → 0.01ms, no decorative motion.
+ */
+
+/* ========== ANIMATION TOKENS ========== */
+:root {
+    /* Durations: micro (hover/focus) ≤220ms, modal/launcher ≤320ms */
+    --anim-micro: 180ms;
+    --anim-micro-slow: 220ms;
+    --anim-modal: 280ms;
+    --anim-modal-slow: 320ms;
+
+    /* Desktop OS easings (cubic-bezier tuned for snappy, professional feel) */
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);      /* Enter: quick settle */
+    --ease-out-cubic: cubic-bezier(0.33, 1, 0.68, 1);    /* Exit: smooth decel */
+    --ease-in-cubic: cubic-bezier(0.32, 0, 0.67, 0);     /* Close: quick start */
+    --ease-ui: cubic-bezier(0.4, 0, 0.2, 1);             /* Default UI (Material-like) */
+    --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Optional: spring (use sparingly) */
+
+    /* Shorthand for transition property lists (transform + opacity only for perf) */
+    --transition-micro: transform var(--anim-micro) var(--ease-ui), opacity var(--anim-micro) var(--ease-ui);
+    --transition-modal: transform var(--anim-modal) var(--ease-out-expo), opacity var(--anim-modal) var(--ease-out-expo);
+}
+
+/* ========== WINDOW (GPU: translate3d in keyframes) ========== */
+@keyframes windowEnter {
+    0% {
+        opacity: 0;
+        transform: scale(0.98) translate3d(0, 10px, 0);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translate3d(0, 0, 0);
+    }
+}
+
+@keyframes windowExit {
+    0% {
+        opacity: 1;
+        transform: scale(1) translate3d(0, 0, 0);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.98) translate3d(0, 10px, 0);
+    }
+}
+
+@keyframes windowMinimize {
+    0% {
+        opacity: 1;
+        transform: scale(1) translate3d(0, 0, 0);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.3) translate3d(0, 100px, 0);
+    }
+}
+
+/* ========== LAUNCHER / MODAL OPEN & CLOSE ========== */
+@keyframes launcherOpen {
+    0% {
+        opacity: 0;
+        transform: scale(0.98) translate3d(0, 8px, 0);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translate3d(0, 0, 0);
+    }
+}
+
+@keyframes launcherClose {
+    0% {
+        opacity: 1;
+        transform: scale(1) translate3d(0, 0, 0);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.98) translate3d(0, 8px, 0);
+    }
+}
+
+/* ========== BOOT (one-time; GPU translate3d) ========== */
+@keyframes bootFadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+@keyframes bootScanline {
+    0% {
+        transform: translate3d(0, -100%, 0);
+        opacity: 0;
+    }
+    50% { opacity: 1; }
+    100% {
+        transform: translate3d(0, 100vh, 0);
+        opacity: 0;
+    }
+}
+
+@keyframes bootLogoPowerOn {
+    0% {
+        opacity: 0;
+        transform: scale(0.92) translate3d(0, 0, 0);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translate3d(0, 0, 0);
+    }
+}
+
+@keyframes bootTextReveal {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 10px, 0);
+    }
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes bootDesktopReveal {
+    0% {
+        opacity: 0;
+        transform: scale(1.02) translate3d(0, 0, 0);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translate3d(0, 0, 0);
+    }
+}
+
+/* ========== PARALLAX / DECORATIVE (long duration, GPU) ========== */
+@keyframes parallaxFloat {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    50% { transform: translate3d(10px, -10px, 0); }
+}
+
+@keyframes particleDrift {
+    0% {
+        transform: translate3d(0, 0, 0) rotate(0deg);
+        opacity: 0.3;
+    }
+    50% { opacity: 0.6; }
+    100% {
+        transform: translate3d(100px, -100px, 0) rotate(360deg);
+        opacity: 0.3;
+    }
+}
+
+/* ========== UTILITY CLASSES ========== */
+.animate-enter {
+    animation: windowEnter var(--anim-micro-slow) var(--ease-out-expo) forwards;
+}
+
+.animate-exit {
+    animation: windowExit var(--anim-micro) var(--ease-in-cubic) forwards;
+}
+
+.animate-minimize {
+    animation: windowMinimize var(--anim-micro-slow) var(--ease-out-cubic) forwards;
+}
+
+.animate-launcher-open {
+    animation: launcherOpen var(--anim-modal) var(--ease-out-expo) forwards;
+}
+
+.animate-launcher-close {
+    animation: launcherClose var(--anim-modal) var(--ease-in-cubic) forwards;
+}
+
+/* ========== HOVER / FOCUS (micro duration, translate3d) ========== */
+.u-hover-lift {
+    transition: var(--transition-micro);
+}
+.u-hover-lift:hover {
+    transform: translate3d(0, -2px, 0) scale(1.05);
+}
+
+.u-focus-ring:focus-visible {
+    outline: 2px solid rgba(99, 102, 241, 0.6);
+    outline-offset: 2px;
+}
+
+/* ========== REDUCED MOTION ========== */
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --anim-micro: 0.01ms;
+        --anim-micro-slow: 0.01ms;
+        --anim-modal: 0.01ms;
+        --anim-modal-slow: 0.01ms;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

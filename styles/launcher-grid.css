@@ -1,0 +1,98 @@
+/**
+ * LAUNCHER GRID — layout only (no icon visuals).
+ *
+ * Fixed-size grid cells prevent reflow on hover or when icon count changes.
+ * Scroll container has contain: paint + layout so scrolling doesn't repaint the menu.
+ * Icon look and animation: app-icon-system.css (3-layer OS design).
+ */
+
+/* ========== FIXED-SIZE GRID (prevents reflow) ========== */
+:root {
+    --launcher-cell-w: 132px;
+    --launcher-cell-h: 140px;
+    --launcher-gap: 16px;
+}
+
+/* Scroll wrapper: scrollable so you can see all icons; visible scrollbar */
+.apps-menu-scroll {
+    flex: 1;
+    min-height: 0;
+    max-height: min(calc(750px - 140px), calc(100vh - 240px));
+    max-height: min(calc(750px - 140px), calc(100dvh - 240px));
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    contain: paint;
+    contain: layout;
+    content-visibility: auto;
+    contain-intrinsic-size: 0 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-left: var(--launcher-gap);
+    padding-right: var(--launcher-gap);
+    box-sizing: border-box;
+}
+
+/* Visible scrollbar so you can scroll and see all icons */
+.apps-menu-scroll::-webkit-scrollbar {
+    width: 10px;
+}
+.apps-menu-scroll::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 5px;
+    margin: 4px 0;
+}
+.apps-menu-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(99, 102, 241, 0.6), rgba(139, 92, 246, 0.6));
+    border-radius: 5px;
+    min-height: 40px;
+}
+.apps-menu-scroll::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(99, 102, 241, 0.85), rgba(139, 92, 246, 0.85));
+}
+.apps-menu-scroll::-webkit-scrollbar-thumb:active {
+    background: rgba(99, 102, 241, 0.9);
+}
+/* Firefox */
+.apps-menu-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(99, 102, 241, 0.6) rgba(15, 23, 42, 0.5);
+}
+
+/* Grid: fixed-size cells; centered so no one-sided gap (no gap on left only) */
+.apps-grid {
+    display: grid;
+    grid-template-columns: repeat(4, var(--launcher-cell-w));
+    grid-auto-rows: var(--launcher-cell-h);
+    gap: var(--launcher-gap);
+    padding: var(--launcher-gap) 0;
+    width: max-content;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow: visible;
+    max-height: none;
+}
+
+@media (min-width: 600px) and (max-width: 899px) {
+    .apps-grid {
+        grid-template-columns: repeat(3, var(--launcher-cell-w));
+    }
+}
+
+@media (max-width: 599px) {
+    .apps-grid {
+        grid-template-columns: repeat(2, var(--launcher-cell-w));
+        --launcher-cell-w: 120px;
+        --launcher-cell-h: 130px;
+    }
+}
+
+/* Tile layout: fill grid cell. Visuals and animation in app-icon-system.css */
+.apps-grid .app-tile {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+}

@@ -1,0 +1,3 @@
+# Exclude build artifacts and distribution files
+dist/
+node_modules/

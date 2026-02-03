@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Intelligence - AegisDesk</title>
+    <meta name="theme-color" content="#6366f1">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/insights.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0f172a;
+            overflow: hidden;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        .standalone-insights {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .standalone-insights .insights-container {
+            border-radius: 0;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="standalone-insights">
+        <div class="insights-container">
+            <!-- Header -->
+            <div class="insights-header">
+                <div class="insights-title">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"></path>
+                    </svg>
+                    <h1>System Intelligence</h1>
+                </div>
+                <div class="insights-actions">
+                    <button class="insight-btn" id="refresh-insights" title="Refresh">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"></path>
+                        </svg>
+                    </button>
+                    <button class="insight-btn" id="ai-insights" title="AI Insights">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                            <path d="M2 17l10 5 10-5"></path>
+                            <path d="M2 12l10 5 10-5"></path>
+                        </svg>
+                    </button>
+                    <button class="insight-btn" id="close-insights" title="Close" onclick="window.close()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="insights-content">
+                <!-- System Overview Section -->
+                <div class="insight-section">
+                    <div class="section-header">
+                        <h2>System Overview</h2>
+                    </div>
+                    <div class="overview-grid" id="overview-grid">
+                        <!-- Will be populated by JS -->
+                    </div>
+                </div>
+                
+                <!-- Usage Analytics Section -->
+                <div class="insight-section">
+                    <div class="section-header">
+                        <h2>Usage Analytics</h2>
+                        <div class="section-actions">
+                            <button class="section-btn active" data-period="today">Today</button>
+                            <button class="section-btn" data-period="week">Week</button>
+                            <button class="section-btn" data-period="month">Month</button>
+                        </div>
+                    </div>
+                    <div class="analytics-grid">
+                        <div class="analytics-chart" id="usage-chart">
+                            <div class="chart-loading">Loading usage data...</div>
+                        </div>
+                        <div class="analytics-stats" id="usage-stats"></div>
+                    </div>
+                </div>
+                
+                <!-- Performance Section -->
+                <div class="insight-section">
+                    <div class="section-header">
+                        <h2>Performance</h2>
+                    </div>
+                    <div class="performance-grid" id="performance-grid">
+                        <!-- Will be populated by JS -->
+                    </div>
+                </div>
+                
+                <!-- Productivity Insights Section -->
+                <div class="insight-section">
+                    <div class="section-header">
+                        <h2>Productivity Insights</h2>
+                    </div>
+                    <div class="insights-list" id="productivity-insights">
+                        <!-- Will be populated by JS -->
+                    </div>
+                </div>
+                
+                <!-- Notifications Summary -->
+                <div class="insight-section">
+                    <div class="section-header">
+                        <h2>Notifications</h2>
+                    </div>
+                    <div class="notifications-summary" id="notifications-summary">
+                        <!-- Will be populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Load utilities -->
+    <script src="js/utils/storage.js"></script>
+    
+    <!-- Load dependencies -->
+    <script src="js/core/os-store.js" defer></script>
+    <script src="js/core/user-profile.js" defer></script>
+    
+    <!-- Load System Insights App -->
+    <script src="js/apps/system-insights.js" defer></script>
+    
+    <!-- Initialize standalone -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Wait for dependencies
+            await new Promise(resolve => {
+                let attempts = 0;
+                const checkInterval = setInterval(() => {
+                    attempts++;
+                    if (typeof SystemInsightsApp !== 'undefined') {
+                        clearInterval(checkInterval);
+                        resolve();
+                    } else if (attempts > 100) {
+                        clearInterval(checkInterval);
+                        resolve();
+                    }
+                }, 100);
+            });
+            
+            // Create standalone instance
+            const standalone = new SystemInsightsApp();
+            standalone.windowId = 'standalone-insights';
+            standalone.startTime = Date.now();
+            
+            // Create mock window object
+            const mockWindow = {
+                querySelector: (selector) => document.querySelector(selector),
+                querySelectorAll: (selector) => document.querySelectorAll(selector),
+                addEventListener: (event, handler) => document.addEventListener(event, handler)
+            };
+            
+            // Render initial content
+            const container = document.querySelector('.insights-container');
+            if (container) {
+                // Render overview cards
+                document.querySelector('#overview-grid').innerHTML = standalone.renderOverviewCards();
+                document.querySelector('#performance-grid').innerHTML = standalone.renderPerformanceCards();
+                document.querySelector('#productivity-insights').innerHTML = standalone.renderProductivityInsights();
+                document.querySelector('#notifications-summary').innerHTML = standalone.renderNotificationsSummary();
+            }
+            
+            // Attach events
+            standalone.attachEvents(mockWindow);
+            
+            // Update all sections
+            standalone.updateAll(mockWindow);
+            
+            // Auto-refresh
+            setInterval(() => {
+                standalone.updateAll(mockWindow);
+            }, 5000);
+            
+            // Make available globally
+            window.standaloneInsights = standalone;
+        });
+    </script>
+</body>
+</html>

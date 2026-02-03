@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Forecast - AegisDesk</title>
+    <link rel="stylesheet" href="styles/welcome.css">
+    <link rel="stylesheet" href="styles/weather-forecast.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="animated-background">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="weatherGradientLogo" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:1" />
+                                <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="sunGradientLogo" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <!-- Sun rays -->
+                        <circle cx="7" cy="7" r="3.5" fill="url(#sunGradientLogo)" opacity="0.9"/>
+                        <line x1="7" y1="2" x2="7" y2="4" stroke="url(#sunGradientLogo)" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="7" y1="10" x2="7" y2="12" stroke="url(#sunGradientLogo)" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="2" y1="7" x2="4" y2="7" stroke="url(#sunGradientLogo)" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="10" y1="7" x2="12" y2="7" stroke="url(#sunGradientLogo)" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="4.24" y1="4.24" x2="5.66" y2="5.66" stroke="url(#sunGradientLogo)" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="8.34" y1="8.34" x2="9.76" y2="9.76" stroke="url(#sunGradientLogo)" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="9.76" y1="4.24" x2="8.34" y2="5.66" stroke="url(#sunGradientLogo)" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="5.66" y1="8.34" x2="4.24" y2="9.76" stroke="url(#sunGradientLogo)" stroke-width="1.5" stroke-linecap="round"/>
+                        <!-- Cloud -->
+                        <path d="M18 16.5c0 1.38-1.12 2.5-2.5 2.5h-9c-1.38 0-2.5-1.12-2.5-2.5 0-1.04.64-1.93 1.54-2.3-.15-.5-.24-1.02-.24-1.55 0-2.76 2.24-5 5-5 1.2 0 2.3.43 3.16 1.14C14.5 6.5 15.88 7.5 17.5 7.5c1.38 0 2.5 1.12 2.5 2.5 0 .53-.17 1.02-.45 1.43.8.37 1.45 1.26 1.45 2.07z" fill="url(#weatherGradientLogo)" opacity="0.95"/>
+                        <!-- Cloud highlight -->
+                        <ellipse cx="15.5" cy="15" rx="2" ry="1.2" fill="white" opacity="0.3"/>
+                    </svg>
+                </div>
+                <a href="welcome.html" style="text-decoration: none; color: inherit;">
+                    <span class="logo-text">AegisDesk Weather</span>
+                </a>
+            </div>
+            <div class="nav-links">
+                <a href="desktop.html" class="nav-link">Desktop</a>
+                <a href="welcome.html" class="nav-link">Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Weather Forecast Container -->
+    <div class="weather-forecast-container">
+        <div class="container">
+            <div class="weather-header-section">
+                <h1 class="weather-title">Tamil Nadu Weather Forecast</h1>
+                <p class="weather-subtitle">Detailed 7-day forecasts for major cities</p>
+            </div>
+
+            <!-- City Selector -->
+            <div class="city-selector">
+                <select id="city-selector" class="city-select">
+                    <option value="">Select a City...</option>
+                </select>
+            </div>
+
+            <!-- Weather Display -->
+            <div id="weather-display" class="weather-display">
+                <div class="weather-placeholder">
+                    <div class="placeholder-icon">🌤️</div>
+                    <h3>Select a city to view forecast</h3>
+                    <p>Choose from the dropdown above</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/weather-forecast.js"></script>
+</body>
+</html>
+

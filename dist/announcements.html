@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Announcements - AegisDesk</title>
+    <meta name="theme-color" content="#8b5cf6">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/announcements.css">
+</head>
+<body class="announcements-page">
+    <div id="announcements-app-container" class="announcements-container">
+        <!-- Header -->
+        <header class="announcements-header" role="banner">
+            <div class="announcements-header-left">
+                <button class="announcements-back-btn" id="announcements-back-btn" aria-label="Close" onclick="window.close()" title="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+                <div class="announcements-logo">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        <line x1="9" y1="9" x2="15" y2="9"></line>
+                        <line x1="9" y1="13" x2="13" y2="13"></line>
+                    </svg>
+                    <div>
+                        <h1 class="announcements-title">Announcements</h1>
+                        <p class="announcements-subtitle">Important Updates & Notices</p>
+                    </div>
+                </div>
+            </div>
+            <div class="announcements-header-right">
+                <div class="announcements-filter-group">
+                    <button class="announcements-filter-btn active" data-filter="all">All</button>
+                    <button class="announcements-filter-btn" data-filter="pinned">Pinned</button>
+                    <button class="announcements-filter-btn" data-filter="unread">Unread</button>
+                    <button class="announcements-filter-btn" data-filter="class">Class</button>
+                    <button class="announcements-filter-btn" data-filter="system">System</button>
+                </div>
+                <button class="announcements-action-btn" id="announcements-create-btn" title="Create Announcement">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span>New</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="announcements-main" role="main">
+            <!-- Announcements Feed -->
+            <div class="announcements-feed" id="announcements-feed">
+                <!-- Announcements will be rendered here -->
+            </div>
+
+            <!-- Empty State -->
+            <div class="announcements-empty-state" id="announcements-empty-state" style="display: none;">
+                <svg width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity="0.3">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    <line x1="9" y1="9" x2="15" y2="9"></line>
+                    <line x1="9" y1="13" x2="13" y2="13"></line>
+                </svg>
+                <h2>No Announcements</h2>
+                <p>All caught up! New announcements will appear here.</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Announcement Detail Modal -->
+    <div class="announcements-modal-overlay" id="announcements-detail-modal" style="display: none;">
+        <div class="announcements-detail-modal">
+            <!-- Announcement detail content will be rendered here -->
+        </div>
+    </div>
+
+    <!-- Create Announcement Modal -->
+    <div class="announcements-modal-overlay" id="announcements-create-modal" style="display: none;">
+        <div class="announcements-create-modal">
+            <div class="announcements-modal-header">
+                <h2>Create Announcement</h2>
+                <button class="announcements-modal-close" onclick="announcementsApp.hideCreateModal()">&times;</button>
+            </div>
+            <div class="announcements-modal-body" id="announcements-create-form">
+                <!-- Create form will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="js/apps/announcements.js" defer></script>
+</body>
+</html>

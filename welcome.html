@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AegisDesk - AI-Powered Desktop OS</title>
+    <link rel="stylesheet" href="styles/welcome.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="animated-background">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+        <div class="grid-overlay"></div>
+        <div class="particles"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                        <path d="M2 17l10 5 10-5"></path>
+                        <path d="M2 12l10 5 10-5"></path>
+                    </svg>
+                </div>
+                <span class="logo-text">AegisDesk</span>
+            </div>
+            <div class="nav-links">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#about" class="nav-link">About</a>
+                <a href="founders.html" class="nav-link">Founders</a>
+                <a href="desktop.html" class="nav-link nav-cta">Launch Desktop</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <!-- Big Clock -->
+            <div class="hero-clock-container fade-in">
+                <div class="big-clock">
+                    <div class="clock-face">
+                        <!-- 12-hour markers (1-12) -->
+                        <div class="clock-numbers-12" id="clock-numbers-12"></div>
+                        <!-- Clock hands -->
+                        <div class="clock-hours" id="clock-hours"></div>
+                        <div class="clock-minutes" id="clock-minutes"></div>
+                        <div class="clock-seconds" id="clock-seconds"></div>
+                        <div class="clock-center"></div>
+                    </div>
+                    <div class="clock-time-display">
+                        <div class="clock-time-12" id="clock-time-12">12:00:00 AM</div>
+                    </div>
+                    <div class="clock-date-text" id="clock-date-text">Monday, January 1</div>
+                </div>
+            </div>
+            
+            <div class="hero-text-content">
+                <div class="hero-badge fade-in-delay">
+                    <span class="badge-icon">✨</span>
+                    <span>AI-Powered Desktop Operating System</span>
+                </div>
+                <h1 class="hero-title fade-in-delay-2">
+                    <span class="title-line">Your Digital Life,</span>
+                    <span class="title-line highlight">Unified & Intelligent</span>
+                </h1>
+                <p class="hero-description fade-in-delay-3">
+                    Replace scattered apps with a single, beautiful desktop interface. 
+                    Manage tasks, notes, weather, and more—all powered by AI.
+                </p>
+                <div class="hero-buttons fade-in-delay-4">
+                    <a href="desktop.html" class="btn btn-primary">
+                        <span>Launch AegisDesk</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </a>
+                    <a href="#features" class="btn btn-secondary">
+                        <span>Learn More</span>
+                    </a>
+                </div>
+                <div class="hero-stats fade-in-delay-5">
+                <div class="stat-item">
+                    <div class="stat-number">20+</div>
+                    <div class="stat-label">Apps</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">AI</div>
+                    <div class="stat-label">Powered</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Privacy</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">6</div>
+                    <div class="stat-label">Themes</div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="floating-cards">
+                <div class="floating-card card-1">
+                    <div class="card-icon-large">✅</div>
+                    <div class="card-text">Tasks</div>
+                </div>
+                <div class="floating-card card-2">
+                    <div class="card-icon-large">📝</div>
+                    <div class="card-text">Notes</div>
+                </div>
+                <div class="floating-card card-3">
+                    <div class="card-icon-large">🌤️</div>
+                    <div class="card-text">Weather</div>
+                </div>
+                <div class="floating-card card-4">
+                    <div class="card-icon-large">🤖</div>
+                    <div class="card-text">AI Assistant</div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Everything You Need</h2>
+                <p class="section-subtitle">A complete productivity suite in one place</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">✅</div>
+                    <h3 class="feature-title">Task Management</h3>
+                    <p class="feature-description">Organize your to-do list with an intuitive task manager. Create, complete, and track all your tasks effortlessly.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📝</div>
+                    <h3 class="feature-title">Smart Notes</h3>
+                    <p class="feature-description">Capture your thoughts with rich text notes. Auto-save ensures you never lose your ideas.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌤️</div>
+                    <h3 class="feature-title">Weather Insights</h3>
+                    <p class="feature-description">Check weather for 30+ cities in Tamil Nadu. Beautiful cards with detailed information.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3 class="feature-title">AI Assistant</h3>
+                    <p class="feature-description">Chat with an intelligent AI that can open apps, create tasks, answer questions, and more.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <h3 class="feature-title">Web Browser</h3>
+                    <p class="feature-description">Built-in browser for quick access to Google, YouTube, and any website you need.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚙️</div>
+                    <h3 class="feature-title">Customizable</h3>
+                    <p class="feature-description">Personalize your experience with settings, themes, and preferences that suit your workflow.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📧</div>
+                    <h3 class="feature-title">Email Client</h3>
+                    <p class="feature-description">Built-in email client for managing your messages and staying organized.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3 class="feature-title">System Intelligence</h3>
+                    <p class="feature-description">Real-time system analytics, usage insights, and productivity intelligence.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📰</div>
+                    <h3 class="feature-title">News Reader</h3>
+                    <p class="feature-description">Stay informed with the latest news from technology, business, science, and more.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3 class="feature-title">Multiple Themes</h3>
+                    <p class="feature-description">Choose from 6 beautiful themes including Dark, Light, Cyberpunk, Ocean, Sunset, and Matrix.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🖥️</div>
+                    <h3 class="feature-title">Virtual Desktops</h3>
+                    <p class="feature-description">Organize your workspace with multiple virtual desktops for better productivity.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- World Clock Section -->
+    <section id="world-clock" class="world-clock">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">World Clock</h2>
+                <p class="section-subtitle">Time zones from around the globe</p>
+            </div>
+            <div class="world-clock-grid" id="world-clock-grid">
+                <!-- Clocks will be generated by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2 class="section-title">Built for Productivity</h2>
+                    <p class="about-description">
+                        AegisDesk combines the power of artificial intelligence with a beautiful, 
+                        desktop-style interface. Everything you need is just a click away, and with 
+                        AI assistance, you can accomplish more in less time.
+                    </p>
+                    <div class="about-features">
+                        <div class="about-feature">
+                            <div class="about-feature-icon">🔒</div>
+                            <div>
+                                <h4>Privacy First</h4>
+                                <p>All data stored locally in your browser</p>
+                            </div>
+                        </div>
+                        <div class="about-feature">
+                            <div class="about-feature-icon">⚡</div>
+                            <div>
+                                <h4>Lightning Fast</h4>
+                                <p>No server dependencies, instant loading</p>
+                            </div>
+                        </div>
+                        <div class="about-feature">
+                            <div class="about-feature-icon">🎨</div>
+                            <div>
+                                <h4>Beautiful Design</h4>
+                                <p>Modern UI with smooth animations</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2 class="cta-title">Ready to Get Started?</h2>
+                <p class="cta-description">Launch AegisDesk and experience the future of personal productivity</p>
+                <a href="desktop.html" class="btn btn-primary btn-large">
+                    <span>Launch Desktop</span>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="logo">
+                        <div class="logo-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                                <path d="M2 17l10 5 10-5"></path>
+                                <path d="M2 12l10 5 10-5"></path>
+                            </svg>
+                        </div>
+                        <span class="logo-text">AegisDesk</span>
+                    </div>
+                    <p class="footer-tagline">AI-Powered Unified Desktop Operating System</p>
+                </div>
+                <div class="footer-links">
+                    <a href="#features" class="footer-link">Features</a>
+                    <a href="#about" class="footer-link">About</a>
+                    <a href="founders.html" class="footer-link">Founders</a>
+                    <a href="desktop.html" class="footer-link">Desktop</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 AegisDesk. Built with ❤️ for productivity.</p>
+            </div>
+        </div>
+    </footer>
+
+    <link rel="stylesheet" href="styles/world-clock.css">
+    <script src="js/welcome.js"></script>
+    <script src="js/world-clock.js"></script>
+</body>
+</html>

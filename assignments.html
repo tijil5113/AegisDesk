@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignments - AegisDesk</title>
+    <meta name="theme-color" content="#f093fb">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/assignments.css">
+</head>
+<body class="assignments-page">
+    <div id="assignments-app-container" class="assignments-container">
+        <!-- Header -->
+        <header class="assignments-header" role="banner">
+            <div class="assignments-header-left">
+                <button class="assignments-back-btn" id="assignments-back-btn" aria-label="Close" onclick="window.close()" title="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+                <div class="assignments-logo">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 20h9"></path>
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                    </svg>
+                    <div>
+                        <h1 class="assignments-title">Assignments</h1>
+                        <p class="assignments-subtitle">Track & Submit Your Work</p>
+                    </div>
+                </div>
+            </div>
+            <div class="assignments-header-right">
+                <div class="assignments-filter-group">
+                    <button class="assignments-filter-btn active" data-filter="all">All</button>
+                    <button class="assignments-filter-btn" data-filter="pending">Pending</button>
+                    <button class="assignments-filter-btn" data-filter="submitted">Submitted</button>
+                    <button class="assignments-filter-btn" data-filter="graded">Graded</button>
+                    <button class="assignments-filter-btn" data-filter="late">Late</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="assignments-main" role="main">
+            <!-- Timeline View -->
+            <div class="assignments-timeline" id="assignments-timeline">
+                <!-- Assignments will be rendered here -->
+            </div>
+
+            <!-- Empty State -->
+            <div class="assignments-empty-state" id="assignments-empty-state" style="display: none;">
+                <svg width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity="0.3">
+                    <path d="M12 20h9"></path>
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                </svg>
+                <h2>No Assignments</h2>
+                <p>All caught up! Check back later for new assignments.</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Assignment Detail Modal -->
+    <div class="assignments-modal-overlay" id="assignments-detail-modal" style="display: none;">
+        <div class="assignments-detail-modal">
+            <!-- Assignment detail content will be rendered here -->
+        </div>
+    </div>
+
+    <script src="js/apps/assignments.js" defer></script>
+</body>
+</html>
