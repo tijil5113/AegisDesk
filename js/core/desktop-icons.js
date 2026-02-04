@@ -108,9 +108,15 @@ class DesktopIconCarousel {
                 <div class="desktop-icon-name">${app.title}</div>
             `;
             
-            // Add click/touch handler
+            // Double-click: open app immediately. Single-click: show modal (Open/Cancel)
+            iconItem.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                this.openAppById(appId, iconItem?.dataset?.url || null);
+            });
             iconItem.addEventListener('click', (e) => {
                 e.stopPropagation();
+                if (this.isDragging) return;
                 this.handleIconClick(appId, app, iconItem);
             });
             
@@ -121,13 +127,19 @@ class DesktopIconCarousel {
         // Duplicate icons for seamless infinite scroll
         iconItems.forEach(item => {
             const clone = item.cloneNode(true);
+            clone.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                const appId = item.dataset.app;
+                const url = item.dataset.url || null;
+                this.openAppById(appId, url);
+            });
             clone.addEventListener('click', (e) => {
                 e.stopPropagation();
+                if (this.isDragging) return;
                 const appId = item.dataset.app;
                 const app = APP_REGISTRY[appId];
-                if (app) {
-                    this.handleIconClick(appId, app, item);
-                }
+                if (app) this.handleIconClick(appId, app, item);
             });
             this.track.appendChild(clone);
         });
@@ -146,8 +158,10 @@ class DesktopIconCarousel {
         document.addEventListener('keydown', (e) => {
             if (this.modalOverlay && this.modalOverlay.classList.contains('active')) {
                 if (e.key === 'Escape') {
+                    e.preventDefault();
                     this.closeModal();
                 } else if (e.key === 'Enter') {
+                    e.preventDefault();
                     this.openApp();
                 }
             }
@@ -193,9 +207,13 @@ class DesktopIconCarousel {
             });
         }
         
-        // Modal buttons
+        // Modal buttons — stopPropagation so overlay doesn't steal click
         if (this.modalOpenBtn) {
-            this.modalOpenBtn.addEventListener('click', () => this.openApp());
+            this.modalOpenBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.openApp();
+            });
         }
         
         if (this.modalCancelBtn) {
@@ -228,15 +246,16 @@ class DesktopIconCarousel {
             return;
         }
         
-        // Store current app info
+        // Store current app info (for Open button if we add modal back later)
         this.currentApp = {
             id: appId,
             app: app,
             element: iconElement
         };
         
-        // Show modal with enlarged icon
-        this.showModal(appId, app);
+        // Single-click: open app directly so something always happens
+        const url = iconElement?.dataset?.url || null;
+        this.openAppById(appId, url);
     }
     
     showModal(appId, app) {
@@ -305,35 +324,36 @@ class DesktopIconCarousel {
         this.currentApp = null;
     }
     
-    openApp() {
-        if (!this.currentApp) return;
-        
-        const { id, app } = this.currentApp;
-        const url = this.currentApp.element?.dataset.url || null;
-        
-        console.log('Opening app:', id, 'with URL:', url);
-        
-        // Close modal
-        this.closeModal();
-        
-        // Small delay for smooth transition
-        setTimeout(() => {
-            // Use desktop's openApp method if available
-            if (typeof desktop !== 'undefined' && desktop.openApp) {
-                console.log('Using desktop.openApp');
-                desktop.openApp(id, url);
-            } else if (app && app.open) {
-                console.log('Using app.open');
-                app.open(url);
-            } else {
-                console.error('No method to open app:', id);
-                // Fallback: directly open URL if available
-                if (url && (id === 'ai-chat' || id === 'browser')) {
-                    console.log('Fallback: opening URL directly');
-                    window.open(url, '_blank');
+    /** Open app by id (and optional url). Used by double-click and by Open button. */
+    openAppById(appId, url) {
+        if (!appId) return;
+        this.closeModal(); // in case modal is open (e.g. from double-click)
+        try {
+            if (typeof APP_REGISTRY !== 'undefined' && APP_REGISTRY[appId]) {
+                const entry = APP_REGISTRY[appId];
+                if (typeof entry.open === 'function') {
+                    url ? entry.open(url) : entry.open();
+                    return;
                 }
             }
-        }, 200);
+            if (window.desktop && typeof window.desktop.openApp === 'function') {
+                window.desktop.openApp(appId, url);
+                return;
+            }
+            if (url && (appId === 'ai-chat' || appId === 'browser')) {
+                window.open(url, '_blank');
+            }
+        } catch (err) {
+            console.error('openAppById failed:', err);
+        }
+    }
+    
+    openApp() {
+        if (!this.currentApp) return;
+        const appId = this.currentApp.id;
+        const url = this.currentApp.element?.dataset?.url || null;
+        this.closeModal();
+        this.openAppById(appId, url);
     }
     
     scrollLeft() {

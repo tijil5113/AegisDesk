@@ -21,6 +21,12 @@ class MailApp {
 
     async init() {
         console.log('[Mail] Initializing premium email client...');
+        if (typeof MailEngine === 'undefined') {
+            console.warn('[Mail] MailEngine not loaded (mail-engine.js missing or failed). Mail app will open but engine features disabled.');
+            this.engine = null;
+            this.setupEventListeners();
+            return;
+        }
         this.engine = new MailEngine();
         await this.engine.init();
         

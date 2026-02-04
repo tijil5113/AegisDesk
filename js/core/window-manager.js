@@ -164,9 +164,17 @@ class WindowManager {
         return windowEl;
     }
 
-    addWindowToDOM(window) {
-        const container = document.getElementById('windows-container');
-        container.appendChild(window);
+    addWindowToDOM(windowEl) {
+        // Always append to body so window is never hidden by container/stacking issues
+        document.body.appendChild(windowEl);
+        // Force visible and on top
+        windowEl.style.cssText += '; opacity:1 !important; visibility:visible !important; transform:scale(1) translateY(0) !important; display:flex !important; z-index:9999 !important;';
+        requestAnimationFrame(() => {
+            windowEl.style.opacity = '1';
+            windowEl.style.visibility = 'visible';
+            windowEl.style.transform = 'scale(1) translateY(0)';
+            windowEl.scrollIntoView && windowEl.scrollIntoView({ block: 'center', inline: 'center', behavior: 'auto' });
+        });
     }
 
     setupWindowEvents(window) {

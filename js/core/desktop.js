@@ -127,7 +127,7 @@ class Desktop {
                 taskbar.removeEventListener('click', this.taskbarClickHandler, true);
             }
             this.taskbarClickHandler = (e) => {
-                const icon = e.target.closest('.taskbar-icon[data-app]');
+                const icon = e.target.closest('.taskbar-icon[data-app], .taskbar-app-icon[data-app]');
                 if (icon) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -389,7 +389,7 @@ class Desktop {
         // For now we render all tiles; grid has contain: paint so scroll is cheap.
 
         // Get app order (preserve existing order from HTML if possible)
-        const appOrder = ['tasks', 'notes', 'weather', 'ai-chat', 'code-editor', 'terminal', 'music-player', 'drawing', 'system-monitor', 'gallery', 'playground', 'browser', 'bookmarks', 'calculator', 'calendar', 'files', 'settings', 'mail', 'email', 'system-intelligence', 'news-reader', 'college-hub', 'classroom', 'assignments', 'announcements', 'student-progress', 'user', 'help'];
+        const appOrder = ['tasks', 'notes', 'weather', 'ai-chat', 'code-editor', 'terminal', 'drawing', 'system-monitor', 'gallery', 'browser', 'bookmarks', 'calculator', 'calendar', 'files', 'settings', 'email', 'system-intelligence', 'news-reader', 'user', 'help'];
         
         // Render apps from registry (full render; switch to virtualized when appOrder.length > threshold)
         appsGrid.innerHTML = appOrder.map(appId => {
@@ -776,8 +776,6 @@ class Desktop {
                 'system': 'system-monitor',
                 'gallery': 'gallery',
                 'photos': 'gallery',
-                'playground': 'playground',
-                'sandbox': 'playground',
                 'yt': 'youtube',
                 'setting': 'settings',
                 'settings': 'settings',
@@ -907,4 +905,7 @@ class Desktop {
 }
 
 const desktop = new Desktop();
+if (typeof window !== 'undefined') {
+    window.desktop = desktop;
+}
 

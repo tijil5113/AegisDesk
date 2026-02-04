@@ -10,105 +10,281 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/main.css">
     <style>
+        :root {
+            --profile-bg: #0f172a;
+            --profile-card: rgba(30, 41, 59, 0.8);
+            --profile-border: rgba(99, 102, 241, 0.25);
+            --profile-accent: #818cf8;
+            --profile-accent-2: #a78bfa;
+            --profile-text: #e2e8f0;
+            --profile-muted: #94a3b8;
+        }
         body {
             margin: 0;
             padding: 0;
-            background: #0f172a;
+            background: var(--profile-bg);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            color: #e2e8f0;
+            color: var(--profile-text);
             overflow-x: hidden;
+            min-height: 100vh;
         }
-        
         .user-page-container {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
-        
         .user-header {
             background: rgba(15, 23, 42, 0.95);
             backdrop-filter: blur(20px) saturate(180%);
             border-bottom: 1px solid rgba(148, 163, 184, 0.15);
-            padding: 20px 32px;
+            padding: 16px 32px;
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
         }
-        
         .user-header-content {
-            max-width: 1400px;
+            max-width: 1000px;
             margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 24px;
         }
-        
         .user-logo {
             display: flex;
             align-items: center;
             gap: 12px;
             margin: 0;
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
-            background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+            background: linear-gradient(135deg, var(--profile-accent) 0%, var(--profile-accent-2) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        
-        .user-main {
-            flex: 1;
-            max-width: 1400px;
-            margin: 0 auto;
-            width: 100%;
-            padding: 32px;
-        }
-        
-        .user-welcome {
-            text-align: center;
-            padding: 80px 20px;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        .user-welcome h1 {
-            font-size: 48px;
-            font-weight: 800;
-            margin: 0 0 16px 0;
-            background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .user-welcome p {
-            font-size: 18px;
-            color: #94a3b8;
-            line-height: 1.6;
-            margin: 0 0 32px 0;
-        }
-        
         .close-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            padding: 10px 20px;
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid rgba(148, 163, 184, 0.2);
-            border-radius: 8px;
-            color: #e2e8f0;
+            padding: 10px 24px;
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid var(--profile-border);
+            border-radius: 10px;
+            color: var(--profile-text);
             font-size: 14px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
         }
-        
         .close-btn:hover {
-            background: rgba(51, 65, 85, 0.9);
-            border-color: rgba(99, 102, 241, 0.4);
+            background: rgba(99, 102, 241, 0.2);
+            border-color: var(--profile-accent);
+            transform: translateY(-1px);
         }
+        .user-main {
+            flex: 1;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 32px 24px 48px;
+        }
+        /* Hero */
+        .user-hero {
+            text-align: center;
+            padding: 48px 24px 40px;
+            margin-bottom: 32px;
+        }
+        .user-avatar {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--profile-accent) 0%, var(--profile-accent-2) 100%);
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.95);
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4);
+            border: 3px solid rgba(255,255,255,0.15);
+        }
+        .user-avatar.avatar-emoji { font-size: 48px; font-weight: normal; }
+        .name-edit-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .name-edit-row input {
+            flex: 1;
+            min-width: 160px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--profile-border);
+            background: rgba(15, 23, 42, 0.8);
+            color: var(--profile-text);
+            font-size: 15px;
+            font-family: inherit;
+        }
+        .name-edit-row input:focus {
+            outline: none;
+            border-color: var(--profile-accent);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+        .name-edit-row input::placeholder { color: var(--profile-muted); }
+        .save-name-btn {
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(135deg, var(--profile-accent), var(--profile-accent-2));
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .save-name-btn:hover { opacity: 0.95; transform: translateY(-1px); }
+        .avatar-picker {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .avatar-option {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            background: var(--profile-card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .avatar-option:hover {
+            transform: scale(1.08);
+            border-color: var(--profile-muted);
+        }
+        .avatar-option.active {
+            border-color: var(--profile-accent);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.4);
+        }
+        .avatar-option.avatar-option-initial {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--profile-accent);
+        }
+        .user-hero h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            color: var(--profile-text);
+        }
+        .user-hero .user-subtitle {
+            font-size: 15px;
+            color: var(--profile-muted);
+            margin: 0;
+        }
+        /* Cards grid */
+        .user-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .user-card {
+            background: var(--profile-card);
+            border: 1px solid var(--profile-border);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.25s ease;
+            backdrop-filter: blur(12px);
+        }
+        .user-card:hover {
+            border-color: rgba(99, 102, 241, 0.45);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        .user-card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 16px 0;
+            color: var(--profile-text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .user-card-title svg {
+            color: var(--profile-accent);
+            flex-shrink: 0;
+        }
+        .user-card p, .user-card .profile-row {
+            font-size: 14px;
+            color: var(--profile-muted);
+            margin: 0 0 12px 0;
+            line-height: 1.5;
+        }
+        .user-card .profile-row:last-child { margin-bottom: 0; }
+        .profile-row strong { color: var(--profile-text); margin-right: 8px; }
+        .user-card-actions {
+            margin-top: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .user-card-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border: 1px solid var(--profile-border);
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--profile-accent);
+        }
+        .user-card-btn:hover {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: var(--profile-accent);
+        }
+        .user-card-btn.primary {
+            background: linear-gradient(135deg, var(--profile-accent), var(--profile-accent-2));
+            color: white;
+            border: none;
+        }
+        .user-card-btn.primary:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+        .stat-pill {
+            display: inline-block;
+            padding: 6px 12px;
+            background: rgba(99, 102, 241, 0.15);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--profile-accent);
+            margin: 4px 8px 4px 0;
+        }
+        .theme-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+        .theme-option {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .theme-option:hover { transform: scale(1.05); }
+        .theme-option.active { border-color: var(--profile-accent); box-shadow: 0 0 0 2px rgba(99,102,241,0.3); }
+        .theme-option[data-theme="dark"] { background: linear-gradient(135deg, #1e293b, #0f172a); }
+        .theme-option[data-theme="light"] { background: linear-gradient(135deg, #f1f5f9, #e2e8f0); }
+        .theme-option[data-theme="purple"] { background: linear-gradient(135deg, #312e81, #4c1d95); }
     </style>
 </head>
 <body class="user-page">
@@ -116,22 +292,231 @@
         <header class="user-header">
             <div class="user-header-content">
                 <div class="user-logo">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                         <circle cx="12" cy="7" r="4"></circle>
                     </svg>
                     <span>User Profile</span>
                 </div>
-                <button class="close-btn" onclick="window.close()">Close</button>
+                <button class="close-btn" id="close-btn">Close</button>
             </div>
         </header>
 
         <main class="user-main">
-            <div class="user-welcome">
-                <h1>User Profile</h1>
-                <p>Manage your account settings, preferences, and personal information.</p>
+            <div class="user-hero">
+                <div class="user-avatar" id="avatar-initial">U</div>
+                <h1 id="display-name">User</h1>
+                <p class="user-subtitle" id="user-subtitle">Manage your account, preferences, and personal information.</p>
+            </div>
+
+            <div class="user-cards">
+                <section class="user-card user-card-identity">
+                    <h2 class="user-card-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        Name &amp; Avatar
+                    </h2>
+                    <p>Set your display name and pick an avatar.</p>
+                    <div class="name-edit-row">
+                        <input type="text" id="name-input" placeholder="Your name" maxlength="32" aria-label="Display name">
+                        <button type="button" class="save-name-btn" id="save-name-btn">Save name</button>
+                    </div>
+                    <p class="profile-row" style="margin-top:16px"><strong>Choose avatar</strong></p>
+                    <div class="avatar-picker" id="avatar-picker">
+                        <button type="button" class="avatar-option avatar-option-initial active" data-avatar="initial" title="Use my initial" aria-label="Use my initial">U</button>
+                        <button type="button" class="avatar-option" data-avatar="🧑" title="Person" aria-label="Avatar person">🧑</button>
+                        <button type="button" class="avatar-option" data-avatar="👩" title="Woman" aria-label="Avatar woman">👩</button>
+                        <button type="button" class="avatar-option" data-avatar="👨" title="Man" aria-label="Avatar man">👨</button>
+                        <button type="button" class="avatar-option" data-avatar="🦊" title="Fox" aria-label="Avatar fox">🦊</button>
+                        <button type="button" class="avatar-option" data-avatar="🐱" title="Cat" aria-label="Avatar cat">🐱</button>
+                        <button type="button" class="avatar-option" data-avatar="🐶" title="Dog" aria-label="Avatar dog">🐶</button>
+                        <button type="button" class="avatar-option" data-avatar="🌟" title="Star" aria-label="Avatar star">🌟</button>
+                        <button type="button" class="avatar-option" data-avatar="🎯" title="Target" aria-label="Avatar target">🎯</button>
+                        <button type="button" class="avatar-option" data-avatar="🔮" title="Crystal" aria-label="Avatar crystal">🔮</button>
+                        <button type="button" class="avatar-option" data-avatar="🚀" title="Rocket" aria-label="Avatar rocket">🚀</button>
+                        <button type="button" class="avatar-option" data-avatar="⭐" title="Star" aria-label="Avatar star">⭐</button>
+                        <button type="button" class="avatar-option" data-avatar="🌙" title="Moon" aria-label="Avatar moon">🌙</button>
+                    </div>
+                </section>
+
+                <section class="user-card">
+                    <h2 class="user-card-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        Account
+                    </h2>
+                    <p class="profile-row"><strong>Display name</strong><span id="account-name">User</span></p>
+                    <p class="profile-row"><strong>Theme</strong><span id="account-theme">Dark</span></p>
+                    <p class="profile-row"><strong>Timezone</strong><span id="account-tz">—</span></p>
+                    <div class="user-card-actions">
+                        <a href="desktop.html" class="user-card-btn primary">Open Desktop</a>
+                        <a href="settings.html" class="user-card-btn">Settings</a>
+                    </div>
+                </section>
+
+                <section class="user-card">
+                    <h2 class="user-card-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg>
+                        Appearance
+                    </h2>
+                    <p>Choose your preferred theme.</p>
+                    <div class="theme-options">
+                        <button class="theme-option active" data-theme="dark" title="Dark" aria-label="Dark theme"></button>
+                        <button class="theme-option" data-theme="light" title="Light" aria-label="Light theme"></button>
+                        <button class="theme-option" data-theme="purple" title="Purple" aria-label="Purple theme"></button>
+                    </div>
+                    <p class="profile-row" style="margin-top:12px"><strong>Language</strong><span id="account-lang">English</span></p>
+                </section>
+
+                <section class="user-card">
+                    <h2 class="user-card-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"></path><path d="M18 20V4"></path><path d="M6 20v-4"></path></svg>
+                        Activity
+                    </h2>
+                    <p>Your AegisDesk usage at a glance.</p>
+                    <div id="activity-stats">
+                        <span class="stat-pill" id="stat-apps">Apps used: —</span>
+                        <span class="stat-pill" id="stat-events">Activity: —</span>
+                    </div>
+                    <p class="profile-row" style="margin-top:12px"><strong>Profile since</strong><span id="profile-since">—</span></p>
+                </section>
+
+                <section class="user-card">
+                    <h2 class="user-card-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4m0-4h.01"></path></svg>
+                        About
+                    </h2>
+                    <p>AegisDesk — AI-Powered Desktop OS. Your tasks, notes, and apps in one place.</p>
+                    <div class="user-card-actions">
+                        <a href="desktop.html" class="user-card-btn">Back to Desktop</a>
+                        <a href="help.html" class="user-card-btn">Help</a>
+                    </div>
+                </section>
             </div>
         </main>
     </div>
+
+    <script>
+        (function() {
+            const storage = {
+                get: function(key, def) {
+                    try {
+                        const v = localStorage.getItem(key);
+                        return v ? JSON.parse(v) : def;
+                    } catch (e) { return def; }
+                },
+                set: function(key, val) {
+                    try {
+                        localStorage.setItem(key, typeof val === 'string' ? val : JSON.stringify(val));
+                    } catch (e) {}
+                }
+            };
+
+            function getProfile() {
+                return storage.get('user_profile', {});
+            }
+
+            function saveProfile(partial) {
+                const p = { ...getProfile(), ...partial, lastUpdated: new Date().toISOString() };
+                storage.set('user_profile', p);
+                return p;
+            }
+
+            function applyNameAndAvatar() {
+                const profile = getProfile();
+                const displayName = (profile.displayName && profile.displayName.trim()) ? profile.displayName.trim() : 'User';
+                const avatar = profile.avatar;
+                const initial = displayName.charAt(0).toUpperCase();
+
+                document.getElementById('display-name').textContent = displayName;
+                document.getElementById('account-name').textContent = displayName;
+                document.getElementById('name-input').value = displayName === 'User' ? '' : displayName;
+                document.getElementById('name-input').placeholder = 'Your name';
+
+                const avatarEl = document.getElementById('avatar-initial');
+                if (avatar === 'initial' || !avatar) {
+                    avatarEl.textContent = initial;
+                    avatarEl.classList.remove('avatar-emoji');
+                } else {
+                    avatarEl.textContent = avatar;
+                    avatarEl.classList.add('avatar-emoji');
+                }
+
+                var initialBtn = document.querySelector('.avatar-option[data-avatar="initial"]');
+                if (initialBtn) initialBtn.textContent = initial;
+            }
+
+            function setActiveAvatar(value) {
+                document.querySelectorAll('.avatar-option').forEach(function(b) {
+                    b.classList.toggle('active', b.getAttribute('data-avatar') === value);
+                });
+            }
+
+            var profile = getProfile();
+            var theme = profile.preferredTheme || 'dark';
+            var tz = profile.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+            var lang = profile.language || 'en';
+            var createdAt = profile.createdAt || null;
+
+            applyNameAndAvatar();
+            setActiveAvatar(profile.avatar || 'initial');
+
+            document.querySelectorAll('.theme-option').forEach(function(b) {
+                b.classList.toggle('active', b.getAttribute('data-theme') === theme);
+            });
+            document.getElementById('account-theme').textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
+            document.getElementById('account-tz').textContent = tz;
+            document.getElementById('account-lang').textContent = lang === 'en' ? 'English' : lang;
+
+            if (createdAt) {
+                try {
+                    var d = new Date(createdAt);
+                    document.getElementById('profile-since').textContent = d.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+                } catch (_) {}
+            }
+
+            var events = storage.get('user_profile_events', []);
+            var appCount = profile.habits && profile.habits.appUsage ? Object.keys(profile.habits.appUsage).length : 0;
+            document.getElementById('stat-apps').textContent = 'Apps used: ' + appCount;
+            document.getElementById('stat-events').textContent = 'Activity: ' + events.length + ' events';
+
+            document.getElementById('save-name-btn').addEventListener('click', function() {
+                var name = document.getElementById('name-input').value.trim();
+                var newName = name || 'User';
+                saveProfile({ displayName: newName });
+                applyNameAndAvatar();
+                setActiveAvatar(getProfile().avatar || 'initial');
+            });
+
+            document.getElementById('name-input').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') document.getElementById('save-name-btn').click();
+            });
+
+            document.getElementById('avatar-picker').addEventListener('click', function(e) {
+                var btn = e.target.closest('.avatar-option');
+                if (!btn) return;
+                var value = btn.getAttribute('data-avatar');
+                saveProfile({ avatar: value });
+                setActiveAvatar(value);
+                applyNameAndAvatar();
+            });
+
+            document.getElementById('close-btn').addEventListener('click', function() {
+                if (window.opener) {
+                    window.close();
+                } else {
+                    window.location.href = 'desktop.html';
+                }
+            });
+
+            document.querySelectorAll('.theme-option').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.theme-option').forEach(function(b) { b.classList.remove('active'); });
+                    btn.classList.add('active');
+                    var th = btn.getAttribute('data-theme');
+                    document.getElementById('account-theme').textContent = th.charAt(0).toUpperCase() + th.slice(1);
+                    saveProfile({ preferredTheme: th });
+                });
+            });
+        })();
+    </script>
 </body>
 </html>

@@ -1,5 +1,9 @@
 // Main Application Entry Point
 document.addEventListener('DOMContentLoaded', () => {
+    const isFileProtocol = (typeof location !== 'undefined' && (location.protocol === 'file:' || location.protocol === 'null'));
+    if (isFileProtocol) {
+        console.warn('AegisDesk is open via file:// — some features (Calculator, Open, etc.) may not work. Run: npm start then open http://localhost:3000/desktop.html');
+    }
     console.log('AegisDesk initialized');
     
     // Register Service Worker for PWA support
@@ -23,7 +27,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 })
                 .catch((error) => {
-                    console.error('Service Worker registration failed:', error);
+                    // Expected when opening via file:// — run from http://localhost:3000 for full features
+                    if (window.location.protocol === 'file:' || window.location.protocol === 'null') {
+                        console.warn('Run AegisDesk from a server for best experience: npm start then open http://localhost:3000/desktop.html');
+                    } else {
+                        console.error('Service Worker registration failed:', error);
+                    }
                 });
         });
     }

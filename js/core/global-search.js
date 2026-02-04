@@ -150,8 +150,9 @@ class GlobalSearch {
             }));
         }
         
-        // Index notes
-        const notes = osStore?.getStateSlice('notes') || storage.get('notes', []);
+        // Index notes (ensure array)
+        const notesRaw = osStore?.getStateSlice('notes') || storage.get('notes', []);
+        const notes = Array.isArray(notesRaw) ? notesRaw : [];
         this.searchIndex.notes = notes.map(note => ({
             id: note.id,
             title: note.title || 'Untitled',
@@ -160,8 +161,9 @@ class GlobalSearch {
             data: note
         }));
         
-        // Index tasks
-        const tasks = osStore?.getStateSlice('tasks') || storage.get('tasks', []);
+        // Index tasks (ensure array)
+        const tasksRaw = osStore?.getStateSlice('tasks') || storage.get('tasks', []);
+        const tasks = Array.isArray(tasksRaw) ? tasksRaw : [];
         this.searchIndex.tasks = tasks.map((task, index) => ({
             id: `task-${index}`,
             title: task.text || 'Untitled Task',
@@ -171,8 +173,9 @@ class GlobalSearch {
             index
         }));
         
-        // Index saved news (if available)
-        const savedNews = storage.get('saved_news', []);
+        // Index saved news (ensure array)
+        const savedNewsRaw = storage.get('saved_news', []);
+        const savedNews = Array.isArray(savedNewsRaw) ? savedNewsRaw : [];
         this.searchIndex.news = savedNews.map(article => ({
             id: article.url || article.title,
             title: article.title || 'Untitled Article',

@@ -239,39 +239,6 @@ const APP_REGISTRY = {
             window.open('terminal.html', '_blank') || (window.location.href = 'terminal.html');
         }
     },
-    'music-player': {
-        title: 'Music Player',
-        iconSVG: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <linearGradient id="vinylGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#1f2937;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#111827;stop-opacity:1" />
-                </linearGradient>
-                <radialGradient id="vinylRadial">
-                    <stop offset="0%" style="stop-color:#374151;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#1f2937;stop-opacity:1" />
-                </radialGradient>
-            </defs>
-            <!-- Vinyl record -->
-            <circle cx="12" cy="12" r="8" fill="url(#vinylRadial)"/>
-            <circle cx="12" cy="12" r="6" fill="url(#vinylGradient)"/>
-            <circle cx="12" cy="12" r="2.5" fill="#111827"/>
-            <circle cx="12" cy="12" r="1" fill="#374151"/>
-            <!-- Grooves -->
-            <circle cx="12" cy="12" r="4" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>
-            <circle cx="12" cy="12" r="5" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>
-            <!-- Music note -->
-            <path d="M16 6 L16 14 M16 6 L19 4 M19 4 L19 10" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-            <circle cx="16" cy="14" r="1.5" fill="#8b5cf6"/>
-            <!-- Glow -->
-            <circle cx="12" cy="12" r="8" fill="#8b5cf6" opacity="0.1"/>
-        </svg>`,
-        open: function() {
-            if (typeof musicPlayerApp !== 'undefined') {
-                musicPlayerApp.open();
-            }
-        }
-    },
     'drawing': {
         title: 'Drawing',
         iconSVG: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -383,38 +350,6 @@ const APP_REGISTRY = {
             }
         }
     },
-    'playground': {
-        title: 'Code Playground',
-        iconSVG: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <linearGradient id="pane1Gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#1e293b;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
-                </linearGradient>
-                <linearGradient id="pane2Gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#1e293b;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
-                </linearGradient>
-            </defs>
-            <!-- Split panes -->
-            <rect x="3" y="3" width="8" height="18" rx="1" fill="url(#pane1Gradient)"/>
-            <rect x="13" y="3" width="8" height="18" rx="1" fill="url(#pane2Gradient)"/>
-            <!-- Divider -->
-            <line x1="11.5" y1="3" x2="11.5" y2="21" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-            <!-- Code lines -->
-            <line x1="5" y1="7" x2="9" y2="7" stroke="#10b981" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="5" y1="10" x2="8" y2="10" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="5" y1="13" x2="9" y2="13" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="15" y1="7" x2="19" y2="7" stroke="#8b5cf6" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="15" y1="10" x2="18" y2="10" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="15" y1="13" x2="19" y2="13" stroke="#06b6d4" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>`,
-        open: function() {
-            if (typeof playgroundApp !== 'undefined') {
-                playgroundApp.open();
-            }
-        }
-    },
     'bookmarks': {
         title: 'Bookmarks',
         iconSVG: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -501,15 +436,8 @@ const APP_REGISTRY = {
             <circle cx="10.5" cy="14" r="1.5" fill="url(#calGradient)" opacity="0.8"/>
         </svg>`,
         open: function() {
-            if (window.windowManager) {
-                window.windowManager.openWindow({
-                    id: 'calendar',
-                    title: 'Calendar',
-                    url: 'calendar.html',
-                    width: 1600,
-                    height: 1000,
-                    resizable: true
-                });
+            if (typeof calendarApp !== 'undefined' && calendarApp.open) {
+                calendarApp.open();
             } else {
                 window.open('calendar.html', '_blank');
             }
@@ -681,33 +609,6 @@ const APP_REGISTRY = {
             window.open(serverUrl, '_blank');
         }
     },
-    'news-reader': {
-        title: 'News Reader',
-        iconSVG: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <linearGradient id="readerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
-                </linearGradient>
-            </defs>
-            <!-- Reading glasses -->
-            <ellipse cx="9" cy="12" rx="3.5" ry="3" fill="none" stroke="url(#readerGradient)" stroke-width="2.5"/>
-            <ellipse cx="15" cy="12" rx="3.5" ry="3" fill="none" stroke="url(#readerGradient)" stroke-width="2.5"/>
-            <line x1="12.5" y1="12" x2="11.5" y2="12" stroke="url(#readerGradient)" stroke-width="2.5" stroke-linecap="round"/>
-            <!-- Bridge -->
-            <path d="M9 10 L15 10" stroke="url(#readerGradient)" stroke-width="2" stroke-linecap="round"/>
-            <!-- News lines -->
-            <line x1="6" y1="16" x2="18" y2="16" stroke="url(#readerGradient)" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
-            <line x1="6" y1="18.5" x2="15" y2="18.5" stroke="url(#readerGradient)" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
-        </svg>`,
-        open: function() {
-            // Always use server URL to ensure API works
-            const serverUrl = window.location.protocol === 'file:' 
-                ? 'http://localhost:3000/news.html' 
-                : (window.location.origin + '/news.html');
-            window.open(serverUrl, '_blank');
-        }
-    },
     'user': {
         title: 'User Profile',
         iconSVG: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -758,181 +659,6 @@ const APP_REGISTRY = {
         open: function() {
             if (typeof helpApp !== 'undefined') {
                 helpApp.open();
-            }
-        }
-    },
-    'college-hub': {
-        title: 'College Hub',
-        iconSVG: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <linearGradient id="collegeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
-                </linearGradient>
-            </defs>
-            <!-- Graduation cap -->
-            <path d="M12 3L2 8l10 5 10-5-10-5z" fill="url(#collegeGradient)"/>
-            <path d="M2 8l10 5 10-5M2 13l10 5 10-5M2 18l10 5 10-5" stroke="url(#collegeGradient)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.6"/>
-            <!-- Book -->
-            <rect x="6" y="12" width="12" height="8" rx="1" fill="url(#collegeGradient)" opacity="0.3"/>
-            <path d="M6 12h12M6 16h12" stroke="url(#collegeGradient)" stroke-width="1.5" stroke-linecap="round"/>
-            <!-- Highlight -->
-            <ellipse cx="12" cy="5" rx="3" ry="1.5" fill="white" opacity="0.3"/>
-        </svg>`,
-        open: function() {
-            if (window.windowManager) {
-                window.windowManager.openWindow({
-                    id: 'college-hub',
-                    title: 'College Hub',
-                    url: 'college.html',
-                    width: 1400,
-                    height: 900,
-                    resizable: true
-                });
-            } else {
-                window.open('college.html', '_blank');
-            }
-        }
-    },
-    'classroom': {
-        title: 'Classroom',
-        iconSVG: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <linearGradient id="classroomGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#4285f4;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#1967d2;stop-opacity:1" />
-                </linearGradient>
-            </defs>
-            <!-- Book/Classroom -->
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="url(#classroomGradient)" stroke-width="2" stroke-linecap="round"/>
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" fill="url(#classroomGradient)" opacity="0.9"/>
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="rgba(0,0,0,0.1)" stroke-width="0.5" fill="none"/>
-            <!-- Pages -->
-            <line x1="9" y1="6" x2="18" y2="6" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
-            <line x1="9" y1="10" x2="18" y2="10" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
-            <line x1="9" y1="14" x2="15" y2="14" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
-        </svg>`,
-        open: function() {
-            if (window.windowManager) {
-                window.windowManager.openWindow({
-                    id: 'classroom',
-                    title: 'Classroom',
-                    url: 'classroom.html',
-                    width: 1400,
-                    height: 900,
-                    resizable: true
-                });
-            } else {
-                window.open('classroom.html', '_blank');
-            }
-        }
-    },
-    'assignments': {
-        title: 'Assignments',
-        iconSVG: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <linearGradient id="assignmentsGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#f093fb;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#f5576c;stop-opacity:1" />
-                </linearGradient>
-            </defs>
-            <path d="M12 20h9" stroke="url(#assignmentsGradient)" stroke-width="2.5" stroke-linecap="round"/>
-            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" fill="url(#assignmentsGradient)" opacity="0.9"/>
-            <line x1="10" y1="12" x2="18" y2="12" stroke="url(#assignmentsGradient)" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
-        </svg>`,
-        open: function() {
-            if (window.windowManager) {
-                window.windowManager.openWindow({
-                    id: 'assignments',
-                    title: 'Assignments',
-                    url: 'assignments.html',
-                    width: 1200,
-                    height: 800,
-                    resizable: true
-                });
-            } else {
-                window.open('assignments.html', '_blank');
-            }
-        }
-    },
-    'announcements': {
-        title: 'Announcements',
-        iconSVG: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <linearGradient id="announcementsGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
-                </linearGradient>
-            </defs>
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" fill="url(#announcementsGradient)" opacity="0.9"/>
-            <line x1="9" y1="9" x2="15" y2="9" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
-            <line x1="9" y1="13" x2="13" y2="13" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
-        </svg>`,
-        open: function() {
-            if (window.windowManager) {
-                window.windowManager.openWindow({
-                    id: 'announcements',
-                    title: 'Announcements',
-                    url: 'announcements.html',
-                    width: 1400,
-                    height: 900,
-                    resizable: true
-                });
-            } else {
-                window.open('announcements.html', '_blank');
-            }
-        }
-    },
-    'student-progress': {
-        title: 'Progress & Analytics',
-        iconSVG: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
-                </linearGradient>
-            </defs>
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke="url(#progressGradient)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-        </svg>`,
-        open: function() {
-            if (window.windowManager) {
-                window.windowManager.openWindow({
-                    id: 'student-progress',
-                    title: 'Progress & Analytics',
-                    url: 'progress.html',
-                    width: 1600,
-                    height: 1000,
-                    resizable: true
-                });
-            } else {
-                window.open('progress.html', '_blank');
-            }
-        }
-    },
-    'mail': {
-        title: 'Mail',
-        iconSVG: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <linearGradient id="mailGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
-                </linearGradient>
-            </defs>
-            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" fill="url(#mailGradient)" opacity="0.9"/>
-            <polyline points="22,6 12,13 2,6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9"/>
-        </svg>`,
-        open: function() {
-            if (window.windowManager) {
-                window.windowManager.openWindow({
-                    id: 'mail',
-                    title: 'Mail',
-                    url: 'mail.html',
-                    width: 1400,
-                    height: 900,
-                    resizable: true
-                });
-            } else {
-                window.open('mail.html', '_blank');
             }
         }
     }

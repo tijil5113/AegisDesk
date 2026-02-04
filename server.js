@@ -99,7 +99,20 @@ app.get('*', (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`AegisDesk server running on port ${PORT}`);
-});
+const PORT = Number(process.env.PORT) || 3000;
+
+function tryListen(port) {
+  const server = app.listen(port, () => {
+    console.log(`AegisDesk server running on port ${port}`);
+    console.log(`Open: http://localhost:${port}/desktop.html`);
+  });
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.warn(`Port ${port} in use, trying ${port + 1}...`);
+      tryListen(port + 1);
+    } else {
+      throw err;
+    }
+  });
+}
+tryListen(PORT);

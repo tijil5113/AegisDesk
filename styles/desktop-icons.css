@@ -638,6 +638,7 @@
 
 /* Modal panel: one glass layer; no nested blur with overlay */
 .icon-modal {
+    pointer-events: auto;
     background: var(--glass-bg-solid, rgba(30, 41, 59, 0.95));
     backdrop-filter: none;
     border: 2px solid var(--glass-border-strong, rgba(99, 102, 241, 0.5));

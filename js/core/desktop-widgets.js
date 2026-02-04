@@ -79,9 +79,11 @@ class DesktopWidgets {
         const widget = document.createElement('div');
         widget.className = 'widget-stats';
         
-        // Get stats from storage
-        const tasks = storage.get('tasks', []);
-        const notes = storage.get('notes', []);
+        // Get stats from storage (ensure arrays)
+        const tasksRaw = storage.get('tasks', []);
+        const notesRaw = storage.get('notes', []);
+        const tasks = Array.isArray(tasksRaw) ? tasksRaw : [];
+        const notes = Array.isArray(notesRaw) ? notesRaw : [];
         const completedTasks = tasks.filter(t => t.completed).length;
         
         widget.innerHTML = `

@@ -1,4 +1,4 @@
-// Calculator App
+// Calculator App - basic functions: numbers, + - × ÷, C, CE, backspace, =
 class CalculatorApp {
     constructor() {
         this.windowId = 'calculator';
@@ -9,8 +9,8 @@ class CalculatorApp {
     }
 
     open() {
-        const content = this.render();
-        const window = windowManager.createWindow(this.windowId, {
+        const contentHtml = this.render();
+        const win = windowManager.createWindow(this.windowId, {
             title: 'Calculator',
             width: 400,
             height: 550,
@@ -22,10 +22,18 @@ class CalculatorApp {
                 <line x1="8" y1="14" x2="16" y2="14"></line>
                 <line x1="8" y1="18" x2="16" y2="18"></line>
             </svg>`,
-            content: content
+            content: contentHtml
         });
 
-        this.attachEvents(window);
+        const content = win.querySelector('.window-content');
+        if (!content || content.dataset.calcInitialized) return;
+        content.dataset.calcInitialized = '1';
+        this.attachEvents(win);
+        // Focus so keyboard input works
+        requestAnimationFrame(() => {
+            content.setAttribute('tabindex', '0');
+            content.focus();
+        });
     }
 
     render() {
@@ -63,53 +71,89 @@ class CalculatorApp {
         `;
     }
 
-    attachEvents(window) {
-        const content = window.querySelector('.window-content');
+    attachEvents(win) {
+        const content = win.querySelector('.window-content');
+        if (!content) return;
         const display = content.querySelector('#calc-display');
+        if (!display) return;
         const buttons = content.querySelectorAll('.calc-btn');
 
+        const updateDisplay = () => {
+            display.textContent = this.formatDisplay(this.currentValue);
+        };
+
         buttons.forEach(button => {
-            button.addEventListener('click', () => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 const value = button.dataset.value;
                 const action = button.dataset.action;
 
                 if (action) {
                     this.handleAction(action);
-                } else if (value) {
+                } else if (value !== undefined && value !== '') {
                     this.inputNumber(value);
                 }
-                display.textContent = this.currentValue;
+                updateDisplay();
             });
         });
 
         // Keyboard support
         content.addEventListener('keydown', (e) => {
-            if (e.key >= '0' && e.key <= '9' || e.key === '.') {
+            if (e.key >= '0' && e.key <= '9') {
+                e.preventDefault();
                 this.inputNumber(e.key);
-                display.textContent = this.currentValue;
+                updateDisplay();
+            } else if (e.key === '.') {
+                e.preventDefault();
+                this.inputNumber('.');
+                updateDisplay();
             } else if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') {
+                e.preventDefault();
                 const operators = { '+': '+', '-': '-', '*': '×', '/': '÷' };
                 this.inputOperator(operators[e.key]);
-                display.textContent = this.currentValue;
+                updateDisplay();
             } else if (e.key === 'Enter' || e.key === '=') {
+                e.preventDefault();
                 this.calculate();
-                display.textContent = this.currentValue;
+                updateDisplay();
             } else if (e.key === 'Escape') {
+                e.preventDefault();
                 this.clear();
-                display.textContent = this.currentValue;
+                updateDisplay();
             } else if (e.key === 'Backspace') {
+                e.preventDefault();
                 this.backspace();
-                display.textContent = this.currentValue;
+                updateDisplay();
             }
         });
     }
 
+    formatDisplay(val) {
+        if (val === '' || val === null || val === undefined) return '0';
+        const str = String(val);
+        const num = parseFloat(str);
+        if (isNaN(num)) return str;
+        if (Number.isInteger(num)) return String(num);
+        const rounded = Math.round(num * 1e12) / 1e12;
+        return String(rounded);
+    }
+
     inputNumber(num) {
         if (this.waitingForOperand) {
-            this.currentValue = num;
+            this.currentValue = num === '.' ? '0.' : num;
             this.waitingForOperand = false;
+            return;
+        }
+        if (num === '.') {
+            if (this.currentValue.includes('.')) return;
+            this.currentValue = this.currentValue === '0' ? '0.' : this.currentValue + '.';
+            return;
+        }
+        if (this.currentValue === '0' && num !== '0') {
+            this.currentValue = num;
         } else {
-            this.currentValue = this.currentValue === '0' ? num : this.currentValue + num;
+            this.currentValue = this.currentValue + num;
         }
     }
 
@@ -151,9 +195,10 @@ class CalculatorApp {
     }
 
     calculate() {
-        if (this.previousValue !== null && this.operator) {
+        if (this.previousValue !== null && this.operator !== null) {
             const newValue = this.performCalculation();
-            this.currentValue = String(newValue);
+            const str = Number.isInteger(newValue) ? String(newValue) : String(Math.round(newValue * 1e12) / 1e12);
+            this.currentValue = str;
             this.previousValue = null;
             this.operator = null;
             this.waitingForOperand = true;
@@ -177,6 +222,7 @@ class CalculatorApp {
         } else {
             this.currentValue = '0';
         }
+        this.waitingForOperand = false;
     }
 
     handleAction(action) {

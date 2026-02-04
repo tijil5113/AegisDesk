@@ -824,7 +824,7 @@ body {
 
 /* App tile name styles moved to icon-system.css */
 
-/* Windows Container */
+/* Windows Container — above desktop/carousel so app windows are always visible */
 .windows-container {
     position: fixed;
     top: 0;
@@ -834,16 +834,18 @@ body {
     height: calc(100dvh - 56px); /* Dynamic viewport for zoom compatibility */
     max-height: calc(100vh - 56px);
     max-height: calc(100dvh - 56px);
-    z-index: 100;
+    z-index: 500;
     pointer-events: none;
     overflow: visible;
     min-height: calc(100vh - 56px);
     min-height: calc(100dvh - 56px);
     scroll-behavior: smooth;
+    visibility: visible;
 }
 
 .windows-container > * {
     pointer-events: all;
+    visibility: visible;
 }
 
 /* Scrollbar Styling - Enhanced for better visibility and smoothness */
