@@ -1,18 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Panel</title>
+    <meta charset="UTF-8">
+    <title>Admin Verification</title>
+    <meta http-equiv="refresh" content="2;url=http://localhost:3000/welcome.html">
 </head>
-<body>
-  <h1>Welcome, Sahana MS 👑</h1>
-  <p>Administrator Access Granted</p>
+<body style="
+    background:#020617;
+    color:#e5e7eb;
+    font-family:Inter, sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    height:100vh;
+">
 
-  <script>
+<script>
+    // 🔒 HARD SECURITY CHECK
     if (localStorage.getItem('aegisdesk_admin') !== 'true') {
-        alert('Unauthorized');
-        window.location.href = 'index.html';
+        alert('Unauthorized access');
+        window.location.href = 'login.html';
     }
-  </script>
+</script>
+
+<div style="text-align:center;">
+    <h1 style="font-size:28px;">Welcome, Sahana MS 👑</h1>
+    <p style="opacity:.7;">Admin access verified</p>
+    <p style="margin-top:20px;font-size:14px;">
+        Redirecting to your workspace…
+    </p>
+</div>
+
 </body>
 </html>

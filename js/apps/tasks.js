@@ -206,6 +206,69 @@
         return { active: active, completed: completed, total: this.tasks.length, today: today };
     };
 
+    TasksApp.prototype.addTaskFromUI = function (container, payload) {
+        if (!container) return false;
+        var input = container.querySelector('#task-input');
+        var task = payload || {};
+        if (!task.text && input) task.text = input.value.trim();
+        if (!task.text) {
+            if (input) {
+                input.classList.add('tasks-input-error');
+                input.focus();
+                setTimeout(function () { input.classList.remove('tasks-input-error'); }, 600);
+            }
+            return false;
+        }
+        this.pushUndo();
+        var t = normalizeTask({
+            id: 'task_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9),
+            text: task.text,
+            completed: false,
+            priority: task.priority || 'medium',
+            category: task.category || 'general',
+            dueDate: task.dueDate || null,
+            dueTime: task.dueTime || null,
+            tags: task.tags || [],
+            description: task.description || '',
+            subtasks: task.subtasks || [],
+            type: task.type || 'normal',
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+        });
+        this.tasks.push(t);
+        this.save();
+
+        var visible = this.getFilteredTasks().some(function (item) { return item.id === t.id; });
+        if (!visible) {
+            this.view = 'list';
+            this.filters = { category: 'all', priority: 'all', status: 'all', tag: 'all', type: 'all' };
+            this.searchQuery = '';
+            this.syncFiltersUI(container);
+        }
+
+        this.refresh(container);
+        if (input) { input.value = ''; input.focus(); }
+        return true;
+    };
+
+    TasksApp.prototype.syncFiltersUI = function (container) {
+        if (!container) return;
+        var searchEl = container.querySelector('#tasks-search');
+        if (searchEl) searchEl.value = this.searchQuery || '';
+        container.querySelectorAll('.tasks-view-tab').forEach(function (tab) {
+            if (tab.dataset.view === this.view) tab.classList.add('active');
+            else tab.classList.remove('active');
+        }, this);
+        var cat = container.querySelector('#filter-category');
+        var pri = container.querySelector('#filter-priority');
+        var status = container.querySelector('#filter-status');
+        var tag = container.querySelector('#filter-tag');
+        if (cat) cat.value = this.filters.category || 'all';
+        if (pri) pri.value = this.filters.priority || 'all';
+        if (status) status.value = this.filters.status || 'all';
+        if (tag) tag.value = this.filters.tag || 'all';
+    };
+
     TasksApp.prototype.getCategories = function () {
         var set = {};
         this.tasks.forEach(function (t) {
@@ -400,7 +463,7 @@
             '</div>' +
             '<div class="tasks-input-container">' +
             '<input type="text" class="tasks-input" id="task-input" placeholder="Add task or type naturally, e.g. &quot;Math homework tomorrow 6pm high&quot;">' +
-            '<button class="tasks-add-btn" id="task-add-btn">Add</button>' +
+            '<button type="button" class="tasks-add-btn" id="task-add-btn">Add</button>' +
             '</div>' +
             '<div class="tasks-quick-actions">' +
             '<button class="tasks-quick-btn" data-action="add-details" title="Add with details">+ Details</button>' +
@@ -450,33 +513,20 @@
         }
 
         var addTask = function (payload) {
-            var task = payload || {};
-            if (!task.text && input) task.text = input.value.trim();
-            if (!task.text) return;
-            self.pushUndo();
-            var t = normalizeTask({
-                id: 'task_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9),
-                text: task.text,
-                completed: false,
-                priority: task.priority || 'medium',
-                category: task.category || 'general',
-                dueDate: task.dueDate || null,
-                dueTime: task.dueTime || null,
-                tags: task.tags || [],
-                description: task.description || '',
-                subtasks: task.subtasks || [],
-                type: task.type || 'normal',
-                createdAt: Date.now(),
-                updatedAt: Date.now()
-            });
-            self.tasks.push(t);
-            self.save();
-            self.refresh(content);
-            if (input) { input.value = ''; input.focus(); }
+            self.addTaskFromUI(content, payload);
         };
 
-        if (addBtn) addBtn.addEventListener('click', function () { addTask(); });
-        if (input) input.addEventListener('keypress', function (e) { if (e.key === 'Enter') addTask(); });
+        if (addBtn) {
+            addBtn.addEventListener('click', function (e) { e.preventDefault(); addTask(); });
+            addBtn.addEventListener('pointerup', function (e) { if (e.pointerType === 'touch') { e.preventDefault(); addTask(); } });
+        }
+        if (input) input.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addTask(); } });
+        content.addEventListener('click', function (e) {
+            if (e.target && e.target.closest && e.target.closest('#task-add-btn')) {
+                e.preventDefault();
+                addTask();
+            }
+        });
 
         content.querySelector('[data-action="add-details"]')?.addEventListener('click', function () {
             self.showTaskDialog(content, null);

@@ -30,6 +30,27 @@
     <link rel="stylesheet" href="styles/desktop-polish.css">
     <!-- CSS loader must run before lazy-CSS script so critical path works -->
     <script src="js/css-loader.js"></script>
+    <script>
+        (function enforceLogin() {
+            const CURRENT_SESSION_KEY = 'aegisdesk_current_session';
+            const SESSIONS_KEY = 'aegisdesk_sessions';
+            const isLoginPage = /login\.html/i.test(window.location.pathname);
+            if (isLoginPage) return;
+            try {
+                const currentId = localStorage.getItem(CURRENT_SESSION_KEY);
+                if (!currentId) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                const sessions = JSON.parse(localStorage.getItem(SESSIONS_KEY) || '{}');
+                if (!sessions[currentId]) {
+                    window.location.href = 'login.html';
+                }
+            } catch (error) {
+                window.location.href = 'login.html';
+            }
+        })();
+    </script>
     <!-- Non-critical CSS - Will be lazy loaded -->
     <script>
         // Lazy load non-critical CSS after page load
@@ -54,7 +75,8 @@
                     'styles/code-editor-vscode.css',
                     'styles/terminal-v2.css',
                     'styles/files-v2.css',
-                    'styles/insights.css'
+                    'styles/insights.css',
+                    'styles/power-features.css'
                 ];
                 cssLoader.loadBatch(lazyCSS, true);
             });
@@ -67,7 +89,7 @@
                 'styles/advanced-apps.css', 'styles/help.css', 'styles/quick-actions.css',
                 'styles/search-suggestions.css', 'styles/desktop-widgets.css', 'styles/world-class-enhancements.css',
                 'styles/notification-center.css', 'styles/global-search.css', 'styles/code-editor-vscode.css',
-                'styles/terminal-v2.css', 'styles/files-v2.css', 'styles/insights.css'
+                'styles/terminal-v2.css', 'styles/files-v2.css', 'styles/insights.css', 'styles/power-features.css'
             ];
             fallbackCSS.forEach(href => {
                 const link = document.createElement('link');
@@ -788,6 +810,7 @@
     <script src="js/core/mode-manager.js" defer></script>
     <script src="js/core/global-search.js" defer></script>
     <script src="js/core/desktop.js" defer></script>
+    <script src="js/core/power-features.js" defer></script>
     <script src="js/core/desktop-icons.js" defer></script>
     <!-- Terminal Engine - BULLETPROOF (must load before terminal-v2.js) -->
     <script src="js/core/terminal-engine.js" defer></script>
@@ -932,6 +955,34 @@
         
         // Check immediately - always allow access (auth is optional)
         checkAuth(); // Just log status, don't block access
+
+        // Session heartbeat for classic login gate
+        const SESSION_KEY = 'aegisdesk_current_session';
+        const SESSIONS_KEY = 'aegisdesk_sessions';
+        const LAST_ROUTE_KEY = 'aegisdesk_last_route';
+        const SESSION_PENDING_KEY = 'aegisdesk_session_pending';
+
+        function touchSession() {
+            try {
+                const currentId = localStorage.getItem(SESSION_KEY);
+                if (!currentId) return;
+                const sessions = JSON.parse(localStorage.getItem(SESSIONS_KEY) || '{}');
+                if (!sessions[currentId]) return;
+                sessions[currentId].lastActiveAt = Date.now();
+                localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
+                localStorage.setItem(LAST_ROUTE_KEY, window.location.pathname + window.location.search + window.location.hash);
+            } catch (error) {
+                // Ignore storage errors to avoid blocking UI
+            }
+        }
+
+        touchSession();
+        document.addEventListener('visibilitychange', touchSession);
+        window.addEventListener('beforeunload', () => {
+            localStorage.setItem(SESSION_PENDING_KEY, 'true');
+            touchSession();
+        });
+        setInterval(touchSession, 20000);
     });
     </script>
 </body>

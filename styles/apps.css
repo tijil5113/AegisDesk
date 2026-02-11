@@ -56,6 +56,11 @@
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
+.tasks-input.tasks-input-error {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
 .tasks-add-btn {
     padding: 12px 24px;
     background: linear-gradient(135deg, var(--primary), var(--secondary));
@@ -4094,25 +4099,53 @@
 
 .calculator-screen {
     width: 100%;
-    height: 100px;
+    height: 110px;
     background: rgba(15, 23, 42, 0.8);
     border: 2px solid var(--border);
     border-radius: 12px;
     display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    padding: 0 24px;
-    font-size: 42px;
-    font-weight: 600;
-    color: var(--text-primary);
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    padding: 10px 20px;
     font-variant-numeric: tabular-nums;
+    overflow: hidden;
+    gap: 6px;
+}
+
+.calculator-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 30px;
+    font-weight: 600;
+    text-align: right;
+    outline: none;
+    padding: 0;
+}
+
+.calculator-input::selection {
+    background: rgba(99, 102, 241, 0.35);
+}
+
+.calculator-result {
+    width: 100%;
+    text-align: right;
+    font-size: 18px;
+    color: rgba(226, 232, 240, 0.7);
+    min-height: 22px;
     overflow-x: auto;
+}
+
+.calculator-result.calc-error {
+    color: #fca5a5;
 }
 
 .calculator-buttons {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
     flex: 1;
 }
 
@@ -4158,6 +4191,16 @@
     color: #ef4444;
 }
 
+.calc-btn-func {
+    background: rgba(15, 118, 110, 0.2);
+    color: #5eead4;
+    font-size: 18px;
+}
+
+.calc-btn-func:hover {
+    background: rgba(15, 118, 110, 0.3);
+}
+
 .calc-btn-clear:hover {
     background: rgba(239, 68, 68, 0.3);
 }
@@ -4165,7 +4208,7 @@
 .calc-btn-equals {
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     color: white;
-    grid-column: span 1;
+    grid-column: span 2;
 }
 
 .calc-btn-equals:hover {
@@ -6378,14 +6421,6 @@
 
 .photo-thumbnail:hover img {
     transform: scale(1.05) translateZ(0);
-}
-    image-rendering: crisp-edges;
-    image-rendering: pixelated;
-    image-rendering: auto;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    transform: translateZ(0);
-    will-change: transform;
 }
 
 .thumbnail-overlay {
