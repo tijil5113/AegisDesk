@@ -1661,18 +1661,12 @@ When analyzing performance:
                 }
             ];
 
-            const apiKey = localStorage.getItem('openai_api_key');
-            if (!apiKey) { throw new Error('OpenAI API key not set. Set it in app settings or as OPENAI_API_KEY env.'); }
-            const res = await fetch('https://api.openai.com/v1/chat/completions', {
+            const apiUrl = (typeof window !== 'undefined' && window.location && window.location.origin) ? `${window.location.origin}/api/chat` : '/api/chat';
+            const res = await fetch(apiUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    model: 'gpt-4o-mini',
                     messages: messages,
-                    temperature: 0.7,
                     max_tokens: 500
                 })
             });

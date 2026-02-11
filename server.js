@@ -80,9 +80,9 @@ app.get('/api/music/test', (req, res) => {
   });
 });
 
-// Root route - serve welcome.html first (before static files)
+// Root route - serve login first (gate before everything)
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'welcome.html'));
+  res.sendFile(path.join(__dirname, 'login.html'));
 });
 
 // Static files

@@ -6,12 +6,11 @@ class AIChatApp {
         this.chats = storage.get('aiChats', []); // Multiple chat sessions
         this.currentChatId = storage.get('currentChatId', null);
         this.isTyping = false;
-        // Try to use API key from storage first, otherwise use server endpoint
+        // Prefer server /api/chat (uses OPENAI_API_KEY from Render) — only use localStorage key if server fails
         this.apiKey = storage.get('openai_api_key', '') || storage.get('openaiApiKey', '');
-        // Use full origin for /api/chat so it works when served from the same server (avoids file:// issues)
         const origin = (typeof window !== 'undefined' && window.location && window.location.origin && String(window.location.origin).startsWith('http')) ? window.location.origin : '';
         this.apiUrl = origin ? `${origin}/api/chat` : '/api/chat';
-        this.useDirectAPI = !!this.apiKey;
+        this.useDirectAPI = false; // Always use server first so Render env key works
         
         // Initialize with default chat if none exists
         if (this.chats.length === 0) {

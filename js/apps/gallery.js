@@ -3295,18 +3295,11 @@ class GalleryApp {
         messagesEl.scrollTop = messagesEl.scrollHeight;
         
         try {
-            const apiKey = localStorage.getItem('openai_api_key');
-            if (!apiKey) { throw new Error('OpenAI API key not set. Set it in app settings or as OPENAI_API_KEY env.'); }
-            
-            // Use OpenAI Vision API to describe image
-            const res = await fetch('https://api.openai.com/v1/chat/completions', {
+            const apiUrl = (typeof window !== 'undefined' && window.location && window.location.origin) ? `${window.location.origin}/api/chat` : '/api/chat';
+            const res = await fetch(apiUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    model: 'gpt-4o-mini',
                     messages: [{
                         role: 'user',
                         content: [
@@ -3328,7 +3321,7 @@ class GalleryApp {
             msg.textContent = description;
             msg.style.color = 'var(--text-primary)';
         } catch (e) {
-            msg.textContent = `Error: ${e.message}. Make sure your OpenAI API key is configured in settings.`;
+            msg.textContent = `Error: ${e.message}. Ensure OPENAI_API_KEY is set in Render Environment.`;
             msg.style.color = '#ef4444';
         } finally {
             messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -3346,16 +3339,11 @@ class GalleryApp {
         messagesEl.appendChild(msg);
         
         try {
-            const apiKey = localStorage.getItem('openai_api_key');
-            if (!apiKey) { throw new Error('OpenAI API key not set.'); }
-            const res = await fetch('https://api.openai.com/v1/chat/completions', {
+            const apiUrl = (typeof window !== 'undefined' && window.location && window.location.origin) ? `${window.location.origin}/api/chat` : '/api/chat';
+            const res = await fetch(apiUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    model: 'gpt-4o-mini',
                     messages: [{
                         role: 'user',
                         content: [
@@ -3366,8 +3354,8 @@ class GalleryApp {
                     max_tokens: 500
                 })
             });
-            
             const data = await res.json();
+            if (!res.ok) throw new Error(data.error || `API error: ${res.status}`);
             const text = data.choices?.[0]?.message?.content || 'No text found';
             msg.textContent = text;
             
@@ -3400,16 +3388,11 @@ class GalleryApp {
         messagesEl.appendChild(msg);
         
         try {
-            const apiKey = localStorage.getItem('openai_api_key');
-            if (!apiKey) { throw new Error('OpenAI API key not set.'); }
-            const res = await fetch('https://api.openai.com/v1/chat/completions', {
+            const apiUrl = (typeof window !== 'undefined' && window.location && window.location.origin) ? `${window.location.origin}/api/chat` : '/api/chat';
+            const res = await fetch(apiUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    model: 'gpt-4o-mini',
                     messages: [{
                         role: 'user',
                         content: [
@@ -3461,16 +3444,11 @@ class GalleryApp {
         messagesEl.appendChild(msg);
         
         try {
-            const apiKey = localStorage.getItem('openai_api_key');
-            if (!apiKey) { throw new Error('OpenAI API key not set.'); }
-            const res = await fetch('https://api.openai.com/v1/chat/completions', {
+            const apiUrl = (typeof window !== 'undefined' && window.location && window.location.origin) ? `${window.location.origin}/api/chat` : '/api/chat';
+            const res = await fetch(apiUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    model: 'gpt-4o-mini',
                     messages: [{
                         role: 'user',
                         content: [
@@ -3481,8 +3459,8 @@ class GalleryApp {
                     max_tokens: 150
                 })
             });
-            
             const data = await res.json();
+            if (!res.ok) throw new Error(data.error || `API error: ${res.status}`);
             const caption = data.choices?.[0]?.message?.content || 'Could not generate caption';
             msg.textContent = `Caption: ${caption}`;
             
@@ -3639,16 +3617,11 @@ class GalleryApp {
         messagesEl.appendChild(msg);
         
         try {
-            const apiKey = localStorage.getItem('openai_api_key');
-            if (!apiKey) { throw new Error('OpenAI API key not set.'); }
-            const res = await fetch('https://api.openai.com/v1/chat/completions', {
+            const apiUrl = (typeof window !== 'undefined' && window.location && window.location.origin) ? `${window.location.origin}/api/chat` : '/api/chat';
+            const res = await fetch(apiUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    model: 'gpt-4o-mini',
                     messages: [{
                         role: 'user',
                         content: [
@@ -3659,8 +3632,8 @@ class GalleryApp {
                     max_tokens: 20
                 })
             });
-            
             const data = await res.json();
+            if (!res.ok) throw new Error(data.error || `API error: ${res.status}`);
             const title = data.choices?.[0]?.message?.content || 'Untitled';
             msg.textContent = `Title: "${title}"`;
             
@@ -3686,16 +3659,11 @@ class GalleryApp {
         messagesEl.appendChild(msg);
         
         try {
-            const apiKey = localStorage.getItem('openai_api_key');
-            if (!apiKey) { throw new Error('OpenAI API key not set.'); }
-            const res = await fetch('https://api.openai.com/v1/chat/completions', {
+            const apiUrl = (typeof window !== 'undefined' && window.location && window.location.origin) ? `${window.location.origin}/api/chat` : '/api/chat';
+            const res = await fetch(apiUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    model: 'gpt-4o-mini',
                     messages: [{
                         role: 'user',
                         content: [
@@ -3706,8 +3674,8 @@ class GalleryApp {
                     max_tokens: 500
                 })
             });
-            
             const data = await res.json();
+            if (!res.ok) throw new Error(data.error || `API error: ${res.status}`);
             const content = data.choices?.[0]?.message?.content || 'Could not extract content';
             
             // Send to Notes app if available

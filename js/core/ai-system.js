@@ -70,10 +70,8 @@ class AISystem {
         };
     }
 
-    // Enhanced AI response with system context
+    // Enhanced AI response with system context — uses /api/chat (Render OPENAI_API_KEY)
     async getAIResponse(userMessage, includeContext = true) {
-        // Re-read API key from storage (user may have set it in Settings)
-        this.apiKey = storage.get('openai_api_key', '') || storage.get('openaiApiKey', '');
         const systemContext = includeContext ? this.getSystemContext() : null;
         
         const userProfileInfo = systemContext?.userProfile ? `
@@ -120,48 +118,19 @@ When the user asks you to do something, acknowledge it and the system will handl
             { role: 'user', content: userMessage }
         ];
 
+        const apiUrl = (typeof window !== 'undefined' && window.location && window.location.origin) ? `${window.location.origin}/api/chat` : '/api/chat';
         try {
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            const response = await fetch(apiUrl, {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${this.apiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    model: 'gpt-4o-mini',
-                    messages: messages,
-                    max_tokens: 2000,
-                    temperature: 0.8,
-                    top_p: 0.9
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages })
             });
-
             if (!response.ok) {
-                // Fallback to gpt-3.5-turbo
-                const fallbackResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${this.apiKey}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        model: 'gpt-3.5-turbo',
-                        messages: messages,
-                        max_tokens: 2000,
-                        temperature: 0.8
-                    })
-                });
-                
-                if (fallbackResponse.ok) {
-                    const data = await fallbackResponse.json();
-                    return data.choices[0].message.content;
-                }
-                
-                throw new Error(`API error: ${response.status}`);
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.error || `API error: ${response.status}`);
             }
-
             const data = await response.json();
-            return data.choices[0].message.content;
+            return data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
         } catch (error) {
             console.error('AI System error:', error);
             throw error;

@@ -1,4 +1,4 @@
-// Vercel Serverless Function for OpenAI API - OPTIMIZED FOR SPEED
+// OpenAI API proxy - uses OPENAI_API_KEY or OPEN_API from env (Render/Vercel)
 // This keeps the API key secure on the server side
 
 export default async function handler(req, res) {
@@ -25,8 +25,8 @@ export default async function handler(req, res) {
     return res.status(500).json({ 
       error: "Server configuration error: Missing OPENAI_API_KEY or OPEN_API environment variable",
       details: {
-        hint: "Please add your OpenAI API key as an environment variable in Vercel",
-        check: "Go to Vercel Dashboard > Your Project > Settings > Environment Variables"
+        hint: "Add OPENAI_API_KEY or OPEN_API in Render Dashboard > Environment",
+        check: "Render Dashboard > Your Service > Environment > Add Variable"
       }
     });
   }
@@ -37,28 +37,30 @@ export default async function handler(req, res) {
     return res.status(500).json({ 
       error: "Invalid API key format. OpenAI API keys should start with 'sk-'",
       details: {
-        hint: "Please check your environment variable in Vercel",
+        hint: "Check OPENAI_API_KEY or OPEN_API in Render Environment",
         check: "Make sure the API key value starts with 'sk-'"
       }
     });
   }
 
-  // Get messages from request body
-  const { messages } = req.body || {};
+  // Get messages and options from request body
+  const { messages, model: clientModel, max_tokens: clientMaxTokens } = req.body || {};
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: "Missing or invalid messages array" });
   }
 
   try {
-    // OPTIMIZED FOR SPEED: Use fastest model with minimal tokens
-    let model = "gpt-3.5-turbo"; // Fastest model
-    
-    // Limit messages to last 5 for faster processing (reduced from 10)
     const limitedMessages = messages.length > 5 
-      ? [messages[0], ...messages.slice(-4)] // Keep system message + last 4
+      ? [messages[0], ...messages.slice(-4)] 
       : messages;
     
-    // Call OpenAI API with optimized settings for speed
+    const hasVision = limitedMessages.some(m => {
+      const c = m.content;
+      return Array.isArray(c) && c.some(p => p && (p.type === 'image_url' || p.image_url));
+    });
+    const model = hasVision ? "gpt-4o-mini" : (clientModel || "gpt-3.5-turbo");
+    const maxTokens = clientMaxTokens || (hasVision ? 500 : 500);
+    
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -66,13 +68,13 @@ export default async function handler(req, res) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: model,
+        model,
         messages: limitedMessages,
-        max_tokens: 500, // Reduced from 1000 for faster responses
-        temperature: 0.5, // Lower for faster, more focused responses
-        top_p: 0.8, // Reduced for faster generation
-        frequency_penalty: 0.1, // Reduced
-        presence_penalty: 0.1, // Reduced
+        max_tokens: maxTokens,
+        temperature: 0.5,
+        top_p: 0.8,
+        frequency_penalty: 0.1,
+        presence_penalty: 0.1,
         stream: false
       })
     });
@@ -88,10 +90,10 @@ export default async function handler(req, res) {
       
       // Handle specific error cases
       if (data.error?.code === 'invalid_api_key' || errorMessage.includes('Incorrect API key')) {
-        errorMessage = "Invalid API key. Please check your OPEN_API environment variable in Vercel.";
+        errorMessage = "Invalid API key. Check OPENAI_API_KEY or OPEN_API in Render Environment.";
         errorDetails = {
-          hint: "Make sure the API key starts with 'sk-' and is correctly set in Vercel project settings",
-          check: "Go to Vercel Dashboard > Your Project > Settings > Environment Variables"
+          hint: "Make sure the API key starts with 'sk-' and is set in Render Dashboard > Environment",
+          check: "Render Dashboard > Your Service > Environment > Add Variable"
         };
       }
       
@@ -101,6 +103,7 @@ export default async function handler(req, res) {
       });
     }
 
+    res.setHeader('Content-Type', 'application/json');
     return res.status(200).json(data);
   } catch (error) {
     console.error("OpenAI API error:", error);

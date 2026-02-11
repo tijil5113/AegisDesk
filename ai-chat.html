@@ -2403,13 +2403,13 @@ IMPORTANT:
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout (reduced from 30)
                     
-                    // Try multiple API endpoint formats for Vercel compatibility
+                    // Use full origin URL for reliable API calls (works on Render, Vercel, localhost)
+                    const base = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : '';
                     const apiEndpoints = [
+                        base + '/api/chat',
                         '/api/chat',
-                        '/api/chat.js',
-                        './api/chat',
-                        './api/chat.js'
-                    ];
+                        '/api/chat.js'
+                    ].filter(Boolean);
                     
                     let response;
                     let lastError;
@@ -2451,7 +2451,7 @@ IMPORTANT:
                         }
                         
                         if (lastError && (lastError.message.includes('Failed to fetch') || lastError.message.includes('NetworkError'))) {
-                            throw new Error('⚠️ API Endpoint Not Found\n\nThe /api/chat endpoint is not accessible. Please ensure:\n\n1. The api/chat.js file exists in your project\n2. The project is deployed on Vercel\n3. Check Vercel Functions tab for deployment status\n4. Make sure you\'ve redeployed after adding the API file');
+                            throw new Error('⚠️ API Not Reachable\n\nEnsure you deployed as a **Web Service** (not Static Site) on Render, with OPENAI_API_KEY set. Static sites cannot run the /api/chat server.');
                         }
                         
                         throw new Error(`Connection error: ${lastError ? lastError.message : 'Unknown error'}`);
@@ -2477,12 +2477,12 @@ IMPORTANT:
                         // Handle specific error cases
                         if (response.status === 500) {
                             if (errorMessage.includes('Missing') || errorMessage.includes('environment variable')) {
-                                throw new Error('⚠️ Server Configuration Error\n\nAPI key not set in Vercel. Please:\n1. Go to Vercel Dashboard → Your Project → Settings → Environment Variables\n2. Add OPEN_API with your OpenAI API key\n3. Redeploy your project');
+                                throw new Error('⚠️ Server Configuration Error\n\nAPI key not set. Please:\n1. Go to Render Dashboard → Your Service → Environment\n2. Add OPENAI_API_KEY (or OPEN_API) with your OpenAI API key (starts with sk-)\n3. Save and redeploy');
                             } else if (errorMessage.includes('Invalid API key') || errorMessage.includes('Incorrect API key')) {
-                                throw new Error('⚠️ Invalid API Key\n\nYour OPEN_API environment variable in Vercel is incorrect. Please:\n1. Check that the API key starts with "sk-"\n2. Verify it\'s correct in Vercel Settings\n3. Redeploy after updating');
+                                throw new Error('⚠️ Invalid API Key\n\nYour OPENAI_API_KEY in Render is incorrect. Please:\n1. Check that the key starts with "sk-"\n2. Verify it at platform.openai.com/api-keys\n3. Update in Render Environment and redeploy');
                             }
                         } else if (response.status === 404) {
-                            throw new Error('⚠️ API Endpoint Not Found\n\nThe /api/chat endpoint is not available. Please ensure:\n1. The api/chat.js file exists in your project\n2. The project is properly deployed on Vercel\n3. Check Vercel Functions logs for errors');
+                            throw new Error('⚠️ API Endpoint Not Found\n\nDeploy as a **Web Service** (not Static Site) on Render:\n1. New → Web Service (not Static Site)\n2. Build: npm install | Start: npm start\n3. Add OPENAI_API_KEY in Environment Variables');
                         }
                         
                         // Show user-friendly error
@@ -2494,11 +2494,15 @@ IMPORTANT:
                     }
 
                     let data;
+                    const responseText = await response.text();
                     try {
-                        data = await response.json();
+                        data = responseText ? JSON.parse(responseText) : {};
                     } catch (e) {
                         console.error('Failed to parse response:', e);
-                        throw new Error('Invalid response format from server');
+                        if (responseText && responseText.trim().startsWith('<')) {
+                            throw new Error('⚠️ Wrong Deployment Type\n\nThe server returned HTML instead of JSON. You likely deployed as a **Static Site**.\n\nFor AI to work on Render:\n1. Delete the Static Site\n2. Create a **Web Service** (not Static Site)\n3. Connect the same repo\n4. Build: npm install\n5. Start: npm start\n6. Add OPENAI_API_KEY in Environment Variables');
+                        }
+                        throw new Error('Invalid response format from server. The API may have returned non-JSON. Check Render logs and ensure you deployed as a Web Service (not Static Site).');
                     }
                     
                     console.log('API response received:', data);
@@ -2530,7 +2534,7 @@ IMPORTANT:
                     }
                     
                     if (error.message.includes('401') || error.message.includes('Unauthorized')) {
-                        throw new Error('⚠️ Authentication Error\n\nInvalid API key. Please check your OPEN_API environment variable in Vercel.');
+                        throw new Error('⚠️ Authentication Error\n\nInvalid API key. Add OPENAI_API_KEY in Render → Environment and redeploy.');
                     } else if (error.message.includes('429') || error.message.includes('rate limit')) {
                         throw new Error('⏸️ Rate limit exceeded. Please try again in a moment.');
                     } else if (error.message.includes('504') || error.message.includes('Gateway Timeout')) {

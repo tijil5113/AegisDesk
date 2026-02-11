@@ -839,15 +839,12 @@
 
         fetchAI: function (messages) {
             var self = this;
-            var apiKey = this.getAIApiKey();
-            var useDirect = !!apiKey;
-            var url = useDirect ? 'https://api.openai.com/v1/chat/completions' : this.getAIChatUrl();
+            var url = this.getAIChatUrl();
             var opts = {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(useDirect ? { model: 'gpt-4o-mini', messages: messages, max_tokens: 2000 } : { messages: messages })
+                body: JSON.stringify({ messages: messages })
             };
-            if (useDirect) opts.headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey };
             return fetch(url, opts).then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); }).then(function (res) {
                 if (!res.ok && res.data && res.data.error) throw new Error(res.data.error.message || res.data.error);
                 if (!res.ok) throw new Error('Request failed.');
