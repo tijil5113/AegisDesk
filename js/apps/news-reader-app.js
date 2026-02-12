@@ -833,18 +833,32 @@ class NewsReaderApp {
             }
         } catch (e) {
             console.log('[News] GNews failed:', e.message);
+            const isLocalhost = typeof window !== 'undefined' && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(window.location.origin || '');
+            // On Render/production: CORS proxies block non-localhost. Only GNews works. Show clear error.
+            if (!isLocalhost) {
+                clearTimeout(this.timeoutId);
+                this.timeoutId = null;
+                this.setState({ 
+                    status: 'error', 
+                    articles: [], 
+                    error: 'News requires GNEWS_API_KEY. Add it in Render Dashboard → Your Service → Environment → Add Variable. Deploy as Web Service (not Static Site).' 
+                });
+                return;
+            }
+            // On localhost: for Hindi/Tamil, GNews is required
             if (['hi', 'ta'].includes(this.currentLanguage)) {
                 clearTimeout(this.timeoutId);
                 this.timeoutId = null;
                 this.setState({ 
                     status: 'error', 
                     articles: [], 
-                    error: 'Hindi and Tamil news require the server. Run with `npm start` or deploy as Web Service on Render with GNEWS_API_KEY set.' 
+                    error: 'Hindi and Tamil require the server. Run `npm start` and set GNEWS_API_KEY in .env' 
                 });
                 return;
             }
         }
         
+        // Localhost only: fallback to NewsAPI via CORS proxy (blocks on Render)
         // SET HARD TIMEOUT - CRITICAL FIX (15 seconds - increased for CORS proxy)
         this.timeoutId = setTimeout(() => {
             console.error('[News] ⏱️ HARD TIMEOUT (15s) - Forcing error state');
