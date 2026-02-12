@@ -1345,16 +1345,21 @@ class MailApp {
             return await window.aiSystem.getAIResponse(prompt, false);
         }
         
-        // Fallback to API
-        const response = await fetch('/api/chat', {
+        // Fallback to API (uses OPENAI_API_KEY or OPEN_API from Render env)
+        const apiUrl = (typeof window !== 'undefined' && window.location?.origin) ? `${window.location.origin}/api/chat` : '/api/chat';
+        const response = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: prompt })
+            body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] })
         });
 
-        if (!response.ok) throw new Error('AI request failed');
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.error || 'AI request failed');
+        }
         const data = await response.json();
-        return data.response || data.message || 'No response';
+        const content = data.choices?.[0]?.message?.content;
+        return content || data.response || data.message || 'No response';
     }
 
     formatAIResponse(text) {

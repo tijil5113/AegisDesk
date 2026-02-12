@@ -4,7 +4,7 @@
 class NewsAISystem {
     constructor(newsHub) {
         this.newsHub = newsHub;
-        this.aiEndpoint = '/api/chat'; // Use existing AI chat endpoint
+        this.aiEndpoint = (typeof window !== 'undefined' && window.location?.origin) ? `${window.location.origin}/api/chat` : '/api/chat';
         this.cache = new Map();
         this.init();
     }

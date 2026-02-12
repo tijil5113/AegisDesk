@@ -880,7 +880,8 @@
         var p = prompts[action];
         if (!p) return;
         if (typeof notificationSystem !== 'undefined') notificationSystem.info('Notes', 'AI processing...');
-        fetch('/api/chat', {
+        var apiUrl = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin + '/api/chat' : '/api/chat';
+        fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ messages: [{ role: 'system', content: p.sys }, { role: 'user', content: p.user }] })

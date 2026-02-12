@@ -127,6 +127,42 @@
         init: function () {
             var self = this;
             this.terminalHistory = getStorage(STORAGE_TERMINAL_HISTORY, []);
+
+            function hideOnboardingShowRoot() {
+                var ob = document.getElementById('ide-onboarding');
+                var root = document.getElementById('ide-root');
+                if (ob) ob.style.display = 'none';
+                if (root) root.style.display = 'flex';
+            }
+
+            function doEnterIDE() {
+                setStorage(STORAGE_ONBOARDING, true);
+                hideOnboardingShowRoot();
+                if (!self.monacoLoaded || !self.editor) {
+                    self.loadStateMaybeFromIDB(function () {
+                        self.attachAllUiHandlers();
+                        self.loadMonaco(function () {
+                            self.setupEditor();
+                            self.renderTabs();
+                            self.renderTree();
+                            self.attachFindReplace();
+                            self.applyTheme(getStorage(STORAGE_THEME, 'dark-pro'));
+                            self.refreshProblems();
+                            if (self.openFileIds.length) {
+                                self.switchToFile(self.openFileIds[0]);
+                            } else if (self.files.length) {
+                                self.switchToFile(self.files[0].id);
+                            } else {
+                                self.newFile('untitled.js');
+                            }
+                        });
+                    });
+                }
+            }
+
+            var startBtn = document.getElementById('onboarding-start');
+            if (startBtn) startBtn.addEventListener('click', doEnterIDE);
+
             if (getStorage(STORAGE_ONBOARDING, null)) {
                 hideOnboardingShowRoot();
                 this.loadStateMaybeFromIDB(function () {
@@ -148,32 +184,8 @@
                     });
                 });
             } else {
-                document.getElementById('ide-onboarding').style.display = 'flex';
+                document.getElementById('ide-onboarding').style.display = 'block';
                 document.getElementById('ide-root').style.display = 'none';
-                var startBtn = document.getElementById('onboarding-start');
-                if (startBtn) startBtn.addEventListener('click', function () {
-                    setStorage(STORAGE_ONBOARDING, true);
-                    hideOnboardingShowRoot();
-                    self.loadStateMaybeFromIDB(function () {
-                        self.attachAllUiHandlers();
-                        self.loadMonaco(function () {
-                            self.setupEditor();
-                            self.renderTabs();
-                            self.renderTree();
-                            self.attachFindReplace();
-                            self.applyTheme(getStorage(STORAGE_THEME, 'dark-pro'));
-                            self.refreshProblems();
-                            self.newFile('untitled.js');
-                        });
-                    });
-                });
-            }
-
-            function hideOnboardingShowRoot() {
-                var ob = document.getElementById('ide-onboarding');
-                var root = document.getElementById('ide-root');
-                if (ob) ob.style.display = 'none';
-                if (root) root.style.display = 'flex';
             }
         },
 
@@ -838,15 +850,26 @@
         },
 
         fetchAI: function (messages) {
-            var self = this;
             var url = this.getAIChatUrl();
             var opts = {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ messages: messages })
             };
-            return fetch(url, opts).then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); }).then(function (res) {
-                if (!res.ok && res.data && res.data.error) throw new Error(res.data.error.message || res.data.error);
+            return fetch(url, opts).then(function (r) {
+                return r.text().then(function (text) {
+                    var data;
+                    try { data = text ? JSON.parse(text) : {}; } catch (_) {
+                        if (r.status === 404) throw new Error('API not found. Deploy as Web Service (not Static Site) on Render.');
+                        throw new Error('Server returned invalid response. Ensure OPENAI_API_KEY or OPEN_API is set in Render Environment.');
+                    }
+                    return { ok: r.ok, data: data };
+                });
+            }).then(function (res) {
+                if (!res.ok && res.data && res.data.error) {
+                    var err = res.data.error;
+                    throw new Error(typeof err === 'string' ? err : (err.message || 'API error'));
+                }
                 if (!res.ok) throw new Error('Request failed.');
                 return res.data;
             });
@@ -887,7 +910,9 @@
                 }
             }).catch(function (e) {
                 var msg = e.message || 'Request failed.';
-                if (msg.indexOf('fetch') !== -1 || msg.indexOf('Failed to fetch') !== -1) msg = 'Could not reach AI. Add your OpenAI API key in Desktop Settings (OpenAI API Key), or run the app with npm start and set OPENAI_API_KEY in .env.';
+                if (msg.indexOf('fetch') !== -1 || msg.indexOf('Failed to fetch') !== -1 || msg.indexOf('NetworkError') !== -1) {
+                    msg = 'Could not reach AI. Deploy as Web Service on Render (not Static Site). Set OPENAI_API_KEY or OPEN_API in Render Environment Variables.';
+                }
                 self.writeConsole('AI error: ' + msg);
             });
         },
@@ -924,7 +949,9 @@
             }).catch(function (e) {
                 if (typingEl) typingEl.style.display = 'none';
                 var msg = e.message || 'Request failed.';
-                if (msg.indexOf('fetch') !== -1 || msg.indexOf('Failed to fetch') !== -1) msg = 'Could not reach AI. Add your OpenAI API key in Desktop Settings, or run the app with npm start and set OPENAI_API_KEY in .env.';
+                if (msg.indexOf('fetch') !== -1 || msg.indexOf('Failed to fetch') !== -1 || msg.indexOf('NetworkError') !== -1) {
+                    msg = 'Could not reach AI. Deploy as Web Service on Render (not Static Site). Set OPENAI_API_KEY or OPEN_API in Render Environment Variables.';
+                }
                 msgs.innerHTML += '<div class="ide-ai-msg assistant error">' + self.escapeHtml(msg) + '</div>';
                 msgs.scrollTop = msgs.scrollHeight;
             });
@@ -1099,6 +1126,7 @@
                 { id: 'save', label: 'Save', run: function () { self.saveCurrent(); } },
                 { id: 'run', label: 'Run', run: function () { self.runCode(); } },
                 { id: 'format', label: 'Format Document', run: function () { self.formatDocument(); } },
+                { id: 'intro', label: 'Show Intro / Instructions', run: function () { setStorage(STORAGE_ONBOARDING, null); var ob = document.getElementById('ide-onboarding'); var root = document.getElementById('ide-root'); if (ob) ob.style.display = 'block'; if (root) root.style.display = 'none'; wrap.style.display = 'none'; } },
                 { id: 'theme', label: 'Change Theme', run: function () { self.applyTheme(THEMES[(THEMES.findIndex(function (t) { return t.id === (document.body.getAttribute('data-theme') || 'dark-pro'); }) + 1) % THEMES.length].id); } }
             ];
             THEMES.forEach(function (t) {
@@ -1430,6 +1458,14 @@
             if (downloadBtn) downloadBtn.addEventListener('click', function () { self.downloadCurrent(); });
             var exportZipBtn = byId('ide-export-zip-btn');
             if (exportZipBtn) exportZipBtn.addEventListener('click', function () { self.exportZip(); });
+
+            var introBtn = byId('ide-intro-btn');
+            if (introBtn) introBtn.addEventListener('click', function () {
+                var ob = document.getElementById('ide-onboarding');
+                var root = document.getElementById('ide-root');
+                if (ob) ob.style.display = 'block';
+                if (root) root.style.display = 'none';
+            });
 
             var openBtn = byId('ide-open-btn');
             var openInput = byId('ide-open-input');

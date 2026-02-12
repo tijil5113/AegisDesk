@@ -608,7 +608,8 @@
             { role: 'system', content: 'You are a task parser. Reply with ONLY a valid JSON object, no markdown. Keys: text (string), priority (one of: low, medium, high, critical), category (one of: general, work, study, personal, projects), dueDate (ISO date string or null), dueTime (e.g. "18:00" or null). Parse the user message into this structure. If no date/time/priority/category, use null or default.' },
             { role: 'user', content: rawText }
         ];
-        fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: messages }) })
+        var apiUrl = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin + '/api/chat' : '/api/chat';
+        fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: messages }) })
             .catch(function () { return null; })
             .then(function (r) { return r && r.ok ? r.json() : null; })
             .then(function (data) {

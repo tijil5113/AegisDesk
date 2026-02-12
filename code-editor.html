@@ -8,49 +8,68 @@
     <link rel="preconnect" href="https://unpkg.com">
 </head>
 <body data-theme="dark-pro">
-    <!-- First-open onboarding -->
-    <div id="ide-onboarding" class="onboarding">
-        <div class="onboarding-card">
-            <h1>Code Editor</h1>
-            <p class="onboarding-sub">VS Code–level IDE in your browser</p>
-            <div class="onboarding-section">
-                <h2>What is this?</h2>
-                <p>Edit and run code with Monaco (VS Code engine): syntax highlighting, IntelliSense, multi-cursor, folding, live preview, and AI assistant.</p>
-            </div>
-            <div class="onboarding-section">
-                <h2>Languages</h2>
-                <p>JavaScript, Python, HTML, CSS, Java, C++, TypeScript, JSON, and more.</p>
-            </div>
-            <div class="onboarding-section">
-                <h2>Create & save files</h2>
-                <p>Use the sidebar to create files or folders. <kbd>Ctrl+S</kbd> saves. Use <strong>Save As</strong> or <strong>Download</strong> to export. <strong>Upload</strong> to import files.</p>
-            </div>
-            <div class="onboarding-section">
-                <h2>Run code</h2>
-                <p>Click <strong>Run</strong> or <kbd>Ctrl+Enter</kbd>. JavaScript runs in-browser; Python via Pyodide; HTML/CSS shows live preview. View output in Console and Terminal panels.</p>
-            </div>
-            <div class="onboarding-section">
-                <h2>AI assistant</h2>
-                <p>Use the <strong>AI</strong> menu or sidebar chat: explain code, fix bugs, optimize, generate from prompt, convert English to code. Set <code>OPENAI_API_KEY</code> on the server for AI.</p>
-            </div>
-            <div class="onboarding-section">
-                <h2>Shortcuts</h2>
-                <ul class="shortcuts-list">
-                    <li><kbd>Ctrl+N</kbd> New file</li>
-                    <li><kbd>Ctrl+S</kbd> Save</li>
-                    <li><kbd>Ctrl+F</kbd> Find</li>
-                    <li><kbd>Ctrl+H</kbd> Replace</li>
-                    <li><kbd>Ctrl+Enter</kbd> Run</li>
-                    <li><kbd>Ctrl+Shift+F</kbd> Format document</li>
-                    <li><kbd>Ctrl+Shift+P</kbd> Command palette</li>
-                </ul>
-            </div>
-            <div class="onboarding-section">
-                <h2>Themes</h2>
-                <p>Click <strong>Theme</strong> in the status bar or use the command palette. Your choice is saved.</p>
-            </div>
-            <button type="button" id="onboarding-start" class="onboarding-cta">Start Coding</button>
+    <!-- Intro / Instructions page -->
+    <div id="ide-onboarding" class="intro-page">
+        <div class="intro-background">
+            <div class="intro-gradient"></div>
+            <div class="intro-grid"></div>
+            <div class="intro-glow intro-glow-1"></div>
+            <div class="intro-glow intro-glow-2"></div>
         </div>
+        <div class="intro-content">
+            <header class="intro-header">
+                <a href="desktop.html" class="intro-back-btn" title="Back to Desktop">← Desktop</a>
+            </header>
+            <section class="intro-hero">
+                <div class="intro-logo">
+                    <span class="intro-logo-icon">{ }</span>
+                </div>
+                <h1 class="intro-title">Code Editor</h1>
+                <p class="intro-tagline">VS Code–level IDE. Run in your browser. No setup.</p>
+            </section>
+            <section class="intro-steps">
+                <h2 class="intro-section-title">Get started in 3 steps</h2>
+                <div class="intro-step-cards">
+                    <div class="intro-step-card">
+                        <span class="intro-step-num">1</span>
+                        <h3>Create or open files</h3>
+                        <p>Use the Explorer sidebar to create files, folders, or upload from your computer.</p>
+                    </div>
+                    <div class="intro-step-card">
+                        <span class="intro-step-num">2</span>
+                        <h3>Write & run code</h3>
+                        <p>JavaScript, Python, HTML, CSS, and more. Press <kbd>Ctrl+Enter</kbd> to run instantly.</p>
+                    </div>
+                    <div class="intro-step-card">
+                        <span class="intro-step-num">3</span>
+                        <h3>Use AI & preview</h3>
+                        <p>AI sidebar for help. Live preview for HTML/CSS. Output in the panel below.</p>
+                    </div>
+                </div>
+            </section>
+            <section class="intro-features">
+                <div class="intro-feature">
+                    <span class="intro-feature-icon">◇</span>
+                    <span>Monaco editor · IntelliSense · Multi-cursor</span>
+                </div>
+                <div class="intro-feature">
+                    <span class="intro-feature-icon">◇</span>
+                    <span>14 themes · Command palette <kbd>Ctrl+Shift+P</kbd></span>
+                </div>
+                <div class="intro-feature">
+                    <span class="intro-feature-icon">◇</span>
+                    <span>Terminal · Format · Find & Replace</span>
+                </div>
+            </section>
+            <section class="intro-actions">
+                <button type="button" id="onboarding-start" class="intro-cta">
+                    <span class="intro-cta-text">Enter IDE</span>
+                    <span class="intro-cta-arrow">→</span>
+                </button>
+                <p class="intro-hint">You can revisit this intro from the command palette</p>
+            </section>
+        </div>
+        <div class="intro-scroll-hint" aria-hidden="true">Scroll for more</div>
     </div>
 
     <!-- Main IDE -->
@@ -118,6 +137,9 @@
         </aside>
         <div class="ide-main">
             <div class="ide-toolbar">
+                <a href="desktop.html" class="ide-btn ide-back-btn" title="Back to Desktop">← Desktop</a>
+                <button type="button" class="ide-btn ide-intro-btn" id="ide-intro-btn" title="View Intro & Instructions">Intro</button>
+                <span class="ide-toolbar-sep"></span>
                 <button type="button" class="ide-btn" id="ide-new-btn">New</button>
                 <button type="button" class="ide-btn" id="ide-open-btn">Open</button>
                 <input type="file" id="ide-open-input" multiple style="display:none">
