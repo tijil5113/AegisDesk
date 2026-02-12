@@ -99,6 +99,7 @@ class NewsReaderApp {
         
         this.setupEventListeners();
         this.setupIntersectionObserver();
+        this.updateLanguageButtons();
         
         // Load news immediately
         console.log('[News] ✅ Loading news from NewsAPI.org...');
@@ -427,6 +428,16 @@ class NewsReaderApp {
             }
         });
         
+        // Language toggle - English, Hindi, Tamil
+        document.querySelectorAll('.news-lang-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const lang = btn.dataset.lang;
+                if (lang && ['en', 'hi', 'ta'].includes(lang)) {
+                    this.setLanguage(lang);
+                }
+            });
+        });
+
         // Scroll to top
         const scrollTopBtn = document.getElementById('news-scroll-top');
         scrollTopBtn?.addEventListener('click', () => {
@@ -734,6 +745,7 @@ class NewsReaderApp {
         console.log('[News] 🌐 Setting language to:', lang);
         this.currentLanguage = lang;
         this.saveLanguage(lang);
+        this.updateLanguageButtons();
         
         // Re-fetch current view with new language
         if (this.searchQuery) {
@@ -742,7 +754,52 @@ class NewsReaderApp {
             this.switchCategory(this.currentCategory);
         }
     }
+
+    updateLanguageButtons() {
+        document.querySelectorAll('.news-lang-btn').forEach(btn => {
+            const isActive = btn.dataset.lang === this.currentLanguage;
+            btn.classList.toggle('active', isActive);
+            btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+    }
     
+    getGNewsTopic() {
+        const map = {
+            'world': 'world',
+            'india': 'nation',
+            'business': 'business',
+            'technology': 'technology',
+            'science': 'science',
+            'health': 'health',
+            'sports': 'sports',
+            'entertainment': 'entertainment'
+        };
+        return this.currentCategory && map[this.currentCategory] ? map[this.currentCategory] : null;
+    }
+
+    async fetchFromGNews(params = {}) {
+        const apiUrl = (typeof window !== 'undefined' && window.location?.origin) 
+            ? `${window.location.origin}/api/gnews` : '/api/gnews';
+        const topic = this.getGNewsTopic();
+        const body = {
+            mode: this.searchQuery ? 'search' : (topic ? 'category' : 'top'),
+            lang: this.currentLanguage || 'en',
+            country: 'in',
+            max: this.pageSize || 20,
+            page: this.currentPage || 1
+        };
+        if (this.searchQuery) body.q = this.searchQuery;
+        if (topic) body.topic = topic;
+        const res = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (!res.ok || data.status === 'error') throw new Error(data.message || 'GNews API error');
+        return { articles: data.articles || [], totalArticles: data.totalArticles || 0 };
+    }
+
     async fetchNews(params = {}) {
         // Prevent concurrent fetches - but allow if we're in error/empty state
         if (this.state.status === 'loading') {
@@ -753,10 +810,40 @@ class NewsReaderApp {
         
         console.log('[News] 📡 fetchNews() called with params:', params);
         console.log('[News] Current state:', this.state.status);
+        console.log('[News] Language:', this.currentLanguage);
         
         // SET STATE TO LOADING - triggers render()
         // Clear any previous errors
         this.setState({ status: 'loading', error: null, articles: [] });
+        
+        // GNews supports English, Hindi, Tamil - use it when server is available
+        try {
+            const gnewsData = await this.fetchFromGNews(params);
+            if (gnewsData) {
+                clearTimeout(this.timeoutId);
+                this.timeoutId = null;
+                const articles = gnewsData.articles || [];
+                this.setState({ 
+                    status: articles.length > 0 ? 'success' : 'empty', 
+                    articles, 
+                    error: null 
+                });
+                this.updateDebugInfo({ lastRequest: 'GNews', lastResponse: `${articles.length} articles` });
+                return;
+            }
+        } catch (e) {
+            console.log('[News] GNews failed:', e.message);
+            if (['hi', 'ta'].includes(this.currentLanguage)) {
+                clearTimeout(this.timeoutId);
+                this.timeoutId = null;
+                this.setState({ 
+                    status: 'error', 
+                    articles: [], 
+                    error: 'Hindi and Tamil news require the server. Run with `npm start` or deploy as Web Service on Render with GNEWS_API_KEY set.' 
+                });
+                return;
+            }
+        }
         
         // SET HARD TIMEOUT - CRITICAL FIX (15 seconds - increased for CORS proxy)
         this.timeoutId = setTimeout(() => {
