@@ -9,7 +9,7 @@
 
 ### 2. ✅ Created Backend Proxy (`/api/gnews`)
 - Created `api/gnews.js` - server-side proxy
-- Uses `GNEWS_API_KEY` environment variable (with fallback: `308ced4410c459bb053b289a8c4cf3c5`)
+- Uses `GNEWS_API_KEY` environment variable (no hardcoded fallback)
 - Supports:
   - `mode: "top" | "category" | "search"`
   - `topic: "world" | "nation" | "business" | "technology" | "science" | "health" | "sports" | "entertainment"`

@@ -2,15 +2,13 @@
 // This prevents CORS issues and keeps API key secure
 
 // Express-style handler
-export default async function handler(req, res) {
-  // Enable CORS for all origins
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+import { applyCors } from './cors.js';
 
-  // Handle preflight requests
+export default async function handler(req, res) {
+  applyCors(req, res, 'POST, OPTIONS');
+
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    return res.status(204).end();
   }
 
   // Only allow POST requests
@@ -19,9 +17,7 @@ export default async function handler(req, res) {
   }
 
   // Get API key from environment variable
-  const apiKey = process.env.GNEWS_API_KEY || '308ced4410c459bb053b289a8c4cf3c5'; // Fallback for local dev
-  
-  console.log('[GNews] Using API key:', apiKey ? `${apiKey.substring(0, 8)}...` : 'MISSING');
+  const apiKey = process.env.GNEWS_API_KEY;
   
   if (!apiKey) {
     console.error('[GNews] GNEWS_API_KEY environment variable is not set');
@@ -170,11 +166,7 @@ export default async function handler(req, res) {
     console.error('[GNews] ❌ Server error:', error);
     return res.status(500).json({
       status: 'error',
-      message: `Server error: ${error.message}`,
-      details: {
-        name: error.name,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-      }
+      message: 'Failed to communicate with GNews'
     });
   }
 }

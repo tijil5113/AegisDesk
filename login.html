@@ -432,12 +432,6 @@
     </div>
 
     <script>
-        const ALLOWED_EMAILS = [
-            'mssahana.cse2024@citchennai.net',
-            'lakshana.s.cse2024@citchennai.net'
-        ];
-        const SECRET_CODE = '202007';
-
         const SESSIONS_KEY = 'aegisdesk_sessions';
         const CURRENT_SESSION_KEY = 'aegisdesk_current_session';
         const LAST_ROUTE_KEY = 'aegisdesk_last_route';
@@ -509,38 +503,43 @@
             continueActions.style.display = 'block';
         }
 
-        loginForm.addEventListener('submit', (event) => {
+        loginForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             clearStatus(loginStatus);
 
             const email = document.getElementById('email').value.trim().toLowerCase();
             const secret = document.getElementById('secret').value.trim();
 
-            if (!ALLOWED_EMAILS.includes(email)) {
-                setStatus(loginStatus, 'Email ID not authorized for this console.', 'error');
-                return;
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ email, secret, sessionId: generateSessionId() })
+                });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    setStatus(loginStatus, data.error || 'Login failed. Check server configuration.', 'error');
+                    return;
+                }
+
+                const sessionId = data.sessionId;
+                const sessions = loadSessions();
+                sessions[sessionId] = {
+                    email: data.email || email,
+                    createdAt: Date.now(),
+                    lastActiveAt: Date.now()
+                };
+
+                saveSessions(sessions);
+                localStorage.setItem(CURRENT_SESSION_KEY, sessionId);
+                localStorage.setItem(SESSION_PENDING_KEY, 'false');
+
+                setStatus(loginStatus, 'Access granted. Session ID generated.', 'success');
+                showSession(sessionId);
+            } catch (error) {
+                setStatus(loginStatus, 'Could not reach the login service. Start the AegisDesk server and try again.', 'error');
             }
-
-            if (secret !== SECRET_CODE) {
-                setStatus(loginStatus, 'Secret code is incorrect. Try again.', 'error');
-                return;
-            }
-
-            const sessions = loadSessions();
-            const sessionId = generateSessionId();
-
-            sessions[sessionId] = {
-                email,
-                createdAt: Date.now(),
-                lastActiveAt: Date.now()
-            };
-
-            saveSessions(sessions);
-            localStorage.setItem(CURRENT_SESSION_KEY, sessionId);
-            localStorage.setItem(SESSION_PENDING_KEY, 'false');
-
-            setStatus(loginStatus, 'Access granted. Session ID generated.', 'success');
-            showSession(sessionId);
         });
 
         resumeForm.addEventListener('submit', (event) => {

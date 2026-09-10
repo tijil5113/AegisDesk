@@ -1,15 +1,15 @@
 // OpenAI API proxy - uses OPENAI_API_KEY or OPEN_API from env (Render/Vercel)
 // This keeps the API key secure on the server side
 
-export default async function handler(req, res) {
-  // Enable CORS for all origins
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+import { applyCors } from './cors.js';
 
-  // Handle preflight requests
+const ALLOWED_MODELS = new Set(['gpt-3.5-turbo', 'gpt-4o-mini', 'gpt-4o']);
+
+export default async function handler(req, res) {
+  applyCors(req, res, 'POST, OPTIONS');
+
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    return res.status(204).end();
   }
 
   // Only allow POST requests
@@ -58,8 +58,12 @@ export default async function handler(req, res) {
       const c = m.content;
       return Array.isArray(c) && c.some(p => p && (p.type === 'image_url' || p.image_url));
     });
-    const model = hasVision ? "gpt-4o-mini" : (clientModel || "gpt-3.5-turbo");
-    const maxTokens = clientMaxTokens || (hasVision ? 500 : 500);
+    const requestedModel = typeof clientModel === 'string' ? clientModel : '';
+    const model = hasVision
+      ? 'gpt-4o-mini'
+      : (ALLOWED_MODELS.has(requestedModel) ? requestedModel : 'gpt-3.5-turbo');
+    const parsedMax = Number(clientMaxTokens);
+    const maxTokens = Math.min(Number.isFinite(parsedMax) && parsedMax > 0 ? parsedMax : 500, 800);
     
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -98,8 +102,7 @@ export default async function handler(req, res) {
       }
       
       return res.status(response.status).json({
-        error: errorMessage,
-        details: errorDetails
+        error: errorMessage
       });
     }
 
@@ -116,13 +119,8 @@ export default async function handler(req, res) {
       });
     }
     
-    return res.status(500).json({ 
-      error: "Failed to communicate with OpenAI API",
-      message: error.message,
-      details: {
-        hint: "Check your internet connection and OpenAI API status",
-        check: "Visit https://status.openai.com to check API status"
-      }
+    return res.status(500).json({
+      error: 'Failed to communicate with OpenAI API'
     });
   }
 }

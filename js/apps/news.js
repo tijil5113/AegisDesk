@@ -14,7 +14,7 @@ class NewsApp {
         
         // Multiple API keys for fallback
         this.apiKeys = {
-            newsapi: '1c8e3e79f9f24569a3f6d1c647aeff46', // NewsAPI.org key
+            newsapi: 'server', // NewsAPI.org key lives on the server (NEWS_API_KEY)
             mediastack: 'YOUR_MEDIASTACK_KEY', // Optional: Get from https://mediastack.com/signup
         };
         
@@ -242,64 +242,44 @@ class NewsApp {
         this.displayArticles(window, translatedArticles);
     }
 
-    async fetchTamilNaduNews() {
-        // Method 1: Try NewsAPI with Tamil Nadu keywords
-        if (this.apiKeys.newsapi && this.apiKeys.newsapi !== 'YOUR_NEWSAPI_KEY') {
-            try {
-                // Expanded search for Tamil Nadu - includes all major cities
-                const keywords = encodeURIComponent('Tamil Nadu OR Chennai OR Coimbatore OR Madurai OR Trichy OR Salem OR Tirunelveli OR Erode OR Vellore OR Thanjavur');
-                
-                // Use 'everything' endpoint for better search results
-                let url = `https://newsapi.org/v2/everything?q=${keywords}&language=en&sortBy=publishedAt&pageSize=50&apiKey=${this.apiKeys.newsapi}`;
-                
-                // Add category filter if not 'all'
-                if (this.currentCategory !== 'all') {
-                    url += `&category=${this.currentCategory}`;
-                }
-                
-                console.log('🔍 Fetching Tamil Nadu news from NewsAPI...');
-                const response = await fetch(url);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.articles && data.articles.length > 0) {
-                        console.log(`✅ Found ${data.articles.length} Tamil Nadu articles!`);
-                        return data.articles;
-                    } else {
-                        console.log('⚠️ No articles found in direct search, trying India headlines...');
-                    }
-                } else {
-                    const errorData = await response.json();
-                    console.error('❌ NewsAPI error:', errorData);
-                }
-            } catch (error) {
-                console.error('❌ NewsAPI fetch error:', error);
-            }
+    async fetchNewsApi(body) {
+        try {
+            const response = await fetch('/api/news', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify(body)
+            });
+            if (!response.ok) return null;
+            const data = await response.json();
+            return data.articles || null;
+        } catch (error) {
+            console.error('NewsAPI proxy error:', error);
+            return null;
         }
-        
-        // Method 1b: Try India headlines and filter for Tamil Nadu
-        if (this.apiKeys.newsapi && this.apiKeys.newsapi !== 'YOUR_NEWSAPI_KEY') {
-            try {
-                const category = this.currentCategory === 'all' ? '' : `&category=${this.currentCategory}`;
-                const url = `https://newsapi.org/v2/top-headlines?country=in${category}&pageSize=100&apiKey=${this.apiKeys.newsapi}`;
-                
-                console.log('🔍 Fetching India headlines as fallback...');
-                const response = await fetch(url);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.articles && data.articles.length > 0) {
-                        console.log(`✅ Found ${data.articles.length} India articles, filtering for Tamil Nadu...`);
-                        // Return all - will be filtered by filterTamilNaduNews()
-                        return data.articles;
-                    }
-                } else {
-                    const errorData = await response.json();
-                    console.error('❌ NewsAPI headlines error:', errorData);
-                }
-            } catch (error) {
-                console.error('❌ India headlines fetch error:', error);
-            }
+    }
+
+    async fetchTamilNaduNews() {
+        const keywords = 'Tamil Nadu OR Chennai OR Coimbatore OR Madurai OR Trichy OR Salem OR Tirunelveli OR Erode OR Vellore OR Thanjavur';
+        const searched = await this.fetchNewsApi({
+            mode: 'everything',
+            q: keywords,
+            language: 'en',
+            pageSize: 50,
+            category: this.currentCategory !== 'all' ? this.currentCategory : undefined
+        });
+        if (searched && searched.length > 0) {
+            return searched;
+        }
+
+        const headlines = await this.fetchNewsApi({
+            mode: 'top',
+            country: 'in',
+            pageSize: 100,
+            category: this.currentCategory !== 'all' ? this.currentCategory : undefined
+        });
+        if (headlines && headlines.length > 0) {
+            return headlines;
         }
 
         // Method 2: Try mediastack API
@@ -332,28 +312,12 @@ class NewsApp {
     }
 
     async fetchIndiaNews() {
-        // Fallback: Fetch India-wide news and filter
-        if (this.apiKeys.newsapi && this.apiKeys.newsapi !== 'YOUR_NEWSAPI_KEY') {
-            try {
-                const category = this.currentCategory === 'all' ? '' : `&category=${this.currentCategory}`;
-                const url = `https://newsapi.org/v2/top-headlines?country=in${category}&pageSize=100&apiKey=${this.apiKeys.newsapi}`;
-                
-                console.log('Fetching India-wide news...');
-                const response = await fetch(url);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log(`✅ Found ${data.articles?.length || 0} India articles`);
-                    return data.articles || [];
-                } else {
-                    const errorData = await response.json();
-                    console.error('India news API error:', errorData);
-                }
-            } catch (error) {
-                console.error('India news fetch error:', error);
-            }
-        }
-        return null;
+        return this.fetchNewsApi({
+            mode: 'top',
+            country: 'in',
+            pageSize: 100,
+            category: this.currentCategory !== 'all' ? this.currentCategory : undefined
+        });
     }
 
     filterTamilNaduNews(articles) {

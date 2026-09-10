@@ -1061,7 +1061,7 @@ class AdvancedTerminalApp {
             else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'W') { e.preventDefault(); if (this.activeTabId) this.closeTab(window, this.activeTabId); }
             else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'C') { e.preventDefault(); const eng = this.getActiveEngine(); if (eng) { eng.clear(); this.writeWelcome(eng); } }
             else if ((e.ctrlKey || e.metaKey) && e.key === 'f') { e.preventDefault(); this.searchOpen = true; if (searchBar) searchBar.style.display = 'flex'; searchInput?.focus(); }
-            else if ((e.ctrlKey || e.metaKey) && e.key === 'r') { e.preventDefault(); this.reverseSearchOpen = true; if (revBar) revBar.style.display = 'flex'; revInput?.value = ''; revInput?.focus(); }
+            else if ((e.ctrlKey || e.metaKey) && e.key === 'r') { e.preventDefault(); this.reverseSearchOpen = true; if (revBar) revBar.style.display = 'flex'; if (revInput) { revInput.value = ''; revInput.focus(); } }
             else if ((e.ctrlKey || e.metaKey) && e.key === 'w') { e.preventDefault(); if (this.activeTabId) this.closeTab(window, this.activeTabId); }
             else if ((e.ctrlKey || e.metaKey) && e.key === 'l') { e.preventDefault(); const eng = this.getActiveEngine(); if (eng) { eng.clear(); this.writeWelcome(eng); } }
             else if ((e.ctrlKey || e.metaKey) && e.key >= '1' && e.key <= '9') { e.preventDefault(); const i = parseInt(e.key) - 1; if (i < this.tabs.length) this.activateTab(this.tabs[i].id); }

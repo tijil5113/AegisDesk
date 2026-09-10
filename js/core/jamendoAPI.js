@@ -2,7 +2,7 @@
 class JamendoAPI {
     constructor() {
         // Jamendo API client_id (public, no secret needed)
-        this.clientId = '66e9e843'; // Your client ID
+        this.clientId = '66e9e843'; // Public Jamendo client_id (not a server secret; restrict in Jamendo dashboard)
         this.baseURL = 'https://api.jamendo.com/v3.0';
     }
     

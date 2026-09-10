@@ -12,16 +12,8 @@ class AuthSystem {
     }
 
     init() {
-        console.log('[Auth] Initializing authentication system...');
-        
-        // Check for OAuth callback (tokens in URL)
         this.handleOAuthCallback();
-        
-        // Load existing session
         this.loadSession();
-        
-        // Don't auto-redirect here - let router handle it
-        // this.checkAuthState();
     }
     
     /**

@@ -8,7 +8,7 @@ The News app now works **100% client-side** - no server needed!
 
 1. **Direct GNews API Calls** via CORS proxy
    - Uses `https://api.allorigins.win/get?url=` to bypass CORS restrictions
-   - API key is embedded in frontend: `308ced4410c459bb053b289a8c4cf3c5`
+   - Uses `GNEWS_API_KEY` on the server (`/api/gnews`). Do not embed API keys in the frontend.
    - All requests go directly from browser → CORS proxy → GNews API
 
 2. **No Backend Required**

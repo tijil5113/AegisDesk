@@ -1,15 +1,13 @@
 // YouTube Music API Proxy - Server-side proxy for YouTube Data API
 // This keeps the API key secure and handles CORS
 
-export default async function handler(req, res) {
-  // Enable CORS for all origins
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+import { applyCors } from './cors.js';
 
-  // Handle preflight requests
+export default async function handler(req, res) {
+  applyCors(req, res, 'POST, OPTIONS');
+
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    return res.status(204).end();
   }
 
   // Only allow POST requests
@@ -18,7 +16,7 @@ export default async function handler(req, res) {
   }
 
   // Get API key from environment variable
-  const apiKey = process.env.YOUTUBE_API_KEY || 'AIzaSyC3nFF2-7I9lnHF9zZpeQj7guPEw6y-pHQ';
+  const apiKey = process.env.YOUTUBE_API_KEY;
   
   if (!apiKey) {
     return res.status(500).json({ 
@@ -27,7 +25,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { type, query, language, region = 'IN', pageToken, maxResults = 20 } = req.body || {};
+    const { type, query, language, region = 'IN', pageToken, maxResults } = req.body || {};
+    const safeMax = Math.min(Math.max(Number(maxResults) || 20, 1), 25);
+    const safeRegion = /^[A-Za-z]{2}$/.test(String(region)) ? String(region).toUpperCase() : 'IN';
 
     if (!type) {
       return res.status(400).json({ error: 'Type is required (trending, search, playlist, artist)' });
@@ -38,7 +38,7 @@ export default async function handler(req, res) {
 
     if (type === 'trending') {
       // Get trending music videos - try category 10 (music) first
-      let url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&chart=mostPopular&regionCode=${region}&videoCategoryId=10&maxResults=${maxResults}&key=${apiKey}${pageToken ? `&pageToken=${pageToken}` : ''}`;
+      let url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&chart=mostPopular&regionCode=${encodeURIComponent(safeRegion)}&videoCategoryId=10&maxResults=${safeMax}&key=${apiKey}${pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : ''}`;
       
       let response = await fetch(url);
       let data = await response.json();
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
       // If category 10 fails or returns no results, try without category filter
       if (!response.ok || !data.items || data.items.length === 0) {
         console.log('Category 10 failed, trying without category filter...');
-        url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&chart=mostPopular&regionCode=${region}&maxResults=${maxResults}&key=${apiKey}${pageToken ? `&pageToken=${pageToken}` : ''}`;
+        url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&chart=mostPopular&regionCode=${encodeURIComponent(safeRegion)}&maxResults=${safeMax}&key=${apiKey}${pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : ''}`;
         response = await fetch(url);
         data = await response.json();
       }
@@ -88,7 +88,7 @@ export default async function handler(req, res) {
         searchQuery = `${langTerms[language] || ''} ${query}`.trim();
       }
 
-      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(searchQuery)}&type=video&maxResults=${maxResults}&key=${apiKey}${pageToken ? `&pageToken=${pageToken}` : ''}`;
+      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(searchQuery)}&type=video&maxResults=${safeMax}&key=${apiKey}${pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : ''}`;
       
       const response = await fetch(url);
       const data = await response.json();
@@ -132,7 +132,7 @@ export default async function handler(req, res) {
       }
 
       const searchQuery = `${query} songs`;
-      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(searchQuery)}&type=video&maxResults=${maxResults}&key=${apiKey}`;
+      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(searchQuery)}&type=video&maxResults=${safeMax}&key=${apiKey}`;
       
       const response = await fetch(url);
       const data = await response.json();
@@ -165,15 +165,8 @@ export default async function handler(req, res) {
     console.error('Error stack:', error.stack);
     
     // Return detailed error for debugging
-    return res.status(500).json({ 
-      error: 'Failed to fetch music data',
-      message: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-      details: {
-        hint: 'Check your internet connection and YouTube API status',
-        check: 'Visit https://status.youtube.com to check API status',
-        apiKey: apiKey ? `${apiKey.substring(0, 10)}...` : 'MISSING'
-      }
+    return res.status(500).json({
+      error: 'Failed to fetch music data'
     });
   }
 }
