@@ -22,10 +22,9 @@
 
 ## API Key
 
-The API key is hardcoded in `api/music.js` as a fallback:
-```javascript
-const apiKey = process.env.YOUTUBE_API_KEY || 'AIzaSyC3nFF2-7I9lnHF9zZpeQj7guPEw6y-pHQ';
-```
+## API Key
+
+Set `YOUTUBE_API_KEY` in `.env`. Do not put API keys in frontend JavaScript or documentation.
 
 ## Testing the API
 

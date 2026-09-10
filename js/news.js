@@ -2,7 +2,7 @@
 class PremiumNewsHub {
     constructor() {
         // API Configuration - Direct call with CORS proxy (no server needed!)
-        this.apiKey = '1c8e3e79f9f24569a3f6d1c647aeff46';
+        this.apiKey = '';
         this.useCorsProxy = true; // Use CORS proxy to avoid server
         this.corsProxy = 'https://api.allorigins.win/raw?url='; // Free CORS proxy
         

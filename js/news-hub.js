@@ -1,7 +1,7 @@
 // Complete News Hub - All Categories News Reader
 class NewsHub {
     constructor() {
-        this.apiKey = '1c8e3e79f9f24569a3f6d1c647aeff46';
+        this.apiKey = '';
         this.currentLanguage = 'en';
         this.currentCategory = 'all';
         this.categories = [

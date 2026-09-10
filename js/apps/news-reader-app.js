@@ -4,7 +4,7 @@
 class NewsReaderApp {
     constructor() {
         // NewsAPI.org - Direct calls via CORS proxy (NO SERVER NEEDED)
-        this.apiKey = '1c8e3e79f9f24569a3f6d1c647aeff46';
+        this.apiKey = '';
         // Try multiple CORS proxies as fallback
         this.corsProxies = [
             'https://api.allorigins.win/get?url=',

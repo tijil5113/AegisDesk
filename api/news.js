@@ -2,15 +2,13 @@
 // This prevents CORS issues and keeps API key secure
 
 // Express-style handler
-export default async function handler(req, res) {
-  // Enable CORS for all origins
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+import { applyCors } from './cors.js';
 
-  // Handle preflight requests
+export default async function handler(req, res) {
+  applyCors(req, res, 'POST, OPTIONS');
+
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    return res.status(204).end();
   }
 
   // Only allow POST requests
@@ -19,9 +17,7 @@ export default async function handler(req, res) {
   }
 
   // Get API key from environment variable or use provided key
-  const apiKey = process.env.NEWS_API_KEY || '0517aafda5474d6e8fa980387126bb62'; // Fallback for local dev
-  
-  console.log('[NewsAPI] Using API key:', apiKey ? `${apiKey.substring(0, 8)}...` : 'MISSING');
+  const apiKey = process.env.NEWS_API_KEY;
   
   if (!apiKey) {
     console.error('NEWS_API_KEY environment variable is not set');
@@ -157,9 +153,7 @@ export default async function handler(req, res) {
 
       return res.status(response.status).json({
         error: errorMessage,
-        details: errorDetails,
-        status: response.status,
-        rawResponse: data
+        status: response.status
       });
     }
     
@@ -192,7 +186,7 @@ export default async function handler(req, res) {
       fallbackParams.append('q', query);
       
       const fallbackUrl = `https://newsapi.org/v2/everything?${fallbackParams.toString()}`;
-      console.log('[NewsAPI] Fallback URL:', fallbackUrl);
+      console.log('[NewsAPI] Trying everything-endpoint fallback for India');
       
       try {
         const fallbackResponse = await fetch(fallbackUrl, {
@@ -247,12 +241,7 @@ export default async function handler(req, res) {
     }
     
     return res.status(500).json({ 
-      error: 'Failed to communicate with NewsAPI',
-      message: error.message,
-      details: {
-        hint: 'Check your internet connection and NewsAPI status',
-        check: 'Visit https://newsapi.org/status to check API status'
-      }
+      error: 'Failed to communicate with NewsAPI'
     });
   }
 }

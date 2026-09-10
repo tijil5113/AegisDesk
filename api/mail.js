@@ -1,11 +1,11 @@
 // MAIL API - Express Handler
 // Real Gmail/Outlook OAuth and Email Sending
 
+import { applyCors } from './cors.js';
+
 export default async function mailHandler(req, res) {
     // CORS headers
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Account-Id');
+    applyCors(req, res, 'GET, POST, OPTIONS');
 
     // Handle OPTIONS preflight
     if (req.method === 'OPTIONS') {
@@ -47,7 +47,7 @@ export default async function mailHandler(req, res) {
         }
     } catch (error) {
         console.error('[Mail API] Error:', error);
-        return res.status(500).json({ error: 'Internal server error', message: error.message });
+        return res.status(500).json({ error: 'Internal server error' });
     }
 }
 
