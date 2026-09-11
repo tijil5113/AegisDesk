@@ -128,15 +128,14 @@ class SettingsApp {
                     <div class="settings-item">
                         <div class="settings-item-label" style="flex: 1;">
                             <div class="settings-item-title">OpenAI API Key</div>
-                            <div class="settings-item-desc">Enter your OpenAI API key to enable AI Assistant features</div>
+                            <div class="settings-item-desc">Production AI uses the server OPENAI_API_KEY. This field is a legacy local-only value and is not sent to OpenAI from the browser.</div>
                             <input type="password" 
                                    id="openai-api-key" 
                                    value="${this.escapeHtml(storage.get('openai_api_key', this.settings.openaiApiKey))}" 
-                                   placeholder="sk-..."
+                                   placeholder="Configured on the server"
                                    style="margin-top: 8px; width: 100%; padding: 8px 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary); font-size: 13px; font-family: 'JetBrains Mono', monospace;">
                             <small style="color: var(--text-muted); font-size: 11px; margin-top: 4px; display: block;">
-                                🔒 Your API key is stored locally in your browser and never sent anywhere except OpenAI's servers.<br>
-                                📝 Get your API key at: <a href="https://platform.openai.com/api-keys" target="_blank" style="color: var(--primary-light); text-decoration: underline;">platform.openai.com/api-keys</a>
+                                Set OPENAI_API_KEY in Railway Variables. Do not paste production secrets here.
                             </small>
                         </div>
                     </div>
@@ -147,16 +146,14 @@ class SettingsApp {
                     <div class="settings-item">
                         <div class="settings-item-label" style="flex: 1;">
                             <div class="settings-item-title">YouTube API Key</div>
-                            <div class="settings-item-desc">Enter your YouTube Data API v3 key to enable music features</div>
+                            <div class="settings-item-desc">Production Music uses the server YOUTUBE_API_KEY via /api/music. This field is legacy and is not used for production requests.</div>
                             <input type="password" 
                                    id="youtube-api-key" 
                                    value="${this.escapeHtml(storage.get('youtube_api_key', ''))}" 
-                                   placeholder="AIza..."
+                                   placeholder="Configured on the server"
                                    style="margin-top: 8px; width: 100%; padding: 8px 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary); font-size: 13px; font-family: 'JetBrains Mono', monospace;">
                             <small style="color: var(--text-muted); font-size: 11px; margin-top: 4px; display: block;">
-                                🔒 Your API key is stored locally in your browser.<br>
-                                📝 Get your API key at: <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color: var(--primary-light); text-decoration: underline;">Google Cloud Console</a><br>
-                                📚 Enable "YouTube Data API v3" in your project
+                                Set YOUTUBE_API_KEY in Railway Variables. Do not paste production secrets here.
                             </small>
                         </div>
                     </div>

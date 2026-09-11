@@ -522,121 +522,29 @@ class NewsReaderApp {
     
     async fetchBreakingNews() {
         try {
-            console.log('[News] 📰 Fetching breaking news...');
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-            
-            // Use NewsAPI top headlines for breaking news
-            const requestParams = {
-                mode: 'top-headlines',
-                country: 'in',
-                pageSize: 5,
-                page: 1
-            };
-            
-            console.log('[News] Breaking news request:', requestParams);
-            
-            // Build NewsAPI URL with CORS proxy
-            const apiUrl = this.buildNewsApiUrl(requestParams);
-            console.log('[News] Breaking news URL (proxied):', apiUrl.substring(0, 150) + '...');
-            
-            const response = await fetch(apiUrl, {
-                method: 'GET',
-                signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-            
-            console.log('[News] Breaking news response status:', response.status);
-            
-            if (response.ok) {
-                const responseText = await response.text();
-                console.log('[News] Breaking news raw response (first 500 chars):', responseText.substring(0, 500));
-                
-                let data;
-                try {
-                    data = JSON.parse(responseText);
-                } catch (parseErr) {
-                    console.error('[News] Failed to parse breaking news response:', parseErr);
-                    throw new Error('Invalid JSON response from breaking news API');
-                }
-                
-                // CORS proxy wraps response in {contents: "..."}, so parse it
-                if (data.contents) {
-                    console.log('[News] Breaking news: CORS proxy wrapper detected');
-                    try {
-                        data = JSON.parse(data.contents);
-                    } catch (e) {
-                        console.error('[News] Failed to parse CORS proxy response:', e);
-                        console.error('[News] Contents:', data.contents?.substring(0, 500));
-                        throw new Error('Invalid response from API proxy');
-                    }
-                }
-                
-                console.log('[News] Breaking news data received:', {
-                    articlesCount: data.articles?.length || 0,
-                    status: data.status,
-                    code: data.code,
-                    message: data.message
-                });
-                
-                // Check for NewsAPI errors
-                if (data.status === 'error') {
-                    console.error('[News] Breaking news API error:', data);
-                    const errorMsg = data.message || data.code || 'Breaking news API error';
-                    const ticker = document.getElementById('breaking-news-content');
-                    if (ticker) {
-                        ticker.innerHTML = `<span style="color: #fbbf24;">⚠️ ${errorMsg}</span>`;
-                    }
-                    return; // Don't throw, just show error in ticker
-                }
-                
-                if (data.articles && data.articles.length > 0) {
-                    const top5 = data.articles.slice(0, 5);
-                    this.state.breakingNews = top5;
-                    this.updateBreakingNewsTicker(top5);
-                    console.log('[News] ✅ Breaking news updated with', top5.length, 'headlines');
-                } else {
-                    console.warn('[News] ⚠️ Breaking news returned 0 articles');
-                    const ticker = document.getElementById('breaking-news-content');
-                    if (ticker) {
-                        ticker.innerHTML = '<span>No breaking news available at this time</span>';
-                    }
-                }
-            } else {
-                const errorData = await response.json().catch(() => ({}));
-                console.error('[News] ❌ Breaking news error:', response.status, errorData);
-                
-                // Parse error if wrapped by CORS proxy
-                let errorMsg = `HTTP ${response.status}`;
-                if (errorData.contents) {
-                    try {
-                        const parsed = JSON.parse(errorData.contents);
-                        errorMsg = parsed.message || parsed.code || errorMsg;
-                    } catch (e) {
-                        // Ignore parse errors
-                    }
-                } else if (errorData.message) {
-                    errorMsg = errorData.message;
-                } else if (errorData.code) {
-                    errorMsg = `NewsAPI Error: ${errorData.code}`;
-                }
-                
-                throw new Error(errorMsg);
-            }
-        } catch (error) {
-            // Ignore AbortError - this is expected when requests are cancelled (switching categories, etc.)
-            if (error.name === 'AbortError') {
-                // Silently return - AbortError is normal behavior when cancelling requests
+            const gnews = await this.fetchFromGNews({});
+            const articles = (gnews.articles || []).slice(0, 5);
+            if (articles.length > 0) {
+                this.state.breakingNews = articles;
+                this.updateBreakingNewsTicker(articles);
                 return;
             }
-            
-            // Only log and show error for actual failures
-            console.error('[News] ❌ Breaking news fetch error:', error);
-            const ticker = document.getElementById('breaking-news-content');
-            if (ticker) {
-                ticker.innerHTML = '<span style="color: #fbbf24;">Unable to load breaking news</span>';
+        } catch (_) {
+            /* try NewsAPI fallback */
+        }
+        try {
+            const news = await this.fetchFromNewsApiFallback();
+            const articles = (news.articles || []).slice(0, 5);
+            if (articles.length > 0) {
+                this.state.breakingNews = articles;
+                this.updateBreakingNewsTicker(articles);
+                return;
             }
-            // Don't throw - breaking news failure shouldn't block main feed
+            const ticker = document.getElementById('breaking-news-content');
+            if (ticker) ticker.innerHTML = '<span>No breaking news available at this time</span>';
+        } catch (_) {
+            const ticker = document.getElementById('breaking-news-content');
+            if (ticker) ticker.innerHTML = '<span style="color: #fbbf24;">Unable to load breaking news</span>';
         }
     }
     
@@ -777,8 +685,26 @@ class NewsReaderApp {
         return this.currentCategory && map[this.currentCategory] ? map[this.currentCategory] : null;
     }
 
+    mapNewsFailure(status, data) {
+        const code = data && data.code;
+        const msg = String((data && (data.message || data.error)) || '');
+        if (status === 401) return 'Sign in required to load news.';
+        if (status === 503 || code === 'not_configured' || code === 'invalid_key' || /not configured/i.test(msg)) return 'API is not configured';
+        if (status === 429 || code === 'quota_exceeded' || /quota|rate limit/i.test(msg)) return 'Quota reached';
+        if (code === 'network_error' || /failed to fetch|network/i.test(msg)) return 'Network error';
+        return 'Service temporarily unavailable';
+    }
+
+    normalizeNewsArticles(articles) {
+        return (articles || []).map((article) => ({
+            ...article,
+            urlToImage: article.urlToImage || article.image || '',
+            image: article.image || article.urlToImage || ''
+        }));
+    }
+
     async fetchFromGNews(params = {}) {
-        const apiUrl = (typeof window !== 'undefined' && window.location?.origin) 
+        const apiUrl = (typeof window !== 'undefined' && window.location?.origin)
             ? `${window.location.origin}/api/gnews` : '/api/gnews';
         const topic = this.getGNewsTopic();
         const body = {
@@ -793,11 +719,44 @@ class NewsReaderApp {
         const res = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
             body: JSON.stringify(body)
         });
-        const data = await res.json();
-        if (!res.ok || data.status === 'error') throw new Error(data.message || 'GNews API error');
-        return { articles: data.articles || [], totalArticles: data.totalArticles || 0 };
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.status === 'error') {
+            const err = new Error(this.mapNewsFailure(res.status, data));
+            err.status = res.status;
+            throw err;
+        }
+        return { articles: this.normalizeNewsArticles(data.articles || []), totalArticles: data.totalArticles || 0 };
+    }
+
+    async fetchFromNewsApiFallback() {
+        const apiUrl = (typeof window !== 'undefined' && window.location?.origin)
+            ? `${window.location.origin}/api/news` : '/api/news';
+        const newsCategory = this.getNewsApiCategory(this.currentCategory);
+        const body = {
+            mode: this.searchQuery ? 'everything' : 'top',
+            country: 'in',
+            language: this.currentLanguage === 'en' ? 'en' : 'en',
+            page: this.currentPage || 1,
+            pageSize: this.pageSize || 20
+        };
+        if (this.searchQuery) body.q = this.searchQuery;
+        else if (newsCategory) body.category = newsCategory;
+        const res = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify(body)
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            const err = new Error(this.mapNewsFailure(res.status, data));
+            err.status = res.status;
+            throw err;
+        }
+        return { articles: this.normalizeNewsArticles(data.articles || []), totalArticles: data.totalResults || 0 };
     }
 
     async fetchNews(params = {}) {
@@ -833,32 +792,36 @@ class NewsReaderApp {
             }
         } catch (e) {
             console.log('[News] GNews failed:', e.message);
-            const isLocalhost = typeof window !== 'undefined' && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(window.location.origin || '');
-            // On Render/production: CORS proxies block non-localhost. Only GNews works. Show clear error.
-            if (!isLocalhost) {
-                clearTimeout(this.timeoutId);
-                this.timeoutId = null;
-                this.setState({ 
-                    status: 'error', 
-                    articles: [], 
-                    error: 'News requires GNEWS_API_KEY. Add it in Render Dashboard → Your Service → Environment → Add Variable. Deploy as Web Service (not Static Site).' 
-                });
-                return;
-            }
-            // On localhost: for Hindi/Tamil, GNews is required
-            if (['hi', 'ta'].includes(this.currentLanguage)) {
-                clearTimeout(this.timeoutId);
-                this.timeoutId = null;
-                this.setState({ 
-                    status: 'error', 
-                    articles: [], 
-                    error: 'Hindi and Tamil require the server. Run `npm start` and set GNEWS_API_KEY in .env' 
-                });
-                return;
-            }
+            this._gnewsError = e.message || 'Service temporarily unavailable';
         }
-        
-        // Localhost only: fallback to NewsAPI via CORS proxy (blocks on Render)
+
+        try {
+            const newsApiData = await this.fetchFromNewsApiFallback();
+            clearTimeout(this.timeoutId);
+            this.timeoutId = null;
+            const articles = newsApiData.articles || [];
+            this.setState({
+                status: articles.length > 0 ? 'success' : 'empty',
+                articles,
+                error: null
+            });
+            this.updateDebugInfo({ lastRequest: 'NewsAPI', lastResponse: `${articles.length} articles` });
+            return;
+        } catch (e) {
+            clearTimeout(this.timeoutId);
+            this.timeoutId = null;
+            const friendly = e.message || this._gnewsError || 'Service temporarily unavailable';
+            this.setState({
+                status: 'error',
+                articles: [],
+                error: friendly
+            });
+            this.updateDebugInfo({ lastError: friendly });
+            return;
+        }
+
+        /* Legacy: browser CORS-proxy path to newsapi.org (unused in production).
+           Production uses POST /api/gnews then POST /api/news. */
         // SET HARD TIMEOUT - CRITICAL FIX (15 seconds - increased for CORS proxy)
         this.timeoutId = setTimeout(() => {
             console.error('[News] ⏱️ HARD TIMEOUT (15s) - Forcing error state');

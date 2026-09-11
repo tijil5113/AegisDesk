@@ -2,7 +2,7 @@
 // Context-aware AI that understands the entire OS state
 class AISystem {
     constructor() {
-        this.apiKey = storage.get('openai_api_key', '') || storage.get('openaiApiKey', '');
+        this.apiKey = ''; // unused in production; OPENAI_API_KEY is server-only via /api/chat
         this.context = {
             tasks: [],
             notes: [],
@@ -123,11 +123,15 @@ When the user asks you to do something, acknowledge it and the system will handl
             const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
                 body: JSON.stringify({ messages })
             });
             if (!response.ok) {
                 const err = await response.json().catch(() => ({}));
-                throw new Error(err.error || `API error: ${response.status}`);
+                if (response.status === 401) throw new Error('Authentication required');
+                if (err.code === 'not_configured' || err.code === 'invalid_key') throw new Error('API is not configured');
+                if (response.status === 429 || err.code === 'quota_exceeded') throw new Error('Quota reached');
+                throw new Error(err.error || 'Service temporarily unavailable');
             }
             const data = await response.json();
             return data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';

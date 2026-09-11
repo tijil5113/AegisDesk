@@ -6,11 +6,10 @@ class AIChatApp {
         this.chats = storage.get('aiChats', []); // Multiple chat sessions
         this.currentChatId = storage.get('currentChatId', null);
         this.isTyping = false;
-        // Prefer server /api/chat (uses OPENAI_API_KEY from Render) — only use localStorage key if server fails
-        this.apiKey = storage.get('openai_api_key', '') || storage.get('openaiApiKey', '');
+        // Production: always call POST /api/chat. OPENAI_API_KEY stays on the server.
         const origin = (typeof window !== 'undefined' && window.location && window.location.origin && String(window.location.origin).startsWith('http')) ? window.location.origin : '';
         this.apiUrl = origin ? `${origin}/api/chat` : '/api/chat';
-        this.useDirectAPI = false; // Always use server first so Render env key works
+        this.useDirectAPI = false;
         
         // Initialize with default chat if none exists
         if (this.chats.length === 0) {
@@ -315,17 +314,18 @@ class AIChatApp {
                 this.hideTyping(messagesContainer);
                 console.error('AI Error:', error);
                 
-                let errorContent = `Sorry, I encountered an error: ${error.message}`;
-                
-                // Failed to fetch = network / no server / CORS – guide user to set API key or run server
-                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('Network error')) {
-                    errorContent = `⚠️ **Couldn't reach the AI**\n\n` +
-                        `• **Option 1 (recommended):** Add your OpenAI API key in **Settings** so the app can talk to OpenAI directly.\n` +
-                        `  Open **Settings** from the desktop, find **OpenAI API Key**, paste your key, and try again.\n\n` +
-                        `• **Option 2:** If you run the app with \`npm start\`, create a \`.env\` file with:\n` +
-                        `  \`OPENAI_API_KEY=sk-your-key\` and restart the server.`;
-                } else if (error.message.includes('Server configuration') || error.message.includes('OPENAI_API_KEY')) {
-                    errorContent = `⚠️ **Server Configuration Required**\n\nThis AI Assistant requires server-side configuration.\n\nThe administrator needs to:\n1. Set the OPENAI_API_KEY environment variable on the server\n2. Deploy the /api/chat.js serverless function\n\nIf you're the administrator, check your deployment platform's environment variables settings.`;
+                let errorContent = `Sorry, I encountered an error. Please try again.`;
+                const msg = String(error.message || '');
+                if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('Network error')) {
+                    errorContent = 'Network error. Check your connection and try again.';
+                } else if (msg.includes('not configured') || msg.includes('OPENAI_API_KEY') || msg.includes('Server configuration')) {
+                    errorContent = 'API is not configured. Set OPENAI_API_KEY on the server and try again.';
+                } else if (msg.includes('Quota') || msg.includes('rate limit') || msg.includes('429')) {
+                    errorContent = 'Quota reached. Please try again later.';
+                } else if (msg.includes('Authentication required') || msg.includes('401') || msg.includes('Unauthorized')) {
+                    errorContent = 'Please sign in again, then retry.';
+                } else if (msg.includes('temporarily unavailable')) {
+                    errorContent = 'Service temporarily unavailable. Please try again.';
                 }
                 
                 const errorMessage = { 
@@ -337,17 +337,6 @@ class AIChatApp {
                 if (currentChat) {
                     currentChat.messages.push(errorMessage);
                     this.addMessage(errorMessage, messagesContainer);
-                    if (errorContent.includes("Couldn't reach the AI")) {
-                        const lastAssistant = messagesContainer.querySelector('.chat-message.assistant:last-child .chat-content');
-                        if (lastAssistant && typeof desktop !== 'undefined' && desktop.openApp) {
-                            const btn = document.createElement('button');
-                            btn.className = 'chat-settings-btn';
-                            btn.textContent = 'Open Settings';
-                            btn.style.cssText = 'margin-top: 10px; padding: 8px 14px; background: var(--primary, #6366f1); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 13px;';
-                            btn.addEventListener('click', () => desktop.openApp('settings'));
-                            lastAssistant.appendChild(btn);
-                        }
-                    }
                     this.saveChats();
                 }
             }
@@ -389,14 +378,12 @@ class AIChatApp {
     }
 
     async getAIResponse(userMessage) {
-        // Always re-read API key from storage (user may have just set it in Settings)
-        this.apiKey = storage.get('openai_api_key', '') || storage.get('openaiApiKey', '');
-        this.useDirectAPI = !!this.apiKey;
+        this.useDirectAPI = false;
         const origin = (typeof window !== 'undefined' && window.location && window.location.origin && String(window.location.origin).startsWith('http')) ? window.location.origin : '';
         this.apiUrl = origin ? `${origin}/api/chat` : '/api/chat';
 
-        // Use system-level AI if available
-        if (typeof aiSystem !== 'undefined' && aiSystem.apiKey) {
+        // Use system-level AI if available (server /api/chat)
+        if (typeof aiSystem !== 'undefined' && aiSystem.getAIResponse) {
             try {
                 // Detect system actions first
                 const systemAction = aiSystem.detectSystemAction(userMessage);
@@ -437,79 +424,31 @@ When a user asks you to do something, acknowledge it and the system will handle 
         ];
 
         try {
-            let response;
-            
-            // Use direct API if API key is available
-            if (this.useDirectAPI && this.apiKey) {
-                response = await fetch('https://api.openai.com/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${this.apiKey}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        model: 'gpt-4o-mini',
-                        messages: messages,
-                        max_tokens: 2000,
-                        temperature: 0.8,
-                        top_p: 0.9,
-                        frequency_penalty: 0.3,
-                        presence_penalty: 0.3
-                    })
-                });
-            } else {
-                // Use serverless API endpoint
-                response = await fetch(this.apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ messages })
-                });
-            }
+            const response = await fetch(this.apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ messages })
+            });
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                let errorMessage = errorData.error?.message || errorData.error || errorData.message || `HTTP ${response.status}: ${response.statusText}`;
-                
-                // Try fallback to gpt-3.5-turbo if using direct API
-                if (this.useDirectAPI && this.apiKey && (errorData.error?.code === 'model_not_found' || errorMessage.includes('model'))) {
-                    const fallbackResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${this.apiKey}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            model: 'gpt-3.5-turbo',
-                            messages: messages,
-                            max_tokens: 2000,
-                            temperature: 0.8
-                        })
-                    });
-                    
-                    if (fallbackResponse.ok) {
-                        const fallbackData = await fallbackResponse.json();
-                        return fallbackData.choices[0].message.content;
-                    }
+                let errorMessage = errorData.error || errorData.message || `HTTP ${response.status}`;
+                if (response.status === 401) {
+                    throw new Error('Authentication required');
                 }
-                
-                // Handle server configuration errors
-                if (errorMessage.includes('OPENAI_API_KEY') || errorMessage.includes('Missing') || errorMessage.includes('Server configuration')) {
-                    throw new Error('API key required. Please set your OpenAI API key in Settings or use the standalone AI chat page.');
+                if (errorData.code === 'not_configured' || errorData.code === 'invalid_key' || String(errorMessage).includes('not configured')) {
+                    throw new Error('API is not configured');
                 }
-                
-                // Handle authentication errors
-                if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
-                    throw new Error('Invalid API key. Please check your OpenAI API key in Settings.');
+                if (response.status === 429 || errorData.code === 'quota_exceeded') {
+                    throw new Error('Quota reached');
                 }
-                
-                // Handle OpenAI API errors
-                if (errorData.details && errorData.details.message) {
-                    errorMessage = errorData.details.message;
+                if (errorData.code === 'network_error') {
+                    throw new Error('Network error');
                 }
-                
-                throw new Error(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
+                throw new Error(typeof errorMessage === 'string' ? errorMessage : 'Service temporarily unavailable');
             }
 
             const data = await response.json();

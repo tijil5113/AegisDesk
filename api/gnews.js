@@ -1,8 +1,10 @@
-// GNews API Proxy Server - Handles GNews.io requests server-side
-// This prevents CORS issues and keeps API key secure
+// GNews API proxy — GNEWS_API_KEY is read server-side only.
 
-// Express-style handler
 import { applyCors } from './cors.js';
+
+const ALLOWED_MODES = new Set(['top', 'category', 'search']);
+const ALLOWED_TOPICS = new Set(['world', 'nation', 'business', 'technology', 'entertainment', 'sports', 'science', 'health']);
+const ALLOWED_LANGS = new Set(['en', 'hi', 'ta']);
 
 export default async function handler(req, res) {
   applyCors(req, res, 'POST, OPTIONS');
@@ -11,145 +13,120 @@ export default async function handler(req, res) {
     return res.status(204).end();
   }
 
-  // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed. Use POST.' });
   }
 
-  // Get API key from environment variable
   const apiKey = process.env.GNEWS_API_KEY;
-  
+
   if (!apiKey) {
-    console.error('[GNews] GNEWS_API_KEY environment variable is not set');
-    return res.status(500).json({ 
+    console.error('[GNews] GNEWS_API_KEY is not set');
+    return res.status(503).json({
       status: 'error',
-      message: 'Server configuration error: Missing GNEWS_API_KEY environment variable'
+      code: 'not_configured',
+      error: 'API is not configured',
+      message: 'API is not configured'
     });
   }
 
   try {
-    // Get parameters from request body
-    const {
-      mode = 'top', // 'top' | 'category' | 'search'
-      topic, // 'world' | 'nation' | 'business' | 'technology' | 'entertainment' | 'sports' | 'science' | 'health'
-      q, // query string for search
-      lang = 'en', // 'en' | 'hi' | 'ta'
-      country = 'in',
-      max = 20,
-      page = 1
-    } = req.body || {};
+    const body = req.body || {};
+    const mode = String(body.mode || 'top');
+    const topicRaw = body.topic ? String(body.topic).toLowerCase() : '';
+    const q = typeof body.q === 'string' ? body.q.trim().slice(0, 200) : '';
+    const lang = ALLOWED_LANGS.has(String(body.lang || '').toLowerCase())
+      ? String(body.lang).toLowerCase()
+      : 'en';
+    const country = /^[A-Za-z]{2}$/.test(String(body.country || ''))
+      ? String(body.country).toLowerCase()
+      : 'in';
+    const max = Math.min(Math.max(Number(body.max) || 20, 1), 20);
+    const page = Math.max(Number(body.page) || 1, 1);
 
-    // Validate inputs
-    if (mode !== 'top' && mode !== 'category' && mode !== 'search') {
-      return res.status(400).json({ 
+    if (!ALLOWED_MODES.has(mode)) {
+      return res.status(400).json({
         status: 'error',
-        message: 'Invalid mode. Use "top", "category", or "search"' 
+        error: 'Invalid mode. Use "top", "category", or "search"'
       });
     }
 
     if (mode === 'search' && !q) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         status: 'error',
-        message: 'Search query (q) is required when mode is "search"' 
+        error: 'Search query (q) is required when mode is "search"'
       });
     }
 
-    if (max > 100) {
-      return res.status(400).json({ 
+    if (mode === 'category' && topicRaw && !ALLOWED_TOPICS.has(topicRaw)) {
+      return res.status(400).json({
         status: 'error',
-        message: 'max cannot exceed 100' 
+        error: 'Invalid category'
       });
     }
 
-    if (page < 1) {
-      return res.status(400).json({ 
-        status: 'error',
-        message: 'page must be >= 1' 
-      });
-    }
-
-    // Build GNews URL based on mode
-    let apiUrl = '';
     const params = new URLSearchParams({
       token: apiKey,
-      lang: lang,
-      country: country,
+      lang,
+      country,
       max: String(max)
     });
 
+    let apiUrl = 'https://gnews.io/api/v4/top-headlines';
     if (mode === 'search') {
-      // Use search endpoint
       apiUrl = 'https://gnews.io/api/v4/search';
-      params.append('q', q);
-    } else {
-      // Use top-headlines endpoint
-      apiUrl = 'https://gnews.io/api/v4/top-headlines';
-      if (topic) {
-        params.append('topic', topic);
-      }
+      params.set('q', q);
+    } else if (topicRaw && ALLOWED_TOPICS.has(topicRaw)) {
+      params.set('topic', topicRaw);
     }
 
-    const fullUrl = `${apiUrl}?${params.toString()}`;
-    console.log(`[GNews] Fetching: ${mode} - page ${page}, max ${max}, lang ${lang}`);
-    if (topic) console.log(`[GNews] Topic: ${topic}`);
-    if (q) console.log(`[GNews] Query: ${q}`);
-    console.log(`[GNews] URL: ${apiUrl} (params: ${params.toString().split('&').length} total)`);
+    console.log('[GNews] Fetching', { mode, lang, country, max, page, topic: topicRaw || undefined });
 
-    // Call GNews API
-    const response = await fetch(fullUrl, {
+    const response = await fetch(`${apiUrl}?${params.toString()}`, {
       method: 'GET',
       headers: {
         'User-Agent': 'AegisDesk-NewsHub/1.0',
-        'Accept': 'application/json'
+        Accept: 'application/json'
       }
     });
 
-    console.log(`[GNews] Response status: ${response.status} ${response.statusText}`);
+    const data = await response.json().catch(() => ({}));
 
-    const data = await response.json();
-    
-    console.log(`[GNews] Response: totalArticles=${data.totalArticles || 0}, articles=${data.articles?.length || 0}`);
-    
-    // Log first article title if available for debugging
-    if (data.articles && data.articles.length > 0) {
-      console.log(`[GNews] First article: ${data.articles[0].title?.substring(0, 60)}...`);
-    } else if (response.ok) {
-      console.warn('[GNews] ⚠️ Status is ok but no articles returned!');
-    }
-
-    // Handle GNews errors
     if (!response.ok) {
-      console.error('[GNews] Error response:', response.status, JSON.stringify(data, null, 2));
-      
-      let errorMessage = data.message || data.errors?.[0] || 'GNews API error';
-      let errorDetails = data;
-
-      // Handle specific error cases
-      if (response.status === 401 || errorMessage.includes('API key') || errorMessage.includes('Invalid')) {
-        errorMessage = 'Invalid GNews API key. The API key may be incorrect or expired.';
-      } else if (response.status === 429) {
-        errorMessage = 'GNews rate limit exceeded. Please wait a moment and try again.';
-      } else if (response.status === 426) {
-        errorMessage = 'GNews API upgrade required. Please check your account.';
+      console.error('[GNews] Provider status:', response.status);
+      if (response.status === 401 || response.status === 403) {
+        return res.status(503).json({
+          status: 'error',
+          code: 'invalid_key',
+          error: 'API is not configured',
+          message: 'API is not configured'
+        });
       }
-
-      return res.status(response.status).json({
+      if (response.status === 429) {
+        return res.status(429).json({
+          status: 'error',
+          code: 'quota_exceeded',
+          error: 'Quota reached',
+          message: 'Quota reached'
+        });
+      }
+      return res.status(502).json({
         status: 'error',
-        message: errorMessage,
-        details: errorDetails
+        code: 'provider_error',
+        error: 'Service temporarily unavailable',
+        message: 'Service temporarily unavailable'
       });
     }
 
-    // Normalize response format
     const normalizedResponse = {
       status: 'ok',
       totalArticles: data.totalArticles || (data.articles?.length || 0),
-      articles: (data.articles || []).map(article => ({
+      articles: (data.articles || []).map((article) => ({
         title: article.title || '',
         description: article.description || '',
         content: article.content || article.description || '',
         url: article.url || '',
         image: article.image || '',
+        urlToImage: article.image || '',
         publishedAt: article.publishedAt || article.pubDate || '',
         source: {
           name: article.source?.name || 'Unknown',
@@ -158,15 +135,14 @@ export default async function handler(req, res) {
       }))
     };
 
-    console.log(`[GNews] ✅ Successfully normalized ${normalizedResponse.articles.length} articles`);
-
     return res.json(normalizedResponse);
-
   } catch (error) {
-    console.error('[GNews] ❌ Server error:', error);
-    return res.status(500).json({
+    console.error('[GNews] Server error:', error?.name || 'request_failed');
+    return res.status(502).json({
       status: 'error',
-      message: 'Failed to communicate with GNews'
+      code: 'network_error',
+      error: 'Network error',
+      message: 'Network error'
     });
   }
 }

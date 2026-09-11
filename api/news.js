@@ -1,8 +1,28 @@
-// NewsAPI Proxy Server - Handles NewsAPI.org requests server-side
-// This prevents CORS issues and keeps API key secure
+// NewsAPI.org proxy — NEWS_API_KEY is read server-side only.
+// Role: fallback / alternate source. Canonical News page uses GNews first.
 
-// Express-style handler
 import { applyCors } from './cors.js';
+
+const ALLOWED_MODES = new Set(['top', 'everything']);
+const ALLOWED_LANGS = new Set(['en', 'hi', 'ta', 'ar', 'de', 'es', 'fr', 'he', 'it', 'nl', 'no', 'pt', 'ru', 'sv', 'ud', 'zh']);
+const ALLOWED_CATEGORIES = new Set(['business', 'entertainment', 'general', 'health', 'science', 'sports', 'technology']);
+const ALLOWED_SORT = new Set(['publishedAt', 'relevancy', 'popularity']);
+
+function normalizeArticles(articles) {
+  return (articles || []).map((article) => ({
+    title: article.title || '',
+    description: article.description || '',
+    content: article.content || article.description || '',
+    url: article.url || '',
+    urlToImage: article.urlToImage || article.image || '',
+    image: article.urlToImage || article.image || '',
+    publishedAt: article.publishedAt || '',
+    source: {
+      name: article.source?.name || 'Unknown',
+      id: article.source?.id || ''
+    }
+  }));
+}
 
 export default async function handler(req, res) {
   applyCors(req, res, 'POST, OPTIONS');
@@ -11,54 +31,41 @@ export default async function handler(req, res) {
     return res.status(204).end();
   }
 
-  // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed. Use POST.' });
   }
 
-  // Get API key from environment variable or use provided key
   const apiKey = process.env.NEWS_API_KEY;
-  
+
   if (!apiKey) {
-    console.error('NEWS_API_KEY environment variable is not set');
-    return res.status(500).json({ 
-      error: 'Server configuration error: Missing NEWS_API_KEY environment variable',
-      details: {
-        hint: 'Please add your NewsAPI key as an environment variable',
-        check: 'Go to Vercel Dashboard > Your Project > Settings > Environment Variables'
-      }
+    console.error('NEWS_API_KEY is not set');
+    return res.status(503).json({
+      error: 'API is not configured',
+      code: 'not_configured'
     });
   }
 
   try {
-    // Get parameters from request body
-    const {
-      mode = 'top', // 'top' or 'everything'
-      country = 'in',
-      category,
-      q, // query string for search
-      sources,
-      language = 'en',
-      page = 1,
-      pageSize = 24,
-      sortBy = 'publishedAt' // publishedAt, relevancy, popularity
-    } = req.body || {};
+    const body = req.body || {};
+    const mode = String(body.mode || 'top');
+    const country = /^[A-Za-z]{2}$/.test(String(body.country || ''))
+      ? String(body.country).toLowerCase()
+      : 'in';
+    const categoryRaw = body.category ? String(body.category).toLowerCase() : '';
+    const category = ALLOWED_CATEGORIES.has(categoryRaw) ? categoryRaw : '';
+    const q = typeof body.q === 'string' ? body.q.trim().slice(0, 200) : '';
+    const sources = typeof body.sources === 'string' ? body.sources.slice(0, 200) : '';
+    const language = ALLOWED_LANGS.has(String(body.language || '').toLowerCase())
+      ? String(body.language).toLowerCase()
+      : 'en';
+    const page = Math.max(Number(body.page) || 1, 1);
+    const pageSize = Math.min(Math.max(Number(body.pageSize) || 24, 1), 100);
+    const sortBy = ALLOWED_SORT.has(String(body.sortBy || '')) ? String(body.sortBy) : 'publishedAt';
 
-    // Validate inputs
-    if (mode !== 'top' && mode !== 'everything') {
+    if (!ALLOWED_MODES.has(mode)) {
       return res.status(400).json({ error: 'Invalid mode. Use "top" or "everything"' });
     }
 
-    if (pageSize > 100) {
-      return res.status(400).json({ error: 'pageSize cannot exceed 100' });
-    }
-
-    if (page < 1) {
-      return res.status(400).json({ error: 'page must be >= 1' });
-    }
-
-    // Build NewsAPI URL based on mode
-    let apiUrl = '';
     const params = new URLSearchParams({
       apiKey,
       language,
@@ -66,182 +73,88 @@ export default async function handler(req, res) {
       pageSize: String(pageSize)
     });
 
+    let apiUrl = '';
     if (mode === 'top') {
-      // Use top-headlines endpoint
       apiUrl = 'https://newsapi.org/v2/top-headlines';
-      
-      if (country) params.append('country', country);
-      if (category) params.append('category', category);
-      if (sources) params.append('sources', sources);
-      
-      // If no category specified for top headlines, default to general
-      if (!category && !sources) {
-        // Top headlines without category - this is valid
-      }
+      if (country) params.set('country', country);
+      if (category) params.set('category', category);
+      if (sources) params.set('sources', sources);
     } else {
-      // Use everything endpoint
       apiUrl = 'https://newsapi.org/v2/everything';
-      
-      // For everything endpoint, we MUST have a query
-      if (q) {
-        params.append('q', q);
-      } else if (category) {
-        // If category provided but no query, use category as query
-        params.append('q', category);
-      } else {
-        // Default query if nothing specified
-        params.append('q', 'news');
-      }
-      
-      if (sources) params.append('sources', sources);
-      if (sortBy) params.append('sortBy', sortBy);
+      if (q) params.set('q', q);
+      else if (category) params.set('q', category);
+      else params.set('q', 'news');
+      if (sources) params.set('sources', sources);
+      params.set('sortBy', sortBy);
     }
 
-    const fullUrl = `${apiUrl}?${params.toString()}`;
-    console.log(`[NewsAPI] Fetching: ${mode} - page ${page}, pageSize ${pageSize}`);
-    console.log(`[NewsAPI] URL: ${apiUrl} (with ${params.toString().split('&').length} params)`);
+    console.log('[NewsAPI] Fetching', { mode, language, page, pageSize, category: category || undefined });
 
-    // Call NewsAPI
-    const response = await fetch(fullUrl, {
+    const response = await fetch(`${apiUrl}?${params.toString()}`, {
       method: 'GET',
       headers: {
         'User-Agent': 'AegisDesk-NewsHub/1.0',
-        'Accept': 'application/json'
+        Accept: 'application/json'
       }
     });
 
-    console.log(`[NewsAPI] Response status: ${response.status} ${response.statusText}`);
+    const data = await response.json().catch(() => ({}));
 
-    const data = await response.json();
-    
-    console.log(`[NewsAPI] Response: status=${data.status}, totalResults=${data.totalResults}, articles=${data.articles?.length || 0}`);
-    
-    // Log first article title if available for debugging
-    if (data.articles && data.articles.length > 0) {
-      console.log(`[NewsAPI] First article: ${data.articles[0].title?.substring(0, 60)}...`);
-    } else if (data.status === 'ok') {
-      console.warn('[NewsAPI] ⚠️ Status is ok but no articles returned!');
-    }
-
-    // Handle NewsAPI errors
     if (!response.ok) {
-      console.error('[NewsAPI] Error response:', response.status, JSON.stringify(data, null, 2));
-      
-      let errorMessage = data.message || data.error || 'NewsAPI error';
-      let errorDetails = data;
-
-      // Handle specific error cases
-      if (response.status === 401 || errorMessage.includes('API key') || errorMessage.includes('Invalid API key')) {
-        errorMessage = 'Invalid NewsAPI key. The API key may be incorrect or expired.';
-        errorDetails = {
-          hint: 'Check your API key at https://newsapi.org/account',
-          check: 'Make sure the API key is correct and active'
-        };
-      } else if (response.status === 429) {
-        errorMessage = 'NewsAPI rate limit exceeded. Please wait a moment and try again.';
-        errorDetails = {
-          hint: 'Free tier allows 100 requests per day',
-          check: 'Wait a few minutes before retrying or upgrade your plan'
-        };
-      } else if (response.status === 426) {
-        errorMessage = 'NewsAPI upgrade required. Your plan does not support this request.';
-        errorDetails = {
-          hint: 'Some endpoints require a paid plan',
-          check: 'Check your plan at https://newsapi.org/pricing'
-        };
+      console.error('[NewsAPI] Provider status:', response.status);
+      if (response.status === 401) {
+        return res.status(503).json({ error: 'API is not configured', code: 'invalid_key' });
       }
-
-      return res.status(response.status).json({
-        error: errorMessage,
-        status: response.status
-      });
-    }
-    
-    // Check if status is 'ok' in response
-    if (data.status && data.status !== 'ok') {
-      console.warn('[NewsAPI] Non-ok status:', data.status, data);
+      if (response.status === 429) {
+        return res.status(429).json({ error: 'Quota reached', code: 'quota_exceeded' });
+      }
+      return res.status(502).json({ error: 'Service temporarily unavailable', code: 'provider_error' });
     }
 
-    // Check if we got articles
     let articles = data.articles || [];
     let totalResults = data.totalResults || 0;
-    
-    // FALLBACK: If top-headlines returns 0 articles for India, try everything endpoint
+
     if (mode === 'top' && articles.length === 0 && country === 'in') {
-      console.log('[NewsAPI] Top-headlines returned 0 articles for India, trying everything endpoint...');
-      
       const fallbackParams = new URLSearchParams({
         apiKey,
         language: 'en',
         page: String(page),
         pageSize: String(pageSize),
-        sortBy: 'publishedAt'
+        sortBy: 'publishedAt',
+        q: category ? `india ${category}` : 'india'
       });
-      
-      // Build query based on category or general India news
-      let query = 'india';
-      if (category) {
-        query = `india ${category}`;
-      }
-      fallbackParams.append('q', query);
-      
-      const fallbackUrl = `https://newsapi.org/v2/everything?${fallbackParams.toString()}`;
-      console.log('[NewsAPI] Trying everything-endpoint fallback for India');
-      
       try {
-        const fallbackResponse = await fetch(fallbackUrl, {
+        const fallbackResponse = await fetch(`https://newsapi.org/v2/everything?${fallbackParams.toString()}`, {
           method: 'GET',
           headers: {
             'User-Agent': 'AegisDesk-NewsHub/1.0',
-            'Accept': 'application/json'
+            Accept: 'application/json'
           }
         });
-        
-        const fallbackData = await fallbackResponse.json();
-        console.log(`[NewsAPI] Fallback response: ${fallbackData.articles?.length || 0} articles`);
-        
+        const fallbackData = await fallbackResponse.json().catch(() => ({}));
         if (fallbackData.articles && fallbackData.articles.length > 0) {
           articles = fallbackData.articles;
           totalResults = fallbackData.totalResults || 0;
-          console.log('[NewsAPI] ✅ Fallback successful!');
         }
-      } catch (fallbackError) {
-        console.error('[NewsAPI] Fallback failed:', fallbackError);
+      } catch (_) {
+        /* keep original empty result */
       }
     }
-    
-    console.log(`[NewsAPI] Final result: ${articles.length} articles, ${totalResults} total results`);
-    
-    // Log first article title if available for debugging
-    if (articles.length > 0) {
-      console.log(`[NewsAPI] Sample article: ${articles[0].title?.substring(0, 60)}...`);
-    } else {
-      console.warn('[NewsAPI] ⚠️ No articles returned! Response status:', data.status);
-    }
-    
-    // Success response - ensure we always return an array
+
+    const normalized = normalizeArticles(articles);
     return res.status(200).json({
       status: data.status || 'ok',
       totalResults: totalResults || 0,
-      articles: articles || [],
-      page: page,
-      pageSize: pageSize,
+      articles: normalized,
+      page,
+      pageSize,
       totalPages: totalResults > 0 ? Math.ceil(totalResults / pageSize) : 0
     });
-
   } catch (error) {
-    console.error('NewsAPI proxy error:', error);
-    
-    // Handle timeout
-    if (error.name === 'AbortError' || error.message.includes('timeout')) {
-      return res.status(504).json({ 
-        error: 'Request timeout. NewsAPI is taking too long to respond. Please try again.',
-        message: 'Timeout after 30 seconds'
-      });
-    }
-    
-    return res.status(500).json({ 
-      error: 'Failed to communicate with NewsAPI'
+    console.error('NewsAPI proxy error:', error?.name || 'request_failed');
+    return res.status(502).json({
+      error: 'Network error',
+      code: 'network_error'
     });
   }
 }

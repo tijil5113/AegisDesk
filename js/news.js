@@ -2,9 +2,10 @@
 class PremiumNewsHub {
     constructor() {
         // API Configuration - Direct call with CORS proxy (no server needed!)
-        this.apiKey = '';
-        this.useCorsProxy = true; // Use CORS proxy to avoid server
-        this.corsProxy = 'https://api.allorigins.win/raw?url='; // Free CORS proxy
+        this.apiKey = ''; // unused; keys stay on the server
+        // Legacy CORS proxy list kept for unused helper methods below. Production uses /api/news.
+        this.useCorsProxy = false;
+        this.corsProxy = 'https://api.allorigins.win/raw?url=';
         
         // State Management
         this.currentCategory = 'all';
@@ -575,150 +576,50 @@ class PremiumNewsHub {
     }
     
     async fetchNews(mode = 'top', params = {}) {
-        // Build NewsAPI URL directly (no server needed!)
         const page = params.page || this.currentPage || 1;
         const pageSize = params.pageSize || this.pageSize;
         const language = params.language || 'en';
-        
-        let apiUrl = '';
-        const urlParams = new URLSearchParams({
-            apiKey: this.apiKey,
-            language: language,
-            page: String(page),
-            pageSize: String(pageSize)
-        });
-        
-        // Build URL based on mode
-        if (mode === 'top' || mode === 'top-headlines') {
-            apiUrl = 'https://newsapi.org/v2/top-headlines';
-            if (params.country) urlParams.append('country', params.country);
-            if (params.category) urlParams.append('category', params.category);
-        } else {
-            // Use 'everything' endpoint for India (top-headlines doesn't work)
-            apiUrl = 'https://newsapi.org/v2/everything';
-            if (params.q) {
-                urlParams.append('q', params.q);
-            } else if (this.searchQuery) {
-                urlParams.append('q', this.searchQuery);
-            } else {
-                urlParams.append('q', 'india'); // Default query
-            }
-            const sortBy = this.filters.sort === 'latest' ? 'publishedAt' : 
-                         this.filters.sort === 'popular' ? 'popularity' : 'relevancy';
-            urlParams.append('sortBy', sortBy);
-        }
-        
-        const fullUrl = `${apiUrl}?${urlParams.toString()}`;
-        
-        // Check cache
-        const cacheKey = `${mode}_${fullUrl}`;
+        const body = {
+            mode: (mode === 'top' || mode === 'top-headlines') ? 'top' : 'everything',
+            language,
+            page,
+            pageSize
+        };
+        if (params.country) body.country = params.country;
+        if (params.category) body.category = params.category;
+        if (params.q) body.q = params.q;
+        else if (this.searchQuery) body.q = this.searchQuery;
+        else if (body.mode === 'everything') body.q = 'india';
+
+        const cacheKey = `${mode}_${JSON.stringify(body)}`;
         const cached = this.cache.get(cacheKey);
         if (cached && Date.now() - cached.timestamp < this.cacheDuration) {
-            this.debug.lastRequest = { mode, url: fullUrl };
+            this.debug.lastRequest = { mode, via: '/api/news' };
             this.debug.lastResponse = { cached: true, articles: cached.data.length };
             return cached.data;
         }
-        
+
         try {
-            // Save request for debug
-            this.debug.lastRequest = { mode, url: fullUrl };
+            this.debug.lastRequest = { mode, via: '/api/news' };
             this.debug.lastError = null;
-            
-            console.log('[News] Fetching directly from NewsAPI:', fullUrl.substring(0, 100) + '...');
-            
-            // Call NewsAPI through CORS proxy
-            let response;
-            try {
-                const proxyUrl = this.corsProxy + encodeURIComponent(fullUrl);
-                response = await fetch(proxyUrl, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-            } catch (fetchError) {
-                console.error('[News] Fetch error:', fetchError);
-                // Try without proxy as fallback
-                try {
-                    console.log('[News] Trying direct fetch without proxy...');
-                    response = await fetch(fullUrl);
-                } catch (directError) {
-                    throw new Error(`Cannot fetch news: ${fetchError.message}. Using CORS proxy.`);
-                }
-            }
-            
-            console.log('[News] Response status:', response.status, response.statusText);
-            
-            let data;
-            try {
-                const text = await response.text();
-                console.log('[News] Response received, length:', text.length);
-                data = JSON.parse(text);
-            } catch (parseError) {
-                console.error('[News] JSON parse error:', parseError);
-                throw new Error(`Invalid response: ${parseError.message}`);
-            }
-            console.log('[News] Response data:', { 
-                status: data.status, 
-                totalResults: data.totalResults, 
-                articlesCount: data.articles?.length || 0 
+            const response = await fetch('/api/news', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify(body)
             });
-            
-            // Handle errors
-            if (!response.ok || data.error) {
-                const error = {
-                    status: response.status,
-                    message: data.error || `HTTP ${response.status}`,
-                    details: data.details
-                };
-                this.debug.lastError = error;
-                console.error('[News] API Error:', error);
-                throw new Error(data.error || `API error: ${response.status}`);
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                const msg = data.error || data.message || 'Service temporarily unavailable';
+                throw new Error(response.status === 503 ? 'API is not configured' : msg);
             }
-            
-            // Extract articles and metadata
-            const articles = Array.isArray(data.articles) ? data.articles : [];
-            this.totalResults = data.totalResults || 0;
-            this.totalPages = data.totalPages || Math.ceil(this.totalResults / this.pageSize);
-            
-            console.log('[News] Processed:', { 
-                articles: articles.length, 
-                totalResults: this.totalResults, 
-                currentPage: this.currentPage,
-                totalPages: this.totalPages 
-            });
-            
-            // Update hasMore based on pagination
-            this.hasMore = articles.length > 0 && 
-                          this.currentPage < this.totalPages && 
-                          this.currentPage < this.maxPages;
-            
-            // Cache results
-            if (articles.length > 0) {
-                this.cache.set(cacheKey, {
-                    data: articles,
-                    timestamp: Date.now()
-                });
-            }
-            
-            // Save response for debug
-            this.debug.lastResponse = {
-                status: data.status || 'unknown',
-                totalResults: data.totalResults || 0,
-                articles: articles.length,
-                page: data.page || this.currentPage,
-                totalPages: data.totalPages || this.totalPages
-            };
-            
+            const articles = data.articles || [];
+            this.cache.set(cacheKey, { data: articles, timestamp: Date.now() });
+            this.debug.lastResponse = { articles: articles.length };
             return articles;
         } catch (error) {
-            console.error(`[News] Error fetching (${mode}):`, error);
-            this.debug.lastError = {
-                message: error.message || String(error),
-                status: error.status || 'Network Error',
-                stack: error.stack
-            };
-            throw error;
+            this.debug.lastError = error.message;
+            throw new Error(error.message === 'Failed to fetch' ? 'Network error' : error.message);
         }
     }
     

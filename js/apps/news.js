@@ -14,8 +14,8 @@ class NewsApp {
         
         // Multiple API keys for fallback
         this.apiKeys = {
-            newsapi: 'server', // NewsAPI.org key lives on the server (NEWS_API_KEY)
-            mediastack: 'YOUR_MEDIASTACK_KEY', // Optional: Get from https://mediastack.com/signup
+            newsapi: 'server',
+            mediastack: 'YOUR_MEDIASTACK_KEY',
         };
         
         // Tamil Nadu specific news sources

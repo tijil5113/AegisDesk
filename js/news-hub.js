@@ -1,7 +1,7 @@
 // Complete News Hub - All Categories News Reader
 class NewsHub {
     constructor() {
-        this.apiKey = '';
+        this.apiKey = ''; // unused; production uses POST /api/gnews then POST /api/news
         this.currentLanguage = 'en';
         this.currentCategory = 'all';
         this.categories = [
@@ -109,23 +109,42 @@ class NewsHub {
         }
 
         try {
-            // Fetch from NewsAPI
-            const url = `https://newsapi.org/v2/top-headlines?country=in&category=${category}&pageSize=20&apiKey=${this.apiKey}`;
-            
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`API error: ${response.status}`);
+            const gnewsRes = await fetch('/api/gnews', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    mode: category === 'general' ? 'top' : 'category',
+                    topic: category === 'general' ? undefined : (category === 'science' ? 'science' : category),
+                    lang: this.currentLanguage || 'en',
+                    country: 'in',
+                    max: 20
+                })
+            });
+            const gnewsData = await gnewsRes.json().catch(() => ({}));
+            if (gnewsRes.ok && gnewsData.articles) {
+                const articles = gnewsData.articles;
+                this.cache[cacheKey] = { data: articles, timestamp: Date.now() };
+                this.newsData[category] = articles;
+                return articles;
             }
-
-            const data = await response.json();
+            const newsRes = await fetch('/api/news', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    mode: 'top',
+                    country: 'in',
+                    category,
+                    pageSize: 20
+                })
+            });
+            const data = await newsRes.json().catch(() => ({}));
+            if (!newsRes.ok) {
+                throw new Error(data.error || 'Service temporarily unavailable');
+            }
             const articles = data.articles || [];
-
-            // Cache the results
-            this.cache[cacheKey] = {
-                data: articles,
-                timestamp: Date.now()
-            };
-
+            this.cache[cacheKey] = { data: articles, timestamp: Date.now() };
             this.newsData[category] = articles;
             return articles;
         } catch (error) {

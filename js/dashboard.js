@@ -285,7 +285,7 @@ class Dashboard {
             briefing += 'Have a productive day!';
             
             // Use AI to enhance if available
-            if (typeof aiSystem !== 'undefined' && aiSystem.apiKey) {
+            if (typeof aiSystem !== 'undefined' && aiSystem.getAIResponse) {
                 try {
                     const enhanced = await this.enhanceBriefing(briefing, { tasks, notes, weather });
                     container.innerHTML = `<div class="dashboard-briefing-text">${enhanced}</div>`;
@@ -303,7 +303,7 @@ class Dashboard {
     }
 
     async enhanceBriefing(briefing, context) {
-        if (!aiSystem || !aiSystem.apiKey) return briefing;
+        if (!aiSystem || !aiSystem.getAIResponse) return briefing;
         
         const prompt = `Generate a brief, friendly daily briefing based on this information: ${briefing}. Make it natural and encouraging. Keep it under 150 words.`;
         

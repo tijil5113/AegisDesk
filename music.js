@@ -1,8 +1,9 @@
 // AegisDesk Music System - Premium YouTube Music Experience
 class MusicSystem {
     constructor() {
-        this.apiKey = this.getAPIKey();
-        this.baseURL = 'https://www.googleapis.com/youtube/v3';
+        // Legacy MusicSystem: production path is POST /api/music (see music.html + youtubeSearchAPI.js).
+        this.apiKey = '';
+        this.baseURL = '/api/music';
         this.currentTrack = null;
         this.queue = [];
         this.currentQueueIndex = -1;
@@ -53,11 +54,6 @@ class MusicSystem {
     }
     
     getAPIKey() {
-        // Try to get from storage
-        if (typeof storage !== 'undefined') {
-            return storage.get('youtube_api_key', '');
-        }
-        // Fallback: user should add their own key
         return '';
     }
     
@@ -162,23 +158,28 @@ class MusicSystem {
         });
     }
     
-    async searchYouTube(query, maxResults = 20, type = 'video') {
-        if (!this.apiKey) {
-            console.warn('YouTube API key not set');
-            return [];
-        }
-        
+    async searchYouTube(query, maxResults = 20) {
         try {
-            const response = await fetch(
-                `${this.baseURL}/search?part=snippet&q=${encodeURIComponent(query)}&type=${type}&maxResults=${maxResults}&key=${this.apiKey}`
-            );
-            
+            const response = await fetch('/api/music', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ type: 'search', query: String(query || '').slice(0, 200), maxResults })
+            });
+            const data = await response.json().catch(() => ({}));
             if (!response.ok) {
-                throw new Error(`API error: ${response.status}`);
+                console.warn('YouTube search:', data.error || 'Service temporarily unavailable');
+                return [];
             }
-            
-            const data = await response.json();
-            return this.formatSearchResults(data.items || []);
+            return (data.items || []).map((item) => ({
+                id: item.videoId,
+                title: item.title,
+                artist: item.artist,
+                thumbnail: item.thumbnail,
+                duration: item.duration,
+                publishedAt: item.publishedAt,
+                description: ''
+            }));
         } catch (error) {
             console.error('YouTube search error:', error);
             return [];
@@ -186,19 +187,26 @@ class MusicSystem {
     }
     
     async getTrendingMusic(regionCode = 'IN', maxResults = 20) {
-        if (!this.apiKey) return [];
-        
         try {
-            const response = await fetch(
-                `${this.baseURL}/videos?part=snippet,contentDetails,statistics&chart=mostPopular&regionCode=${regionCode}&videoCategoryId=10&maxResults=${maxResults}&key=${this.apiKey}`
-            );
-            
+            const response = await fetch('/api/music', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ type: 'trending', region: regionCode, maxResults })
+            });
+            const data = await response.json().catch(() => ({}));
             if (!response.ok) {
-                throw new Error(`API error: ${response.status}`);
+                console.warn('YouTube trending:', data.error || 'Service temporarily unavailable');
+                return [];
             }
-            
-            const data = await response.json();
-            return this.formatVideoResults(data.items || []);
+            return (data.items || []).map((item) => ({
+                id: item.videoId,
+                title: item.title,
+                artist: item.artist,
+                thumbnail: item.thumbnail,
+                duration: item.duration,
+                publishedAt: item.publishedAt
+            }));
         } catch (error) {
             console.error('Trending music error:', error);
             return [];

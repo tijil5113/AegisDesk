@@ -854,14 +854,15 @@
             var opts = {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
                 body: JSON.stringify({ messages: messages })
             };
             return fetch(url, opts).then(function (r) {
                 return r.text().then(function (text) {
                     var data;
                     try { data = text ? JSON.parse(text) : {}; } catch (_) {
-                        if (r.status === 404) throw new Error('API not found. Deploy as Web Service (not Static Site) on Render.');
-                        throw new Error('Server returned invalid response. Ensure OPENAI_API_KEY or OPEN_API is set in Render Environment.');
+                        if (r.status === 404) throw new Error('API is not configured');
+                        throw new Error('Service temporarily unavailable');
                     }
                     return { ok: r.ok, data: data };
                 });
@@ -911,7 +912,7 @@
             }).catch(function (e) {
                 var msg = e.message || 'Request failed.';
                 if (msg.indexOf('fetch') !== -1 || msg.indexOf('Failed to fetch') !== -1 || msg.indexOf('NetworkError') !== -1) {
-                    msg = 'Could not reach AI. Deploy as Web Service on Render (not Static Site). Set OPENAI_API_KEY or OPEN_API in Render Environment Variables.';
+                    msg = 'Network error';
                 }
                 self.writeConsole('AI error: ' + msg);
             });
@@ -950,7 +951,7 @@
                 if (typingEl) typingEl.style.display = 'none';
                 var msg = e.message || 'Request failed.';
                 if (msg.indexOf('fetch') !== -1 || msg.indexOf('Failed to fetch') !== -1 || msg.indexOf('NetworkError') !== -1) {
-                    msg = 'Could not reach AI. Deploy as Web Service on Render (not Static Site). Set OPENAI_API_KEY or OPEN_API in Render Environment Variables.';
+                    msg = 'Network error';
                 }
                 msgs.innerHTML += '<div class="ide-ai-msg assistant error">' + self.escapeHtml(msg) + '</div>';
                 msgs.scrollTop = msgs.scrollHeight;

@@ -87,6 +87,13 @@ app.post('/api/music', corsFor('POST, OPTIONS'), requireGateIfConfigured, wrap(m
 app.options('/api/mail/*', (req, res) => handlePreflight(req, res, 'GET, POST, OPTIONS'));
 app.all('/api/mail/*', corsFor('GET, POST, OPTIONS'), requireGateIfConfigured, wrap(mailHandler));
 
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    service: 'AegisDesk'
+  });
+});
+
 app.get('/api/test', (req, res) => {
   res.json({
     status: 'ok',
@@ -98,8 +105,7 @@ app.get('/api/test', (req, res) => {
 app.get('/api/music/test', (req, res) => {
   res.json({
     status: 'ok',
-    message: 'Music API endpoint is available',
-    apiKey: process.env.YOUTUBE_API_KEY ? 'Set' : 'Missing'
+    message: 'Music API endpoint is available'
   });
 });
 
