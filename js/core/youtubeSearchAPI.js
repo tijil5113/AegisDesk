@@ -54,7 +54,7 @@ class YouTubeSearchAPI {
                 videoId: video.videoId,
                 title: video.title,
                 thumbnail: video.thumbnail,
-                audioUrl: `https://www.youtube.com/watch?v=${video.videoId}`
+                audioUrl: video.videoId
             };
         }
         return null;

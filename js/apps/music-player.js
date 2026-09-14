@@ -6,19 +6,22 @@ class MusicPlayerApp {
     }
 
     open() {
-        // Check if we're in desktop mode or standalone
         if (typeof windowManager !== 'undefined') {
-            // Open as window in desktop
             this.openAsWindow();
         } else {
-            // Open as standalone page
             this.openAsStandalone();
         }
     }
-    
+
     openAsWindow() {
+        const existing = windowManager.windows.get(this.windowId);
+        if (existing) {
+            windowManager.focusWindow(existing);
+            return existing;
+        }
+
         const content = this.renderWindowContent();
-        const window = windowManager.createWindow(this.windowId, {
+        const win = windowManager.createWindow(this.windowId, {
             title: 'Music',
             width: 1200,
             height: 800,
@@ -31,49 +34,41 @@ class MusicPlayerApp {
             content: content
         });
 
-        this.attachWindowEvents(window);
-        this.loadMusicSystem(window);
+        this.attachWindowEvents();
+        return win;
     }
-    
+
     openAsStandalone() {
-        // Redirect to music.html
         window.location.href = 'music.html';
     }
-    
+
     renderWindowContent() {
         return `
             <div class="music-window-container">
-                <iframe src="music.html" frameborder="0" style="width: 100%; height: 100%; border: none;"></iframe>
+                <iframe src="music.html" title="Music" style="width: 100%; height: 100%; border: none;"></iframe>
             </div>
         `;
     }
-    
-    attachWindowEvents(window) {
-        // Window-specific events can be added here
-        // The iframe will handle its own events
-    }
-    
-    loadMusicSystem(window) {
-        // The music system is loaded in the iframe
-        // We can communicate via postMessage if needed
-        window.addEventListener('message', (event) => {
-            if (event.data.type === 'music-track-change') {
+
+    attachWindowEvents() {
+        if (this._messageBound) return;
+        this._messageBound = true;
+        globalThis.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'music-track-change') {
                 this.updateTaskbarInfo(event.data.track);
             }
         });
     }
-    
+
     updateTaskbarInfo(track) {
         if (!track) return;
-        
-        // Update taskbar icon tooltip
-        const taskbarIcon = document.querySelector('.taskbar-icon[data-app="music-player"]');
+
+        const taskbarIcon = document.querySelector('.taskbar-icon[data-app="music"], .taskbar-icon[data-app="music-player"]');
         if (taskbarIcon) {
             taskbarIcon.title = `Music: ${track.title} - ${track.artist}`;
             taskbarIcon.classList.add('running');
         }
-        
-        // Update window title
+
         const musicWindow = windowManager?.windows.get(this.windowId);
         if (musicWindow) {
             const titleEl = musicWindow.querySelector('.window-title');
@@ -85,3 +80,4 @@ class MusicPlayerApp {
 }
 
 const musicPlayerApp = new MusicPlayerApp();
+window.musicPlayerApp = musicPlayerApp;

@@ -350,6 +350,32 @@ const APP_REGISTRY = {
             }
         }
     },
+    'music': {
+        title: 'Music',
+        iconSVG: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="musicGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#1db954;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            <circle cx="12" cy="12" r="10" fill="url(#musicGradient)" opacity="0.95"/>
+            <path d="M10 16.5V8l8-1.5v8.2" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <circle cx="8.5" cy="16.5" r="2.2" fill="white"/>
+            <circle cx="16.5" cy="14.7" r="2.2" fill="white"/>
+            <ellipse cx="9" cy="8" rx="3" ry="1.5" fill="white" opacity="0.2"/>
+        </svg>`,
+        open: function() {
+            if (typeof musicPlayerApp !== 'undefined' && musicPlayerApp) {
+                musicPlayerApp.open();
+            } else if (typeof window !== 'undefined' && window.musicPlayerApp) {
+                window.musicPlayerApp.open();
+            } else {
+                console.error('Music app not loaded. Make sure music-player.js is included.');
+                alert('Music is not available. Please refresh the page.');
+            }
+        }
+    },
     'bookmarks': {
         title: 'Bookmarks',
         iconSVG: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

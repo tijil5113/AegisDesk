@@ -540,7 +540,7 @@ class AdvancedTerminalApp {
                 break;
             case 'open':
                 if (['notes', 'tasks', 'code-editor', 'news', 'music', 'weather', 'settings', 'ai-chat'].includes((args[0] || '').toLowerCase())) {
-                    this.openApp(engine, (args[0] || '').toLowerCase().replace('music', 'music-player'));
+                    this.openApp(engine, (args[0] || '').toLowerCase());
                 } else {
                     this.openApp(engine, args[0]);
                 }
@@ -559,7 +559,7 @@ class AdvancedTerminalApp {
                 this.openApp(engine, 'news');
                 break;
             case 'music':
-                this.openApp(engine, 'music-player');
+                this.openApp(engine, 'music');
                 break;
             case 'weather':
                 this.openApp(engine, 'weather');
@@ -910,7 +910,7 @@ class AdvancedTerminalApp {
                 engine.writeln(`\x1b[32m✓ Opening ${appName}...\x1b[0m`);
             } else {
                 engine.writeln(`\x1b[31m✗ App not found: ${appName}\x1b[0m`);
-                engine.writeln(`Available apps: news, music-player, tasks, notes, weather, ai-chat, code-editor`);
+                engine.writeln(`Available apps: news, music, tasks, notes, weather, ai-chat, code-editor`);
             }
         } else {
             engine.writeln(`\x1b[33m⚠ Window manager not available\x1b[0m`);

@@ -3,6 +3,8 @@ class MusicPage {
     constructor() {
         this.unsubscribe = null;
         this.debugMode = false;
+        this.lastSearchQuery = '';
+        this.searchGeneration = 0;
         
         // Wait for DOM
         if (document.readyState === 'loading') {
@@ -69,8 +71,13 @@ class MusicPage {
             window.youtubePlayer.onTimeUpdate((data) => {
                 this.updateProgressBar(data);
             });
+            if (window.youtubePlayer.onError) {
+                window.youtubePlayer.onError(() => {
+                    this.showError('This video could not be played. Try another track.');
+                });
+            }
         }
-        
+
         // Connect to audio player
         if (window.audioPlayer) {
             window.audioPlayer.onPlay(() => {
@@ -133,21 +140,51 @@ class MusicPage {
             }
         });
         
-        // Search
+        // Search → POST /api/music via youtubeSearchAPI
         const searchInput = document.querySelector('.music-search-input');
+        const searchClear = document.querySelector('.music-search-clear');
         if (searchInput) {
             let searchTimeout;
             searchInput.addEventListener('input', (e) => {
                 clearTimeout(searchTimeout);
                 const query = e.target.value.trim();
+                if (searchClear) {
+                    searchClear.style.display = query ? 'block' : 'none';
+                }
                 if (query.length > 2) {
                     searchTimeout = setTimeout(() => {
-                        // TODO: Implement search
-                        console.log('Search:', query);
+                        this.performSearch(query);
                     }, 500);
+                } else {
+                    this.hideSearchResults();
+                }
+            });
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    clearTimeout(searchTimeout);
+                    const query = e.target.value.trim();
+                    if (query) this.performSearch(query);
                 }
             });
         }
+        document.querySelector('.music-search-submit')?.addEventListener('click', () => {
+            const query = searchInput?.value.trim();
+            if (query) this.performSearch(query);
+        });
+        searchClear?.addEventListener('click', () => {
+            if (searchInput) searchInput.value = '';
+            if (searchClear) searchClear.style.display = 'none';
+            this.hideSearchResults();
+        });
+        const errorBanner = document.getElementById('error-banner');
+        errorBanner?.querySelector('.error-retry')?.addEventListener('click', () => {
+            this.hideError();
+            if (this.lastSearchQuery) this.performSearch(this.lastSearchQuery);
+        });
+        errorBanner?.querySelector('.error-close')?.addEventListener('click', () => {
+            this.hideError();
+        });
         
         // Language tabs
         document.querySelectorAll('.language-tab').forEach(tab => {
@@ -170,25 +207,13 @@ class MusicPage {
         // Next
         document.querySelector('.player-next-btn')?.addEventListener('click', () => {
             const track = window.musicStore.nextTrack();
-            if (track) {
-                if (track.videoId && track.audioUrl === track.videoId && window.youtubePlayer) {
-                    window.youtubePlayer.play(track.videoId);
-                } else if (window.audioPlayer) {
-                    window.audioPlayer.play(track);
-                }
-            }
+            if (track) this.playTrackMedia(track);
         });
         
         // Previous
         document.querySelector('.player-prev-btn')?.addEventListener('click', () => {
             const track = window.musicStore.previousTrack();
-            if (track) {
-                if (track.videoId && track.audioUrl === track.videoId && window.youtubePlayer) {
-                    window.youtubePlayer.play(track.videoId);
-                } else if (window.audioPlayer) {
-                    window.audioPlayer.play(track);
-                }
-            }
+            if (track) this.playTrackMedia(track);
         });
         
         // Shuffle
@@ -212,12 +237,16 @@ class MusicPage {
         if (progressBar) {
             progressBar.addEventListener('input', (e) => {
                 const state = window.musicStore.getState();
-                if (state.currentTrack && window.audioPlayer) {
-                    const progress = parseFloat(e.target.value);
+                if (!state.currentTrack) return;
+                const progress = parseFloat(e.target.value);
+                if (this.isYouTubeTrack(state.currentTrack) && window.youtubePlayer) {
+                    const duration = window.youtubePlayer.duration || 0;
+                    if (duration > 0) window.youtubePlayer.seekTo((progress / 100) * duration);
+                    return;
+                }
+                if (window.audioPlayer) {
                     const duration = window.audioPlayer.getDuration() || 0;
-                    if (duration > 0) {
-                        window.audioPlayer.seekTo((progress / 100) * duration);
-                    }
+                    if (duration > 0) window.audioPlayer.seekTo((progress / 100) * duration);
                 }
             });
         }
@@ -228,6 +257,9 @@ class MusicPage {
             volumeBar.addEventListener('input', (e) => {
                 const volume = parseFloat(e.target.value);
                 window.musicStore.setVolume(volume);
+                if (window.youtubePlayer) {
+                    window.youtubePlayer.setVolume(volume);
+                }
                 if (window.audioPlayer) {
                     window.audioPlayer.setVolume(volume);
                 }
@@ -235,21 +267,117 @@ class MusicPage {
         }
     }
     
-    handleTrackClick(track, cardElement) {
-        console.log('▶️ Track clicked:', track);
-        
-        // Update store
-        window.musicStore.playTrack(track);
-        window.musicStore.addToQueue(track);
-        
-        // Play in appropriate player
-        if (track.videoId && track.audioUrl === track.videoId && window.youtubePlayer) {
-            // YouTube video
+    isYouTubeTrack(track) {
+        return Boolean(track && track.videoId);
+    }
+
+    playTrackMedia(track) {
+        if (!track) return;
+        if (this.isYouTubeTrack(track) && window.youtubePlayer) {
             window.youtubePlayer.play(track.videoId);
-        } else if (window.audioPlayer) {
-            // Direct audio URL
+            return;
+        }
+        if (window.audioPlayer) {
             window.audioPlayer.play(track);
         }
+    }
+
+    handleTrackClick(track) {
+        const playable = {
+            ...track,
+            audioUrl: track.audioUrl || track.videoId
+        };
+        window.musicStore.playTrack(playable);
+        window.musicStore.addToQueue(playable);
+        this.playTrackMedia(playable);
+    }
+
+    async performSearch(query) {
+        const q = String(query || '').trim();
+        if (!q || !window.youtubeSearchAPI) return;
+
+        this.lastSearchQuery = q;
+        const generation = ++this.searchGeneration;
+        this.hideError();
+        this.showSearchLoading();
+
+        const language = document.querySelector('.language-tab.active')?.dataset.language || 'all';
+        const result = await window.youtubeSearchAPI.search(q, { maxResults: 20, language });
+
+        if (generation !== this.searchGeneration || result.aborted) {
+            return;
+        }
+
+        if (result.error) {
+            this.renderSearchResults([]);
+            this.showError(result.error);
+            return;
+        }
+
+        const tracks = (result.items || []).map((item) => ({
+            videoId: item.videoId,
+            title: item.title,
+            artist: item.artist || item.channelTitle,
+            thumbnail: item.thumbnail,
+            audioUrl: item.videoId,
+            publishedAt: item.publishedAt
+        })).filter((item) => item.videoId);
+
+        this.renderSearchResults(tracks);
+        if (tracks.length === 0) {
+            this.showNoResults();
+        }
+    }
+
+    showSearchLoading() {
+        const container = document.querySelector('.search-results-container');
+        const list = document.querySelector('.search-results');
+        const content = document.querySelector('.music-content');
+        if (container) container.style.display = 'block';
+        if (content) content.style.display = 'none';
+        if (list) list.innerHTML = '<div class="loading-skeleton"></div>';
+    }
+
+    renderSearchResults(tracks) {
+        const container = document.querySelector('.search-results-container');
+        const list = document.querySelector('.search-results');
+        const content = document.querySelector('.music-content');
+        if (container) container.style.display = 'block';
+        if (content) content.style.display = 'none';
+        if (!list) return;
+        if (!tracks.length) {
+            list.innerHTML = '';
+            return;
+        }
+        list.innerHTML = tracks.map((track) => this.renderTrackCard(track)).join('');
+    }
+
+    showNoResults() {
+        const list = document.querySelector('.search-results');
+        if (list) {
+            list.innerHTML = '<div class="empty-state"><p>No results found</p></div>';
+        }
+    }
+
+    hideSearchResults() {
+        this.searchGeneration += 1;
+        const container = document.querySelector('.search-results-container');
+        const content = document.querySelector('.music-content');
+        if (container) container.style.display = 'none';
+        if (content) content.style.display = 'block';
+    }
+
+    showError(message) {
+        const banner = document.getElementById('error-banner');
+        if (!banner) return;
+        const msg = banner.querySelector('.error-message');
+        if (msg) msg.textContent = message || 'Service temporarily unavailable';
+        banner.style.display = 'flex';
+    }
+
+    hideError() {
+        const banner = document.getElementById('error-banner');
+        if (banner) banner.style.display = 'none';
     }
     
     togglePlayPause() {
@@ -266,7 +394,7 @@ class MusicPage {
         } else {
             if (state.currentTrack) {
                 window.musicStore.resume();
-                if (state.currentTrack.videoId && state.currentTrack.audioUrl === state.currentTrack.videoId && window.youtubePlayer) {
+                if (this.isYouTubeTrack(state.currentTrack) && window.youtubePlayer) {
                     window.youtubePlayer.resume();
                 } else if (window.audioPlayer) {
                     window.audioPlayer.resume();
@@ -275,11 +403,7 @@ class MusicPage {
                 window.musicStore.currentIndex = 0;
                 const track = state.queue[0];
                 window.musicStore.playTrack(track);
-                if (track.videoId && track.audioUrl === track.videoId && window.youtubePlayer) {
-                    window.youtubePlayer.play(track.videoId);
-                } else if (window.audioPlayer) {
-                    window.audioPlayer.play(track);
-                }
+                this.playTrackMedia(track);
             }
         }
     }

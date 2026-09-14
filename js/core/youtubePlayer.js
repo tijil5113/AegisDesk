@@ -66,8 +66,7 @@ class YouTubePlayer {
         }
         
         console.log('🎵 Creating YouTube player...');
-        
-        // Ensure container exists
+
         let container = document.getElementById('youtube-player-container');
         if (!container) {
             container = document.createElement('div');
@@ -75,11 +74,14 @@ class YouTubePlayer {
             container.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none';
             document.body.appendChild(container);
         }
-        
+
+        const inPlayerBar = Boolean(container.closest('.music-player-bar'));
+        const playerSize = inPlayerBar ? '80' : '1';
+
         try {
             this.player = new YT.Player('youtube-player-container', {
-                height: '1',
-                width: '1',
+                height: playerSize,
+                width: playerSize,
                 playerVars: {
                     autoplay: 1,
                     controls: 0,

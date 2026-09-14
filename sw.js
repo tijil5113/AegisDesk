@@ -1,6 +1,6 @@
 // Service Worker for AegisDesk PWA
 // Bump CACHE_VERSION on each production release so old shells are dropped.
-const CACHE_VERSION = 'aegisdesk-v3';
+const CACHE_VERSION = 'aegisdesk-v4';
 const PRECACHE_URLS = [
   '/desktop.html',
   '/welcome.html',

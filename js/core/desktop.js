@@ -389,7 +389,7 @@ class Desktop {
         // For now we render all tiles; grid has contain: paint so scroll is cheap.
 
         // Get app order (preserve existing order from HTML if possible)
-        const appOrder = ['tasks', 'notes', 'weather', 'ai-chat', 'code-editor', 'terminal', 'drawing', 'system-monitor', 'gallery', 'browser', 'bookmarks', 'calculator', 'calendar', 'files', 'settings', 'email', 'system-intelligence', 'news-reader', 'user', 'help'];
+        const appOrder = ['tasks', 'notes', 'weather', 'ai-chat', 'code-editor', 'terminal', 'drawing', 'system-monitor', 'gallery', 'music', 'browser', 'bookmarks', 'calculator', 'calendar', 'files', 'settings', 'email', 'system-intelligence', 'news-reader', 'user', 'help'];
         
         // Render apps from registry (full render; switch to virtualized when appOrder.length > threshold)
         appsGrid.innerHTML = appOrder.map(appId => {
@@ -768,8 +768,10 @@ class Desktop {
                 'codeeditor': 'code-editor',
                 'editor': 'code-editor',
                 'terminal': 'terminal',
-                'music': 'music-player',
-                'musicplayer': 'music-player',
+                'music': 'music',
+                'musicplayer': 'music',
+                'music-player': 'music',
+                'youtube': 'music',
                 'drawing': 'drawing',
                 'draw': 'drawing',
                 'monitor': 'system-monitor',
