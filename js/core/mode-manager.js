@@ -6,7 +6,7 @@ class ModeManager {
             work: {
                 name: 'Work',
                 theme: 'dark',
-                visibleApps: ['tasks', 'notes', 'calendar', 'email', 'code-editor'],
+                visibleApps: ['tasks', 'notes', 'calendar', 'mail', 'email', 'code-editor'],
                 hiddenApps: ['gallery', 'playground'],
                 notificationRules: {
                     allow: ['critical', 'important'],
@@ -19,7 +19,7 @@ class ModeManager {
                 name: 'Study',
                 theme: 'dark',
                 visibleApps: ['notes', 'code-editor', 'browser', 'calculator'],
-                hiddenApps: ['email', 'news'],
+                hiddenApps: ['news'],
                 notificationRules: {
                     allow: ['critical'],
                     block: ['low', 'normal']
@@ -31,7 +31,7 @@ class ModeManager {
                 name: 'Focus',
                 theme: 'dark',
                 visibleApps: ['tasks', 'notes'],
-                hiddenApps: ['email', 'news', 'browser', 'gallery', 'playground'],
+                hiddenApps: ['news', 'browser', 'gallery', 'playground'],
                 notificationRules: {
                     allow: ['critical'],
                     block: ['low', 'normal', 'important']
@@ -43,7 +43,7 @@ class ModeManager {
                 name: 'Chill',
                 theme: 'dark',
                 visibleApps: ['music', 'gallery', 'news', 'browser', 'playground'],
-                hiddenApps: ['email', 'code-editor', 'terminal'],
+                hiddenApps: ['code-editor', 'terminal'],
                 notificationRules: {
                     allow: ['critical', 'important', 'normal'],
                     block: []

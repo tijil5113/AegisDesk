@@ -536,8 +536,8 @@ const APP_REGISTRY = {
             }
         }
     },
-    'email': {
-        title: 'Email',
+    'mail': {
+        title: 'Mail',
         iconSVG: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <linearGradient id="envelopeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -561,8 +561,40 @@ const APP_REGISTRY = {
             <line x1="8" y1="16" x2="16" y2="16" stroke="rgba(37,99,235,0.3)" stroke-width="1" stroke-linecap="round"/>
         </svg>`,
         open: function() {
-            if (typeof emailApp !== 'undefined') {
-                emailApp.createWindow();
+            if (typeof mailApp !== 'undefined' && mailApp && typeof mailApp.open === 'function') {
+                mailApp.open();
+            } else if (typeof window !== 'undefined' && window.mailApp && typeof window.mailApp.open === 'function') {
+                window.mailApp.open();
+            } else {
+                console.error('Mail app not loaded. Make sure mail.js is included.');
+                alert('Mail is not available. Please refresh the page.');
+            }
+        }
+    },
+    'email': {
+        title: 'Email',
+        iconSVG: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="emailEnvelopeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="emailMailGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" fill="url(#emailEnvelopeGradient)"/>
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="0.5"/>
+            <path d="M22 6 L12 13 L2 6" fill="url(#emailMailGradient)" opacity="0.9"/>
+            <rect x="6" y="9" width="12" height="8" rx="0.5" fill="white" opacity="0.9"/>
+            <line x1="8" y1="11" x2="16" y2="11" stroke="rgba(37,99,235,0.3)" stroke-width="1" stroke-linecap="round"/>
+            <line x1="8" y1="13.5" x2="14" y2="13.5" stroke="rgba(37,99,235,0.3)" stroke-width="1" stroke-linecap="round"/>
+            <line x1="8" y1="16" x2="16" y2="16" stroke="rgba(37,99,235,0.3)" stroke-width="1" stroke-linecap="round"/>
+        </svg>`,
+        open: function() {
+            if (typeof APP_REGISTRY !== 'undefined' && APP_REGISTRY.mail && APP_REGISTRY.mail.open) {
+                APP_REGISTRY.mail.open();
             }
         }
     },

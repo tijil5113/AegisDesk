@@ -191,6 +191,8 @@ class GlobalSearch {
             { id: 'open-notes', title: 'Open Notes', command: 'open notes', type: 'command' },
             { id: 'new-note', title: 'New Note', command: 'new note', type: 'command' },
             { id: 'new-task', title: 'New Task', command: 'new task', type: 'command' },
+            { id: 'open-mail', title: 'Open Mail', command: 'open mail', type: 'command' },
+            { id: 'open-email', title: 'Open Email', command: 'open email', type: 'command' },
             { id: 'open-settings', title: 'Open Settings', command: 'open settings', type: 'command' },
             { id: 'open-dashboard', title: 'Open Dashboard', command: 'open dashboard', type: 'command' },
             { id: 'open-insights', title: 'Open Insights', command: 'open insights', type: 'command' }
@@ -210,7 +212,8 @@ class GlobalSearch {
         // Search apps
         this.searchIndex.apps.forEach(app => {
             if (app.title.toLowerCase().includes(lowerQuery) || 
-                app.id.toLowerCase().includes(lowerQuery)) {
+                app.id.toLowerCase().includes(lowerQuery) ||
+                (app.id === 'mail' && (lowerQuery === 'email' || lowerQuery === 'e-mail' || lowerQuery === 'e mail'))) {
                 this.results.push(app);
             }
         });
@@ -454,6 +457,10 @@ class GlobalSearch {
                     const input = document.getElementById('task-input');
                     if (input) input.focus();
                 }, 100);
+            }
+        } else if (cmd.includes('open mail') || cmd.includes('open email')) {
+            if (typeof APP_REGISTRY !== 'undefined' && APP_REGISTRY.mail) {
+                APP_REGISTRY.mail.open();
             }
         } else if (cmd.includes('open settings')) {
             if (typeof settingsApp !== 'undefined') settingsApp.open();

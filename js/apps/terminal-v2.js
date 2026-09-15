@@ -2,7 +2,7 @@
 // Uses TerminalEngine (xterm.js + fallback), VFS, AI, multi-tab, sessions
 
 const TERMINAL_THEMES = ['vs-code-dark', 'dracula', 'nord', 'gruvbox', 'one-dark', 'solarized-dark', 'matrix-green', 'cyberpunk-neon', 'midnight-purple', 'solar-gold', 'retro-amber', 'oled-black'];
-const TERMINAL_COMMANDS = ['help', 'clear', 'echo', 'date', 'whoami', 'pwd', 'ls', 'cd', 'mkdir', 'touch', 'rm', 'mv', 'cp', 'cat', 'open', 'notes', 'tasks', 'code', 'news', 'music', 'weather', 'theme', 'notify', 'workspace', 'history', 'node', 'python', 'ai'];
+const TERMINAL_COMMANDS = ['help', 'clear', 'echo', 'date', 'whoami', 'pwd', 'ls', 'cd', 'mkdir', 'touch', 'rm', 'mv', 'cp', 'cat', 'open', 'notes', 'tasks', 'code', 'news', 'music', 'mail', 'email', 'weather', 'theme', 'notify', 'workspace', 'history', 'node', 'python', 'ai'];
 const TERMINAL_COMMAND_HINTS = {
     help: 'Show all commands', ls: 'List files', cd: 'Change directory', pwd: 'Show current path',
     mkdir: 'Create directory', touch: 'Create file', rm: 'Remove file/dir', mv: 'Move', cp: 'Copy',
@@ -539,7 +539,7 @@ class AdvancedTerminalApp {
                 this.vfsCat(engine, args[0]);
                 break;
             case 'open':
-                if (['notes', 'tasks', 'code-editor', 'news', 'music', 'weather', 'settings', 'ai-chat'].includes((args[0] || '').toLowerCase())) {
+                if (['notes', 'tasks', 'code-editor', 'news', 'music', 'mail', 'email', 'weather', 'settings', 'ai-chat'].includes((args[0] || '').toLowerCase())) {
                     this.openApp(engine, (args[0] || '').toLowerCase());
                 } else {
                     this.openApp(engine, args[0]);
@@ -560,6 +560,10 @@ class AdvancedTerminalApp {
                 break;
             case 'music':
                 this.openApp(engine, 'music');
+                break;
+            case 'mail':
+            case 'email':
+                this.openApp(engine, 'mail');
                 break;
             case 'weather':
                 this.openApp(engine, 'weather');
@@ -910,7 +914,7 @@ class AdvancedTerminalApp {
                 engine.writeln(`\x1b[32m✓ Opening ${appName}...\x1b[0m`);
             } else {
                 engine.writeln(`\x1b[31m✗ App not found: ${appName}\x1b[0m`);
-                engine.writeln(`Available apps: news, music, tasks, notes, weather, ai-chat, code-editor`);
+                engine.writeln(`Available apps: news, music, mail, tasks, notes, weather, ai-chat, code-editor`);
             }
         } else {
             engine.writeln(`\x1b[33m⚠ Window manager not available\x1b[0m`);

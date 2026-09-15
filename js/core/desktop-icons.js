@@ -95,6 +95,7 @@ class DesktopIconCarousel {
         // Create icon items - duplicate them for seamless looping
         const iconItems = [];
         apps.forEach(([appId, app]) => {
+            if (appId === 'email') return;
             const iconItem = document.createElement('div');
             iconItem.className = 'desktop-icon-item';
             iconItem.dataset.app = appId;

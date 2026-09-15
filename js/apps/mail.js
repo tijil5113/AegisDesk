@@ -800,7 +800,7 @@ class MailApp {
         }
 
         this.composeSending = true;
-        this.setComposeStatus('Sending', 'Sending');
+        this.setComposeStatus('Sending', 'Sending...');
 
         const emailData = {
             to,
@@ -1665,14 +1665,73 @@ class MailApp {
     }
 }
 
-// Initialize
+// Desktop launcher: same window-manager + iframe pattern as Music.
+class MailDesktopLauncher {
+    constructor() {
+        this.windowId = 'mail';
+    }
+
+    open() {
+        if (typeof windowManager !== 'undefined') {
+            this.openAsWindow();
+        } else {
+            this.openAsStandalone();
+        }
+    }
+
+    openAsWindow() {
+        const existing = windowManager.windows.get(this.windowId);
+        if (existing) {
+            windowManager.focusWindow(existing);
+            return existing;
+        }
+
+        const content = this.renderWindowContent();
+        return windowManager.createWindow(this.windowId, {
+            title: 'Mail',
+            width: 1200,
+            height: 800,
+            class: 'app-mail',
+            icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>`,
+            content
+        });
+    }
+
+    openAsStandalone() {
+        window.location.href = 'mail.html';
+    }
+
+    renderWindowContent() {
+        return `
+            <div class="mail-window-container">
+                <iframe src="mail.html" title="Mail" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+        `;
+    }
+}
+
+function isMailStandalonePage() {
+    return !!document.getElementById('mail-app-container');
+}
+
 let mailApp;
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
+function bootMail() {
+    if (isMailStandalonePage()) {
         mailApp = new MailApp();
-        window.mailApp = mailApp;
-    });
-} else {
-    mailApp = new MailApp();
+        mailApp.open = function openStandaloneMail() {
+            return this;
+        };
+    } else {
+        mailApp = new MailDesktopLauncher();
+    }
     window.mailApp = mailApp;
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootMail);
+} else {
+    bootMail();
 }

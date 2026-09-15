@@ -117,7 +117,10 @@ class SearchSuggestions {
 
         // App matches
         this.apps.forEach(app => {
-            if (app.title.toLowerCase().includes(lowerQuery)) {
+            const titleMatch = app.title.toLowerCase().includes(lowerQuery);
+            const idMatch = app.id.toLowerCase().includes(lowerQuery);
+            const mailAlias = app.id === 'mail' && (lowerQuery === 'email' || lowerQuery === 'e-mail' || lowerQuery === 'e mail');
+            if (titleMatch || idMatch || mailAlias) {
                 suggestions.push({
                     title: app.title,
                     subtitle: 'Application',
