@@ -81,6 +81,10 @@ An AI-powered mini operating system website that replaces scattered life-managem
 
 ## 🔧 Configuration
 
+### Mail (Resend)
+
+See [MAIL.md](MAIL.md) for setup. Required server variables: `RESEND_API_KEY`, `MAIL_FROM`. Optional: `MAIL_REPLY_TO`, `MAIL_FOUNDER_NAME`, `MAIL_APP_URL`. Never put the API key in the browser.
+
 ### AI Assistant Setup
 
 The AI Assistant uses a secure serverless API endpoint to keep your API key safe. You have two options:

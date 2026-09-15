@@ -1,13 +1,13 @@
 // MAIL API - Express Handler
-// Real Gmail/Outlook OAuth and Email Sending
+// Canonical outbound send is Resend (see api/mail-send.js).
+// Gmail/Outlook OAuth scaffolding is retained for a future mailbox integration.
 
 import { applyCors } from './cors.js';
+import { handleResendSend, handleWelcomeSend } from './mail-send.js';
 
 export default async function mailHandler(req, res) {
-    // CORS headers
     applyCors(req, res, 'GET, POST, OPTIONS');
 
-    // Handle OPTIONS preflight
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
@@ -16,6 +16,10 @@ export default async function mailHandler(req, res) {
 
     try {
         switch (route) {
+            case '/send':
+                return handleResendSend(req, res);
+            case '/welcome':
+                return handleWelcomeSend(req, res);
             case '/gmail/auth':
                 return handleGmailAuth(req, res);
             case '/gmail/callback':
@@ -30,8 +34,6 @@ export default async function mailHandler(req, res) {
                 return handleOutlookInbox(req, res);
             case '/imap/connect':
                 return handleIMAPConnect(req, res);
-            case '/send':
-                return handleSendEmail(req, res);
             case '/refresh':
                 return handleRefreshToken(req, res);
             case '/search':
@@ -43,11 +45,11 @@ export default async function mailHandler(req, res) {
             case '/folder':
                 return handleFolderSync(req, res);
             default:
-                return res.status(404).json({ error: 'Not found' });
+                return res.status(404).json({ ok: false, code: 'invalid_request', error: 'Not found' });
         }
     } catch (error) {
-        console.error('[Mail API] Error:', error);
-        return res.status(500).json({ error: 'Internal server error' });
+        console.error('[Mail API] Error:', error?.message || error);
+        return res.status(500).json({ ok: false, error: 'Internal server error' });
     }
 }
 
@@ -290,31 +292,8 @@ async function handleIMAPConnect(req, res) {
     });
 }
 
-// Send Email
-async function handleSendEmail(req, res) {
-    const { accountId, provider, to, cc, bcc, subject, body, html, attachments } = req.body;
-    const token = req.headers.authorization?.replace('Bearer ', '');
-
-    if (!to || !subject || !body) {
-        return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    try {
-        if (provider === 'gmail') {
-            await sendViaGmail(token, { to, cc, bcc, subject, body, html });
-        } else if (provider === 'outlook') {
-            await sendViaOutlook(token, { to, cc, bcc, subject, body, html });
-        } else {
-            // Use SMTP or AWS SES for IMAP/manual accounts
-            await sendViaSMTP({ to, cc, bcc, subject, body, html });
-        }
-
-        return res.json({ success: true, messageId: `msg_${Date.now()}` });
-    } catch (error) {
-        console.error('[Mail API] Send error:', error);
-        return res.status(500).json({ error: 'Failed to send email', message: error.message });
-    }
-}
+// Legacy Gmail/Outlook/SMTP send helpers remain below for a future mailbox phase.
+// Canonical product send is handleResendSend in api/mail-send.js.
 
 // Refresh Token
 async function handleRefreshToken(req, res) {

@@ -7,7 +7,7 @@ import newsHandler from './api/news.js';
 import gnewsHandler from './api/gnews.js';
 import musicHandler from './api/music.js';
 import mailHandler from './api/mail.js';
-import loginHandler, { requireGateIfConfigured } from './api/login.js';
+import loginHandler, { requireGateIfConfigured, requireMailGate } from './api/login.js';
 import { applyCors, handlePreflight } from './api/cors.js';
 
 const app = express();
@@ -85,7 +85,7 @@ app.options('/api/music', (req, res) => handlePreflight(req, res, 'POST, OPTIONS
 app.post('/api/music', corsFor('POST, OPTIONS'), requireGateIfConfigured, wrap(musicHandler));
 
 app.options('/api/mail/*', (req, res) => handlePreflight(req, res, 'GET, POST, OPTIONS'));
-app.all('/api/mail/*', corsFor('GET, POST, OPTIONS'), requireGateIfConfigured, wrap(mailHandler));
+app.all('/api/mail/*', corsFor('GET, POST, OPTIONS'), requireMailGate, wrap(mailHandler));
 
 app.get('/health', (req, res) => {
   res.status(200).json({

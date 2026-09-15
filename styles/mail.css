@@ -1364,3 +1364,39 @@
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
 }
+
+.mail-compose-status {
+    margin: 0 0 16px 0;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mail-text-muted);
+}
+
+.mail-compose-hint {
+    margin: 0 0 16px 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--mail-text-muted);
+}
+
+.mail-compose-error {
+    margin: 0 0 16px 0;
+    color: #fca5a5;
+    font-size: 13px;
+}
+
+.mail-btn-primary:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.mail-input:focus,
+.mail-textarea:focus,
+.mail-compose-editor:focus,
+.mail-btn:focus,
+.mail-btn-link:focus {
+    outline: 2px solid var(--mail-primary);
+    outline-offset: 2px;
+}

@@ -420,39 +420,47 @@ class MailEngine {
     }
 
     // Send Email
-    async sendEmail(accountId, emailData) {
-        const account = this.accounts.find(a => a.id === accountId);
-        if (!account) throw new Error('Account not found');
+    async sendViaAegisDesk(emailData, idempotencyKey) {
+        const headers = { 'Content-Type': 'application/json' };
+        if (idempotencyKey) headers['Idempotency-Key'] = idempotencyKey;
 
+        const payload = {
+            to: emailData.to,
+            cc: emailData.cc || [],
+            bcc: emailData.bcc || [],
+            subject: emailData.subject,
+            text: emailData.text || emailData.body || '',
+            html: emailData.html || ''
+        };
+        if (emailData.replyTo) payload.replyTo = emailData.replyTo;
+
+        const response = await fetch(`${this.apiBaseUrl}/send`, {
+            method: 'POST',
+            credentials: 'include',
+            headers,
+            body: JSON.stringify(payload)
+        });
+
+        let data = {};
         try {
-            const token = await this.getValidToken(accountId);
-            const response = await fetch(`${this.apiBaseUrl}/send`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    accountId,
-                    provider: account.provider,
-                    to: emailData.to,
-                    cc: emailData.cc,
-                    bcc: emailData.bcc,
-                    subject: emailData.subject,
-                    body: emailData.body,
-                    html: emailData.html,
-                    attachments: emailData.attachments || []
-                })
-            });
+            data = await response.json();
+        } catch (_) {
+            data = {};
+        }
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Send failed');
-            }
+        if (!response.ok || data.ok === false) {
+            const err = new Error(data.error || 'Send failed');
+            err.code = data.code;
+            throw err;
+        }
+        return data;
+    }
 
-            return await response.json();
+    async sendEmail(accountId, emailData, idempotencyKey) {
+        try {
+            return await this.sendViaAegisDesk(emailData, idempotencyKey);
         } catch (error) {
-            console.error('[Mail Engine] Send error:', error);
+            console.error('[Mail Engine] Send error:', error?.message || error);
             throw error;
         }
     }

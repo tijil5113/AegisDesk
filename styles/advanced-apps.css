@@ -255,9 +255,63 @@
     transition: all 0.2s;
 }
 
-.email-send-btn {
-    background: var(--primary);
-    color: white;
+.email-field input:focus,
+.email-field textarea:focus,
+.email-cc-toggle:focus,
+.email-send-btn:focus,
+.email-save-draft-btn:focus,
+.email-cancel-btn:focus,
+.email-close-compose:focus {
+    outline: 2px solid var(--primary, #3b82f6);
+    outline-offset: 2px;
+}
+
+.email-compose-status {
+    margin: 4px 0 0 0;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.email-compose-hint {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+.email-compose-error {
+    margin: 0;
+    color: #fca5a5;
+    font-size: 13px;
+}
+
+.email-compose-extra-toggle {
+    display: flex;
+    gap: 12px;
+}
+
+.email-cc-toggle {
+    background: transparent;
+    border: none;
+    color: var(--primary-light, #93c5fd);
+    cursor: pointer;
+    font-weight: 600;
+    padding: 4px 0;
+}
+
+.email-field-hidden {
+    display: none;
+}
+
+.email-send-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.email-send-btn:hover {
+    filter: brightness(1.08);
 }
 
 .email-save-draft-btn {

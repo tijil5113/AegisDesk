@@ -15,7 +15,7 @@ export function applyCors(req, res, methods = 'POST, OPTIONS') {
   }
 
   res.setHeader('Access-Control-Allow-Methods', methods);
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Account-Id');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Account-Id, Idempotency-Key');
   res.setHeader('Vary', 'Origin');
 }
 

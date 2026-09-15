@@ -247,15 +247,12 @@ class MailApp {
 
     getEmailsForCurrentFolder() {
         let emails = this.data.emails.filter(e => e.folder === this.currentFolder);
-        
-        // Filter by current account if set
+
         if (this.currentAccount) {
-            emails = emails.filter(e => e.accountId === this.currentAccount.id);
+            emails = emails.filter(e => e.accountId === this.currentAccount.id || e.localHistory);
         }
-        
-        // Sort by date (newest first)
+
         emails.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        
         return emails;
     }
 
@@ -267,10 +264,11 @@ class MailApp {
             f.classList.toggle('active', f.dataset.folder === folder);
         });
         
-        // Update subtitle
         const subtitle = document.getElementById('mail-subtitle');
         if (subtitle) {
-            subtitle.textContent = folder.charAt(0).toUpperCase() + folder.slice(1);
+            subtitle.textContent = folder === 'sent'
+                ? 'Local AegisDesk send history'
+                : folder.charAt(0).toUpperCase() + folder.slice(1);
         }
         
         this.renderEmails();
@@ -544,14 +542,12 @@ class MailApp {
         const body = modal?.querySelector('.mail-compose-modal');
         if (!modal || !body) return;
 
-        if (this.data.accounts.length === 0) {
-            alert('Please add an email account first');
-            this.showAddAccountModal();
-            return;
-        }
-
         this.composeMode = replyToEmail ? 'reply' : forwardEmail ? 'forward' : 'new';
         this.composeAttachments = [];
+        this.composeSending = false;
+        this.composeIdempotencyKey = (typeof crypto !== 'undefined' && crypto.randomUUID)
+            ? crypto.randomUUID()
+            : `compose-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
         body.innerHTML = `
             <div class="mail-modal-header">
@@ -559,45 +555,41 @@ class MailApp {
                 <button class="mail-modal-close" onclick="mailApp.hideComposeModal()">&times;</button>
             </div>
             <div class="mail-modal-body">
-                <form onsubmit="mailApp.sendEmail(event)">
+                <form id="mail-compose-form" onsubmit="mailApp.sendEmail(event)">
+                    <p class="mail-compose-status" id="compose-status" role="status">Ready</p>
                     <div class="mail-form-group">
-                        <label>From</label>
-                        <select class="mail-input" id="compose-from" required>
-                            ${this.data.accounts.filter(a => a.connected).map(acc => `
-                                <option value="${acc.id}" ${this.currentAccount?.id === acc.id ? 'selected' : ''}>
-                                    ${this.escapeHtml(acc.name)} &lt;${this.escapeHtml(acc.email)}&gt;
-                                </option>
-                            `).join('')}
-                        </select>
+                        <label for="compose-from-display">From</label>
+                        <input type="text" class="mail-input" id="compose-from-display" value="AegisDesk" readonly aria-readonly="true">
+                        <p class="mail-compose-hint">Sender identity is set by the server. Delivery status is confirmed in the recipient inbox, not here.</p>
                     </div>
                     <div class="mail-form-group">
-                        <label>To</label>
+                        <label for="compose-to">To</label>
                         <input type="text" class="mail-input" id="compose-to" 
                                placeholder="recipient@example.com" 
                                value="${replyToEmail ? this.escapeHtml(replyToEmail.from) : ''}"
-                               required>
+                               required autocomplete="email">
                     </div>
                     <div class="mail-form-group" style="display: none;" id="compose-cc-group">
-                        <label>CC</label>
-                        <input type="text" class="mail-input" id="compose-cc" placeholder="cc@example.com">
+                        <label for="compose-cc">Cc</label>
+                        <input type="text" class="mail-input" id="compose-cc" placeholder="cc@example.com" autocomplete="email">
                     </div>
                     <div class="mail-form-group" style="display: none;" id="compose-bcc-group">
-                        <label>BCC</label>
-                        <input type="text" class="mail-input" id="compose-bcc" placeholder="bcc@example.com">
+                        <label for="compose-bcc">Bcc</label>
+                        <input type="text" class="mail-input" id="compose-bcc" placeholder="bcc@example.com" autocomplete="email">
                     </div>
                     <div style="margin-bottom: 12px;">
-                        <button type="button" class="mail-btn-link" onclick="mailApp.toggleComposeField('cc')">CC</button>
-                        <button type="button" class="mail-btn-link" onclick="mailApp.toggleComposeField('bcc')" style="margin-left: 12px;">BCC</button>
+                        <button type="button" class="mail-btn-link" onclick="mailApp.toggleComposeField('cc')">Cc</button>
+                        <button type="button" class="mail-btn-link" onclick="mailApp.toggleComposeField('bcc')" style="margin-left: 12px;">Bcc</button>
                     </div>
                     <div class="mail-form-group">
-                        <label>Subject</label>
+                        <label for="compose-subject">Subject</label>
                         <input type="text" class="mail-input" id="compose-subject" 
                                placeholder="Subject" 
                                value="${replyToEmail ? `Re: ${this.escapeHtml(replyToEmail.subject)}` : forwardEmail ? `Fwd: ${this.escapeHtml(forwardEmail.subject)}` : ''}"
                                required>
                     </div>
                     <div class="mail-form-group">
-                        <label>Message</label>
+                        <label for="compose-body">Message</label>
                         <div class="mail-compose-toolbar">
                             <button type="button" class="mail-compose-toolbar-btn" onclick="document.execCommand('bold', false, null)" title="Bold">
                                 <strong>B</strong>
@@ -608,42 +600,18 @@ class MailApp {
                             <button type="button" class="mail-compose-toolbar-btn" onclick="document.execCommand('underline', false, null)" title="Underline">
                                 <u>U</u>
                             </button>
-                            <div style="width: 1px; height: 24px; background: var(--mail-border); margin: 0 4px;"></div>
-                            <button type="button" class="mail-compose-toolbar-btn" onclick="mailApp.insertLink()" title="Insert Link">
-                                🔗
-                            </button>
-                            <button type="button" class="mail-compose-toolbar-btn" onclick="mailApp.insertEmoji()" title="Emoji">
-                                😀
-                            </button>
                         </div>
                         <div contenteditable="true" class="mail-compose-editor" id="compose-body" 
-                             placeholder="Write your message..." 
-                             style="min-height: 300px;">${replyToEmail ? `\n\n--- Original Message ---\nFrom: ${this.escapeHtml(replyToEmail.from)}\nDate: ${this.formatDate(replyToEmail.date)}\nSubject: ${this.escapeHtml(replyToEmail.subject)}\n\n${this.escapeHtml(replyToEmail.body)}` : forwardEmail ? `\n\n--- Forwarded Message ---\nFrom: ${this.escapeHtml(forwardEmail.from)}\nDate: ${this.formatDate(forwardEmail.date)}\nSubject: ${this.escapeHtml(forwardEmail.subject)}\n\n${this.escapeHtml(forwardEmail.body)}` : ''}</div>
+                             role="textbox" aria-multiline="true" aria-label="Message"
+                             style="min-height: 240px;">${replyToEmail ? `\n\n--- Original Message ---\nFrom: ${this.escapeHtml(replyToEmail.from)}\nDate: ${this.formatDate(replyToEmail.date)}\nSubject: ${this.escapeHtml(replyToEmail.subject)}\n\n${this.escapeHtml(replyToEmail.body)}` : forwardEmail ? `\n\n--- Forwarded Message ---\nFrom: ${this.escapeHtml(forwardEmail.from)}\nDate: ${this.formatDate(forwardEmail.date)}\nSubject: ${this.escapeHtml(forwardEmail.subject)}\n\n${this.escapeHtml(forwardEmail.body)}` : ''}</div>
                         <textarea class="mail-textarea" id="compose-html-body" style="display: none;"></textarea>
                     </div>
-                    <div class="mail-form-group">
-                        <div id="compose-attachments-list"></div>
-                        <button type="button" class="mail-btn mail-btn-secondary" onclick="mailApp.addAttachment()">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
-                            </svg>
-                            Attach File
-                        </button>
-                    </div>
-                    <div class="mail-form-group">
-                        <label>
-                            <input type="checkbox" id="compose-save-draft" style="margin-right: 8px;">
-                            Save as draft
-                        </label>
-                        <label style="margin-left: 16px;">
-                            <input type="checkbox" id="compose-schedule-send" style="margin-right: 8px;">
-                            Schedule send
-                        </label>
-                    </div>
+                    <p class="mail-compose-hint">Attachments are not sent in this version.</p>
+                    <p class="mail-compose-error" id="compose-error" hidden></p>
                     <div class="mail-modal-actions">
                         <button type="button" class="mail-btn mail-btn-secondary" onclick="mailApp.saveDraft()">Save Draft</button>
                         <button type="button" class="mail-btn mail-btn-secondary" onclick="mailApp.hideComposeModal()">Cancel</button>
-                        <button type="submit" class="mail-btn mail-btn-primary">Send</button>
+                        <button type="submit" class="mail-btn mail-btn-primary" id="mail-send-btn">Send</button>
                     </div>
                 </form>
             </div>
@@ -786,90 +754,124 @@ class MailApp {
         }
     }
 
+    setComposeStatus(state, message) {
+        const statusEl = document.getElementById('compose-status');
+        const errorEl = document.getElementById('compose-error');
+        const sendBtn = document.getElementById('mail-send-btn');
+        if (statusEl) {
+            statusEl.textContent = message || state;
+            statusEl.dataset.state = state;
+        }
+        if (errorEl) {
+            if (state === 'Failed') {
+                errorEl.hidden = false;
+                errorEl.textContent = message || 'Failed to send email.';
+            } else {
+                errorEl.hidden = true;
+                errorEl.textContent = '';
+            }
+        }
+        if (sendBtn) {
+            sendBtn.disabled = state === 'Sending';
+            sendBtn.textContent = state === 'Sending' ? 'Sending…' : 'Send';
+        }
+    }
+
     async sendEmail(event) {
         event.preventDefault();
-        
-        const fromSelect = document.getElementById('compose-from');
-        const toInput = document.getElementById('compose-to');
-        const subjectInput = document.getElementById('compose-subject');
-        const bodyInput = document.getElementById('compose-body');
-        const saveDraftCheckbox = document.getElementById('compose-save-draft');
-        
-        if (!fromSelect || !toInput || !subjectInput || !bodyInput) return;
+        if (this.composeSending) return;
 
-        const accountId = fromSelect.value;
-        const account = this.data.accounts.find(a => a.id === accountId);
+        const toInput = document.getElementById('compose-to');
+        const ccInput = document.getElementById('compose-cc');
+        const bccInput = document.getElementById('compose-bcc');
+        const subjectInput = document.getElementById('compose-subject');
+        const bodyEl = document.getElementById('compose-body');
+
+        if (!toInput || !subjectInput || !bodyEl) return;
+
         const to = toInput.value.trim();
         const subject = subjectInput.value.trim();
-        const body = bodyInput.value.trim();
-        const saveDraft = saveDraftCheckbox?.checked || false;
+        const text = (bodyEl.innerText || bodyEl.textContent || '').trim();
+        const html = (document.getElementById('compose-html-body')?.value || bodyEl.innerHTML || '').trim();
 
-        if (saveDraft) {
-            // Save as draft
-            const draft = {
-                id: `draft_${Date.now()}`,
-                accountId: accountId,
-                to: to,
-                subject: subject,
-                body: body,
-                date: new Date().toISOString()
-            };
-            
-            this.data.drafts.push(draft);
-            this.saveData();
-            this.hideComposeModal();
-            
-            if (window.notificationSystem) {
-                window.notificationSystem.success('Mail', 'Draft saved');
-            }
+        if (!to || !subject || !text) {
+            this.setComposeStatus('Failed', 'To, subject, and message are required.');
             return;
         }
 
-        try {
-            // Send email via backend API
-            const response = await fetch(`${this.apiBaseUrl}/mail/send`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${window.authSystem?.getAuthToken() || ''}`
-                },
-                body: JSON.stringify({
-                    accountId: accountId,
-                    to: to,
-                    subject: subject,
-                    body: body
-                })
-            });
+        this.composeSending = true;
+        this.setComposeStatus('Sending', 'Sending');
 
-            if (response.ok || window.location.hostname === 'localhost') {
-                // Add to sent folder
-                const email = {
-                    id: `sent_${Date.now()}`,
-                    accountId: accountId,
-                    from: account.email,
-                    to: to,
-                    subject: subject,
-                    body: body,
-                    preview: body.substring(0, 100),
-                    date: new Date().toISOString(),
-                    folder: 'sent',
-                    unread: false
-                };
-                
-                this.data.emails.push(email);
-                this.saveData();
-                this.renderEmails();
-                this.hideComposeModal();
-                
-                if (window.notificationSystem) {
-                    window.notificationSystem.success('Mail', `Email sent to ${to}`);
-                }
+        const emailData = {
+            to,
+            cc: ccInput?.value.trim() || '',
+            bcc: bccInput?.value.trim() || '',
+            subject,
+            text,
+            body: text,
+            html
+        };
+
+        try {
+            let result;
+            if (this.engine && typeof this.engine.sendViaAegisDesk === 'function') {
+                result = await this.engine.sendViaAegisDesk(emailData, this.composeIdempotencyKey);
             } else {
-                throw new Error('Failed to send email');
+                const response = await fetch('/api/mail/send', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Idempotency-Key': this.composeIdempotencyKey
+                    },
+                    body: JSON.stringify({
+                        to,
+                        cc: emailData.cc,
+                        bcc: emailData.bcc,
+                        subject,
+                        text,
+                        html
+                    })
+                });
+                result = await response.json().catch(() => ({}));
+                if (!response.ok || result.ok === false) {
+                    throw new Error(result.error || 'Failed to send email');
+                }
             }
+
+            const sentEmail = {
+                id: result.id || `sent_${Date.now()}`,
+                from: 'AegisDesk',
+                to,
+                cc: emailData.cc,
+                subject,
+                body: text,
+                preview: text.substring(0, 100),
+                date: new Date().toISOString(),
+                folder: 'sent',
+                unread: false,
+                deliveryStatus: 'sent',
+                localHistory: true
+            };
+
+            this.data.emails.push(sentEmail);
+            this.saveData();
+            this.renderEmails();
+            this.setComposeStatus('Sent', 'Email sent successfully');
+            if (window.notificationSystem) {
+                window.notificationSystem.success('Mail', 'Email sent successfully');
+            }
+            this.composeDraft = null;
+            setTimeout(() => {
+                this.hideComposeModal();
+                this.composeSending = false;
+            }, 700);
         } catch (error) {
-            console.error('[Mail] Send email error:', error);
-            alert('Failed to send email. Please try again.');
+            this.composeSending = false;
+            this.setComposeStatus('Failed', error.message || 'Failed to send email.');
+            if (window.notificationSystem) {
+                window.notificationSystem.error('Mail', error.message || 'Failed to send email');
+            }
         }
     }
 
@@ -1455,78 +1457,7 @@ class MailApp {
         }
     }
 
-    // Real Email Sending
-    async sendEmail(event) {
-        event.preventDefault();
-        
-        const fromSelect = document.getElementById('compose-from');
-        const toInput = document.getElementById('compose-to');
-        const ccInput = document.getElementById('compose-cc');
-        const bccInput = document.getElementById('compose-bcc');
-        const subjectInput = document.getElementById('compose-subject');
-        const bodyEl = document.getElementById('compose-body');
-        const htmlBodyInput = document.getElementById('compose-html-body');
-        const saveDraftCheckbox = document.getElementById('compose-save-draft');
-        
-        if (!fromSelect || !toInput || !subjectInput || !bodyEl) return;
-
-        // Check if saving as draft
-        if (saveDraftCheckbox?.checked) {
-            this.saveDraft();
-            return;
-        }
-
-        const accountId = fromSelect.value;
-        const account = this.data.accounts.find(a => a.id === accountId);
-        if (!account) {
-            alert('Please select an account');
-            return;
-        }
-
-        const emailData = {
-            to: toInput.value.trim(),
-            cc: ccInput?.value.trim() || '',
-            bcc: bccInput?.value.trim() || '',
-            subject: subjectInput.value.trim(),
-            body: bodyEl.innerText || bodyEl.textContent || '',
-            html: htmlBodyInput?.value.trim() || bodyEl.innerHTML || bodyEl.innerText.replace(/\n/g, '<br>'),
-            attachments: this.composeAttachments || []
-        };
-
-        try {
-            await this.engine.sendEmail(accountId, emailData);
-            
-            // Add to sent folder
-            const sentEmail = {
-                id: `sent_${Date.now()}`,
-                accountId: accountId,
-                from: account.email,
-                to: emailData.to,
-                subject: emailData.subject,
-                body: emailData.body,
-                preview: emailData.body.substring(0, 100),
-                date: new Date().toISOString(),
-                folder: 'sent',
-                unread: false
-            };
-            
-            this.data.emails.push(sentEmail);
-            this.saveData();
-            this.renderEmails();
-            this.hideComposeModal();
-            this.composeDraft = null;
-            this.composeAttachments = [];
-            
-            if (window.notificationSystem) {
-                window.notificationSystem.success('Mail', `Email sent to ${emailData.to}`);
-            }
-        } catch (error) {
-            console.error('[Mail] Send error:', error);
-            if (window.notificationSystem) {
-                window.notificationSystem.error('Mail', 'Failed to send email: ' + (error.message || 'Unknown error'));
-            }
-        }
-    }
+    // Email sending is implemented once above (Resend via /api/mail/send).
 
     // Enhanced Search
     async searchEmails(query) {

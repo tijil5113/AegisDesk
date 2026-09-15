@@ -3,6 +3,8 @@ class EmailApp {
     constructor() {
         this.emails = [];
         this.currentEmail = null;
+        this.currentFolder = 'inbox';
+        this.sending = false;
         this.init();
     }
 
@@ -100,27 +102,31 @@ class EmailApp {
     }
 
     renderEmailList() {
-        if (this.emails.length === 0) {
+        const emails = this.emails.filter((email) => (email.folder || 'inbox') === this.currentFolder);
+        if (emails.length === 0) {
+            const emptyLabel = this.currentFolder === 'sent'
+                ? 'No local send history yet'
+                : 'No emails yet';
             return `
                 <div class="email-empty">
-                    <p>No emails yet</p>
-                    <button class="email-compose-first">Compose your first email</button>
+                    <p>${emptyLabel}</p>
+                    <button type="button" class="email-compose-first">Compose</button>
                 </div>
             `;
         }
 
-        return this.emails.map((email, index) => `
-            <div class="email-item ${email.unread ? 'unread' : ''}" data-index="${index}">
+        return emails.map((email, index) => `
+            <div class="email-item ${email.unread ? 'unread' : ''}" data-index="${this.emails.indexOf(email)}">
                 <div class="email-item-checkbox">
                     <input type="checkbox">
                 </div>
                 <div class="email-item-content">
                     <div class="email-item-header">
-                        <span class="email-item-from">${this.escapeHtml(email.from)}</span>
+                        <span class="email-item-from">${this.escapeHtml(this.currentFolder === 'sent' ? email.to : email.from)}</span>
                         <span class="email-item-time">${this.formatTime(email.date)}</span>
                     </div>
                     <div class="email-item-subject">${this.escapeHtml(email.subject)}</div>
-                    <div class="email-item-preview">${this.escapeHtml(email.preview)}</div>
+                    <div class="email-item-preview">${this.escapeHtml(email.preview || '')}${email.localHistory && this.currentFolder === 'sent' ? ' · Local send history' : ''}</div>
                 </div>
             </div>
         `).join('');
@@ -129,6 +135,8 @@ class EmailApp {
     setupEventListeners(window) {
         const composeBtn = window.querySelector('.email-compose-btn');
         composeBtn?.addEventListener('click', () => this.showCompose(window));
+        const composeFirst = window.querySelector('.email-compose-first');
+        composeFirst?.addEventListener('click', () => this.showCompose(window));
 
         const emailItems = window.querySelectorAll('.email-item');
         emailItems.forEach(item => {
@@ -145,7 +153,18 @@ class EmailApp {
             folder.addEventListener('click', () => {
                 folders.forEach(f => f.classList.remove('active'));
                 folder.classList.add('active');
-                // Filter emails by folder
+                this.currentFolder = folder.dataset.folder || 'inbox';
+                const list = window.querySelector('#email-list');
+                if (list) list.innerHTML = this.renderEmailList();
+                window.querySelectorAll('.email-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.closest('.email-item-checkbox')) {
+                            const index = parseInt(item.dataset.index, 10);
+                            this.openEmail(window, index);
+                        }
+                    });
+                });
+                window.querySelector('.email-compose-first')?.addEventListener('click', () => this.showCompose(window));
             });
         });
     }
@@ -155,75 +174,183 @@ class EmailApp {
         viewer.innerHTML = `
             <div class="email-compose">
                 <div class="email-compose-header">
-                    <h3>New Message</h3>
-                    <button class="email-close-compose">&times;</button>
+                    <div>
+                        <h3>New Message</h3>
+                        <p class="email-compose-status" id="compose-status" role="status">Ready</p>
+                    </div>
+                    <button type="button" class="email-close-compose" aria-label="Close compose">&times;</button>
                 </div>
-                <div class="email-compose-form">
+                <form class="email-compose-form" id="email-compose-form">
+                    <p class="email-compose-hint">From AegisDesk. Sender identity is set on the server. Sent means the provider accepted the message, not that it was delivered.</p>
                     <div class="email-field">
-                        <label>To:</label>
-                        <input type="email" id="compose-to" placeholder="recipient@example.com">
+                        <label for="compose-to">To</label>
+                        <input type="text" id="compose-to" name="to" autocomplete="email" placeholder="recipient@example.com" required>
+                    </div>
+                    <div class="email-compose-extra-toggle">
+                        <button type="button" class="email-cc-toggle" data-target="compose-cc-wrap">Cc</button>
+                        <button type="button" class="email-cc-toggle" data-target="compose-bcc-wrap">Bcc</button>
+                    </div>
+                    <div class="email-field email-field-hidden" id="compose-cc-wrap">
+                        <label for="compose-cc">Cc</label>
+                        <input type="text" id="compose-cc" name="cc" autocomplete="email" placeholder="cc@example.com">
+                    </div>
+                    <div class="email-field email-field-hidden" id="compose-bcc-wrap">
+                        <label for="compose-bcc">Bcc</label>
+                        <input type="text" id="compose-bcc" name="bcc" autocomplete="email" placeholder="bcc@example.com">
                     </div>
                     <div class="email-field">
-                        <label>Subject:</label>
-                        <input type="text" id="compose-subject" placeholder="Subject">
+                        <label for="compose-subject">Subject</label>
+                        <input type="text" id="compose-subject" name="subject" placeholder="Subject" required>
                     </div>
                     <div class="email-field">
-                        <label>Message:</label>
-                        <textarea id="compose-message" rows="15" placeholder="Write your message..."></textarea>
+                        <label for="compose-message">Message</label>
+                        <textarea id="compose-message" name="message" rows="12" placeholder="Write your message..." required></textarea>
                     </div>
+                    <p class="email-compose-error" id="compose-error" hidden></p>
                     <div class="email-compose-actions">
-                        <button class="email-send-btn">Send</button>
-                        <button class="email-save-draft-btn">Save Draft</button>
-                        <button class="email-cancel-btn">Cancel</button>
+                        <button type="submit" class="email-send-btn" id="email-send-btn">Send</button>
+                        <button type="button" class="email-save-draft-btn">Save Draft</button>
+                        <button type="button" class="email-cancel-btn">Cancel</button>
                     </div>
-                </div>
+                </form>
             </div>
         `;
 
-        const sendBtn = viewer.querySelector('.email-send-btn');
-        sendBtn?.addEventListener('click', () => this.sendEmail(window));
+        const form = viewer.querySelector('#email-compose-form');
+        form?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.sendEmail(window);
+        });
+
+        viewer.querySelectorAll('.email-cc-toggle').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const wrap = viewer.querySelector(`#${btn.dataset.target}`);
+                if (wrap) wrap.classList.toggle('email-field-hidden');
+            });
+        });
 
         const closeBtn = viewer.querySelector('.email-close-compose');
         closeBtn?.addEventListener('click', () => {
             viewer.innerHTML = '<div class="email-viewer-placeholder"><p>Select an email to read</p></div>';
         });
+        viewer.querySelector('.email-cancel-btn')?.addEventListener('click', () => {
+            viewer.innerHTML = '<div class="email-viewer-placeholder"><p>Select an email to read</p></div>';
+        });
+        viewer.querySelector('.email-save-draft-btn')?.addEventListener('click', () => {
+            const to = window.querySelector('#compose-to')?.value.trim() || '';
+            const subject = window.querySelector('#compose-subject')?.value.trim() || '';
+            const message = window.querySelector('#compose-message')?.value.trim() || '';
+            const draft = {
+                id: Date.now(),
+                from: 'AegisDesk',
+                to,
+                subject: subject || '(no subject)',
+                body: message,
+                date: new Date(),
+                unread: false,
+                folder: 'drafts',
+                preview: message.substring(0, 100),
+                localHistory: true
+            };
+            this.emails.unshift(draft);
+            this.saveEmails();
+            this.refreshList(window);
+        });
+
+        window.querySelector('#compose-to')?.focus();
     }
 
-    sendEmail(window) {
-        const to = window.querySelector('#compose-to').value;
-        const subject = window.querySelector('#compose-subject').value;
-        const message = window.querySelector('#compose-message').value;
+    setComposeState(window, state, message) {
+        const status = window.querySelector('#compose-status');
+        const error = window.querySelector('#compose-error');
+        const sendBtn = window.querySelector('#email-send-btn');
+        if (status) status.textContent = message || state;
+        if (error) {
+            error.hidden = state !== 'Failed';
+            error.textContent = state === 'Failed' ? (message || 'Failed to send email.') : '';
+        }
+        if (sendBtn) {
+            sendBtn.disabled = state === 'Sending';
+            sendBtn.textContent = state === 'Sending' ? 'Sending…' : 'Send';
+        }
+    }
+
+    refreshList(window) {
+        const list = window.querySelector('#email-list');
+        if (list) list.innerHTML = this.renderEmailList();
+        this.setupEventListeners(window);
+    }
+
+    async sendEmail(window) {
+        if (this.sending) return;
+
+        const to = window.querySelector('#compose-to')?.value.trim() || '';
+        const cc = window.querySelector('#compose-cc')?.value.trim() || '';
+        const bcc = window.querySelector('#compose-bcc')?.value.trim() || '';
+        const subject = window.querySelector('#compose-subject')?.value.trim() || '';
+        const message = window.querySelector('#compose-message')?.value.trim() || '';
 
         if (!to || !subject || !message) {
-            if (typeof notificationSystem !== 'undefined') {
-                notificationSystem.warning('Email', 'Please fill in all fields');
-            }
+            this.setComposeState(window, 'Failed', 'To, subject, and message are required.');
             return;
         }
 
-        const email = {
-            id: Date.now(),
-            from: 'you@aegisdesk.com',
-            to,
-            subject,
-            body: message,
-            date: new Date(),
-            unread: false,
-            folder: 'sent',
-            preview: message.substring(0, 100)
-        };
+        this.sending = true;
+        this.setComposeState(window, 'Sending', 'Sending');
+        const idempotencyKey = (typeof crypto !== 'undefined' && crypto.randomUUID)
+            ? crypto.randomUUID()
+            : `compose-${Date.now()}`;
 
-        this.emails.unshift(email);
-        this.saveEmails();
-        
-        if (typeof notificationSystem !== 'undefined') {
-            notificationSystem.success('Email', `Email sent to ${to}`);
+        try {
+            const response = await fetch('/api/mail/send', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Idempotency-Key': idempotencyKey
+                },
+                body: JSON.stringify({ to, cc, bcc, subject, text: message })
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || data.ok === false) {
+                throw new Error(data.error || 'Failed to send email');
+            }
+
+            const email = {
+                id: data.id || Date.now(),
+                from: 'AegisDesk',
+                to,
+                cc,
+                subject,
+                body: message,
+                date: new Date(),
+                unread: false,
+                folder: 'sent',
+                preview: message.substring(0, 100),
+                deliveryStatus: 'sent',
+                localHistory: true
+            };
+            this.emails.unshift(email);
+            this.saveEmails();
+            this.setComposeState(window, 'Sent', 'Email sent successfully');
+            if (typeof notificationSystem !== 'undefined') {
+                notificationSystem.success('Email', 'Email sent successfully');
+            }
+            this.refreshList(window);
+            setTimeout(() => {
+                const viewer = window.querySelector('#email-viewer');
+                if (viewer) {
+                    viewer.innerHTML = '<div class="email-viewer-placeholder"><p>Email sent successfully. This is local send history, not delivery confirmation.</p></div>';
+                }
+                this.sending = false;
+            }, 700);
+        } catch (error) {
+            this.sending = false;
+            this.setComposeState(window, 'Failed', error.message || 'Failed to send email.');
+            if (typeof notificationSystem !== 'undefined') {
+                notificationSystem.error('Email', error.message || 'Failed to send email');
+            }
         }
-
-        // Refresh list
-        const list = window.querySelector('#email-list');
-        list.innerHTML = this.renderEmailList();
-        this.setupEventListeners(window);
     }
 
     openEmail(window, index) {

@@ -20,7 +20,7 @@ function sessionSecret() {
   return process.env.SESSION_SECRET || process.env.LOGIN_ACCESS_CODE || '';
 }
 
-function isLoginConfigured() {
+export function isLoginConfigured() {
   return Boolean(accessCode() && allowedEmails().length && sessionSecret());
 }
 
@@ -85,6 +85,34 @@ export function requireGateIfConfigured(req, res, next) {
   if (getGateSession(req)) return next();
   return res.status(401).json({ error: 'Authentication required' });
 }
+
+export function requireMailGate(req, res, next) {
+  if (!isLoginConfigured()) return next();
+  const session = getGateSession(req);
+  if (session) {
+    req.gateSession = session;
+    return next();
+  }
+  return res.status(401).json({
+    ok: false,
+    code: 'unauthorized',
+    error: 'Authentication required'
+  });
+}
+
+/*
+  WELCOME EMAIL HOOK — not enabled on login.
+
+  This gate has a stable allowlisted email, but it is not a persistent
+  user/account store. First-time vs returning users cannot be distinguished
+  across process restarts or deploys.
+
+  Do not send a welcome email from index.html, desktop boot, or every login.
+
+  When a durable user record exists (e.g. user.createdAt + welcomeSentAt),
+  call sendWelcomeForAuthenticatedUser() from api/mail-send.js immediately
+  after first account creation — not on page refresh.
+*/
 
 function cookieOptions() {
   const secure = process.env.NODE_ENV === 'production';
