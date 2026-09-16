@@ -229,10 +229,13 @@
 
     var focusTimer = null;
     var focusEndsAt = 0;
+    var focusRemaining = 0;
     var AegisFocus = {
         active: false,
+        paused: false,
         enter: function (minutes) {
             this.active = true;
+            this.paused = false;
             document.documentElement.classList.add('aegis-focus');
             if (global.notificationCenter) {
                 notificationCenter.focusMode = true;
@@ -241,13 +244,30 @@
             }
             var mins = Math.max(1, Math.min(180, Number(minutes) || 25));
             focusEndsAt = Date.now() + mins * 60000;
-            save('aegis_focus_state', { active: true, endsAt: focusEndsAt });
+            focusRemaining = mins * 60000;
+            save('aegis_focus_state', { active: true, paused: false, endsAt: focusEndsAt });
             this.tick();
             AegisActivity.record({ app: 'system', type: 'focus', title: 'Focus Mode on', description: mins + ' minutes' });
             this.syncTray();
         },
+        pause: function () {
+            if (!this.active || this.paused) return;
+            this.paused = true;
+            focusRemaining = Math.max(0, focusEndsAt - Date.now());
+            if (focusTimer) { clearTimeout(focusTimer); focusTimer = null; }
+            save('aegis_focus_state', { active: true, paused: true, remaining: focusRemaining, endsAt: 0 });
+            this.syncTray();
+        },
+        resume: function () {
+            if (!this.active || !this.paused) return;
+            this.paused = false;
+            focusEndsAt = Date.now() + Math.max(1000, focusRemaining || 0);
+            save('aegis_focus_state', { active: true, paused: false, endsAt: focusEndsAt });
+            this.tick();
+        },
         exit: function () {
             this.active = false;
+            this.paused = false;
             document.documentElement.classList.remove('aegis-focus');
             if (global.notificationCenter) {
                 notificationCenter.focusMode = false;
@@ -255,8 +275,9 @@
                 else storage.set('notification_focus_mode', false);
             }
             focusEndsAt = 0;
+            focusRemaining = 0;
             if (focusTimer) { clearTimeout(focusTimer); focusTimer = null; }
-            save('aegis_focus_state', { active: false, endsAt: 0 });
+            save('aegis_focus_state', { active: false, paused: false, endsAt: 0 });
             AegisActivity.record({ app: 'system', type: 'focus', title: 'Focus Mode off' });
             this.syncTray();
         },
@@ -267,13 +288,17 @@
         tick: function () {
             var self = this;
             if (focusTimer) clearTimeout(focusTimer);
-            if (!this.active) return;
+            if (!this.active || this.paused) return;
             var remain = focusEndsAt - Date.now();
             this.syncTray();
             if (remain <= 0) {
                 this.exit();
                 if (global.notificationCenter) {
-                    notificationCenter.show('Focus complete', 'Your focus session finished.', { type: 'success', priority: 'important' });
+                    notificationCenter.show('Focus complete', 'Your focus session finished.', {
+                        type: 'success',
+                        priority: 'important',
+                        actions: [{ id: 'open', label: 'Open Tasks', appId: 'tasks' }]
+                    });
                 } else if (global.notificationSystem) {
                     notificationSystem.success('Focus complete', 'Your focus session finished.');
                 }
@@ -284,13 +309,22 @@
         restore: function () {
             var state = load('aegis_focus_state', null);
             if (!state || !state.active || !AegisPrefs.get().focusPersist) return;
+            document.documentElement.classList.add('aegis-focus');
+            this.active = true;
+            if (state.paused && state.remaining > 0) {
+                this.paused = true;
+                focusRemaining = Number(state.remaining) || 0;
+                this.syncTray();
+                return;
+            }
             if (state.endsAt && state.endsAt > Date.now()) {
-                this.active = true;
-                document.documentElement.classList.add('aegis-focus');
+                this.paused = false;
                 focusEndsAt = state.endsAt;
                 this.tick();
             } else {
                 save('aegis_focus_state', { active: false, endsAt: 0 });
+                this.active = false;
+                document.documentElement.classList.remove('aegis-focus');
             }
         },
         syncTray: function () {
@@ -298,9 +332,9 @@
             if (!btn) return;
             btn.classList.toggle('is-active', this.active);
             btn.setAttribute('aria-pressed', this.active ? 'true' : 'false');
-            var remain = Math.max(0, focusEndsAt - Date.now());
+            var remain = this.paused ? focusRemaining : Math.max(0, focusEndsAt - Date.now());
             var m = Math.ceil(remain / 60000);
-            btn.title = this.active ? ('Focus Mode on · ' + m + ' min left') : 'Focus Mode';
+            btn.title = !this.active ? 'Focus Mode' : (this.paused ? ('Focus paused · ' + m + ' min left') : ('Focus Mode on · ' + m + ' min left'));
             btn.setAttribute('aria-label', btn.title);
         }
     };
@@ -373,9 +407,9 @@
             }
         },
         fromSelection: function () {
-            var selected = document.querySelector('.note-item.active, .task-item.selected, .file-item.selected, .bookmark-item.active');
+            var selected = document.querySelector('.note-item.active, .task-item.selected, .file-item.selected, .bookmark-item.active, .bookmark-item.selected');
             var notesSel = global.notesApp && notesApp.currentNoteId;
-            if (notesSel) {
+            if (notesSel && global.AegisActions) {
                 var notes = AegisActions.getNotes();
                 var note = notes.find(function (n) { return n.id === notesSel; });
                 if (note) {
@@ -391,14 +425,34 @@
             }
             if (global.filesAppV2 && filesAppV2.selectedFiles && filesAppV2.selectedFiles.size) {
                 var path = Array.from(filesAppV2.selectedFiles)[0];
-                this.show({
+                var ext = String(path).split('.').pop().toLowerCase();
+                var imageExt = { png: 1, jpg: 1, jpeg: 1, gif: 1, webp: 1, svg: 1 };
+                var item = {
                     kind: 'Virtual file',
                     title: path,
                     meta: 'Virtual Files workspace — not the host disk',
                     body: path,
                     open: function () { AegisActions.run('files.open', { path: path }); }
-                }, { fromSpace: true });
+                };
+                if (!imageExt[ext] && !/(txt|md|json|js|css|html|csv)$/.test(ext) && ext && ext !== path) {
+                    item.unsupported = true;
+                    item.reason = 'This file type has no in-OS preview. Open it in Files instead.';
+                }
+                this.show(item, { fromSpace: true });
                 return true;
+            }
+            if (global.bookmarksApp && bookmarksApp.selectedId) {
+                var bm = (bookmarksApp.bookmarks || []).find(function (b) { return b.id === bookmarksApp.selectedId; });
+                if (bm) {
+                    this.show({
+                        kind: 'Bookmark',
+                        title: bm.name || bm.title || bm.url,
+                        meta: bm.url || '',
+                        body: (bm.url || '') + '\n' + (bm.description || ''),
+                        open: function () { AegisActions.run('bookmarks.open', { url: bm.url, name: bm.name }); }
+                    }, { fromSpace: true });
+                    return true;
+                }
             }
             if (selected) {
                 this.show({
@@ -485,9 +539,9 @@
         },
         previewMarkup: function () {
             return '<div class="aegis-layout-picker" role="menu" aria-label="Window layouts">' +
-                '<button type="button" data-layout="focus">Focus</button>' +
-                '<button type="button" data-layout="columns">Two columns</button>' +
-                '<button type="button" data-layout="side">Main + side</button></div>';
+                '<button type="button" data-layout="focus"><span class="aegis-layout-preview aegis-layout-preview-focus" aria-hidden="true"></span>Focus</button>' +
+                '<button type="button" data-layout="columns"><span class="aegis-layout-preview aegis-layout-preview-columns" aria-hidden="true"></span>Two columns</button>' +
+                '<button type="button" data-layout="side"><span class="aegis-layout-preview aegis-layout-preview-side" aria-hidden="true"></span>Main + side</button></div>';
         }
     };
 
@@ -531,33 +585,39 @@
             if (!AegisPrefs.get().sessionRestore) return;
             var raw = load(SESSION_KEY, null);
             if (!raw || typeof raw !== 'object' || !Array.isArray(raw.apps)) return;
+            if (!global.windowManager || !global.APP_REGISTRY) return;
+            this._restoring = true;
             var vw = window.innerWidth;
             var vh = window.innerHeight - 56;
-            raw.apps.forEach(function (app) {
-                if (!app || !app.id) return;
-                if (!global.APP_REGISTRY || !APP_REGISTRY[app.id]) return;
-                try {
-                    AegisActions.openApp(app.id);
-                    var el = windowManager.windows.get(app.id);
-                    if (!el) return;
-                    var width = Math.min(Math.max(280, Number(app.width) || 600), vw - 24);
-                    var height = Math.min(Math.max(200, Number(app.height) || 400), vh - 24);
-                    var left = Math.max(8, Math.min(Number(app.left) || 40, vw - width - 8));
-                    var top = Math.max(8, Math.min(Number(app.top) || 40, vh - height - 8));
-                    el.style.width = width + 'px';
-                    el.style.height = height + 'px';
-                    el.style.left = left + 'px';
-                    el.style.top = top + 'px';
-                    if (app.maximized) el.classList.add('maximized');
-                    if (app.minimized) el.classList.add('minimized');
-                    el.dataset.aegisSpace = String(Math.max(0, Number(app.space) || 0));
-                    windowManager.ensureWindowInViewport(el);
-                } catch (e) {
-                    console.warn('[AegisSession] skipped', app && app.id);
+            try {
+                raw.apps.forEach(function (app) {
+                    if (!app || !app.id) return;
+                    if (!APP_REGISTRY[app.id]) return;
+                    try {
+                        AegisActions.openApp(app.id);
+                        var el = windowManager.windows.get(app.id);
+                        if (!el) return;
+                        var width = Math.min(Math.max(280, Number(app.width) || 600), vw - 24);
+                        var height = Math.min(Math.max(200, Number(app.height) || 400), vh - 24);
+                        var left = Math.max(8, Math.min(Number(app.left) || 40, vw - width - 8));
+                        var top = Math.max(8, Math.min(Number(app.top) || 40, vh - height - 8));
+                        el.style.width = width + 'px';
+                        el.style.height = height + 'px';
+                        el.style.left = left + 'px';
+                        el.style.top = top + 'px';
+                        if (app.maximized) el.classList.add('maximized');
+                        if (app.minimized) el.classList.add('minimized');
+                        el.dataset.aegisSpace = String(Math.max(0, Number(app.space) || 0));
+                        windowManager.ensureWindowInViewport(el);
+                    } catch (e) {
+                        console.warn('[AegisSession] skipped', app && app.id);
+                    }
+                });
+                if (global.virtualDesktops && Number.isFinite(raw.space)) {
+                    try { virtualDesktops.switchTo(raw.space); } catch (e) { /* ignore */ }
                 }
-            });
-            if (global.virtualDesktops && Number.isFinite(raw.space)) {
-                try { virtualDesktops.switchTo(raw.space); } catch (e) { /* ignore */ }
+            } finally {
+                this._restoring = false;
             }
         }
     };
@@ -768,7 +828,7 @@
             var zone = e.target.closest('[data-aegis-drop]');
             if (!zone) return;
             e.preventDefault();
-            zone.classList.add('aegis-drop-ready');
+            zone.classList.add('aegis-drop-ready', 'aegis-drop-hover');
         });
         document.addEventListener('dragleave', function (e) {
             var zone = e.target.closest('[data-aegis-drop]');
@@ -776,7 +836,9 @@
         });
         document.addEventListener('drop', function (e) {
             var zone = e.target.closest('[data-aegis-drop]');
-            document.querySelectorAll('.aegis-drop-ready').forEach(function (n) { n.classList.remove('aegis-drop-ready'); });
+            document.querySelectorAll('.aegis-drop-ready, .aegis-drop-hover').forEach(function (n) {
+                n.classList.remove('aegis-drop-ready', 'aegis-drop-hover');
+            });
             if (!zone) return;
             e.preventDefault();
             var kind = zone.getAttribute('data-aegis-drop');
@@ -801,7 +863,17 @@
                 el.dataset.aegisSpace = String(space);
                 if (virtualDesktops.addWindowToDesktop) virtualDesktops.addWindowToDesktop(appId, space);
             }
-            AegisActivity.record({ app: appId, type: 'app', title: 'Opened ' + appId });
+            var DROP_KINDS = { notes: 'note', tasks: 'task', mail: 'mail' };
+            if (el) {
+                var kind = DROP_KINDS[appId];
+                if (kind) {
+                    var content = el.querySelector('.window-content') || el;
+                    content.setAttribute('data-aegis-drop', kind);
+                }
+            }
+            if (!AegisSession._restoring) {
+                AegisActivity.record({ app: appId, type: 'app', title: 'Opened ' + appId });
+            }
             AegisSession.persistSoon();
             return el;
         };

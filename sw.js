@@ -1,6 +1,6 @@
 // Service Worker for AegisDesk PWA
 // Bump CACHE_VERSION on each production release so old shells are dropped.
-const CACHE_VERSION = 'aegisdesk-v10';
+const CACHE_VERSION = 'aegisdesk-v11';
 const PRECACHE_URLS = [
   '/index.html',
   '/desktop.html',
@@ -47,7 +47,7 @@ function isSensitiveRequest(request) {
   if (isApiRequest(url)) return true;
   if (request.method && request.method !== 'GET') return true;
   if (request.headers && request.headers.get('Authorization')) return true;
-  return /\/api\/(chat|mail|login|news|gnews|music)/.test(url);
+  return /\/api\/(chat|intent|mail|login|news|gnews|music)/.test(url);
 }
 
 self.addEventListener('install', (event) => {

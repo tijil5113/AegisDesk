@@ -90,19 +90,14 @@ class VirtualDesktops {
     }
 
     moveWindowToDesktop(windowId, desktopId) {
-        // Remove from all desktops
         this.removeWindowFromDesktop(windowId);
-        
-        // Add to target desktop
         this.addWindowToDesktop(windowId, desktopId);
-        
-        // If moving to current desktop, show it
-        if (desktopId === this.currentDesktop) {
-            const window = document.querySelector(`[data-window-id="${windowId}"]`);
-            if (window) {
-                window.style.display = 'block';
-            }
+        const windowEl = document.querySelector(`[data-window-id="${windowId}"]`);
+        if (windowEl) {
+            windowEl.dataset.aegisSpace = String(desktopId);
+            windowEl.style.visibility = desktopId === this.currentDesktop ? 'visible' : 'hidden';
         }
+        this.saveState();
     }
 
     getCurrentDesktop() {
@@ -171,15 +166,31 @@ class VirtualDesktops {
             });
         }
         overlay.innerHTML = `<div class="aegis-spaces-grid">${this.desktops.map((d, i) => {
-            const count = (typeof windowManager !== 'undefined')
-                ? Array.from(windowManager.windows.values()).filter(el => Number(el.dataset.aegisSpace || 0) === i).length
-                : (d.windows || []).length;
-            return `<button type="button" class="aegis-space-card ${i === this.currentDesktop ? 'is-active' : ''}" data-space="${i}">
-                <h3>${d.name || ('Space ' + (i + 1))}</h3>
-                <p>${count} window${count === 1 ? '' : 's'}</p>
-            </button>`;
+            const wins = (typeof windowManager !== 'undefined')
+                ? Array.from(windowManager.windows.entries()).filter(([, el]) => Number(el.dataset.aegisSpace || 0) === i)
+                : (d.windows || []).map((id) => [id, null]);
+            const count = wins.length;
+            const list = wins.map(([id]) => {
+                const title = (typeof APP_REGISTRY !== 'undefined' && APP_REGISTRY[id] && APP_REGISTRY[id].title) || id;
+                return `<li><span>${title}</span><label>Move <select data-move-window="${id}" aria-label="Move ${title} to another Space">${this.desktops.map((_, j) =>
+                    `<option value="${j}"${j === i ? ' selected' : ''}>Space ${j + 1}</option>`).join('')}</select></label></li>`;
+            }).join('');
+            return `<div class="aegis-space-card ${i === this.currentDesktop ? 'is-active' : ''}">
+                <button type="button" data-space="${i}"><h3>${d.name || ('Space ' + (i + 1))}</h3>
+                <p>${count} window${count === 1 ? '' : 's'}</p></button>
+                ${list ? `<ul class="aegis-space-windows">${list}</ul>` : '<p class="aegis-side-note">No windows</p>'}
+            </div>`;
         }).join('')}</div>`;
         overlay.classList.add('visible');
+        overlay.querySelectorAll('[data-move-window]').forEach((sel) => {
+            sel.addEventListener('change', (e) => {
+                e.stopPropagation();
+                const windowId = sel.getAttribute('data-move-window');
+                const dest = Number(sel.value);
+                this.moveWindowToDesktop(windowId, dest);
+                this.showOverview();
+            });
+        });
     }
 
     showDesktopSwitcher() {

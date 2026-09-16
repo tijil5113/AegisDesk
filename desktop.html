@@ -195,7 +195,7 @@
             </svg>
             New Note
         </div>
-        <div class="quick-launch-item" data-app="ai-chat" title="AI Assistant (Ctrl+K)">
+            <div class="quick-launch-item" data-app="ai-chat" title="AI Assistant">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
             </svg>
@@ -560,6 +560,7 @@
         </div>
         <!-- Launcher scroll: contain paint/layout so scroll doesn't repaint menu background -->
         <div class="apps-menu-scroll" id="apps-menu-scroll" data-launcher-scroll role="region" aria-label="Applications list">
+            <div id="launcher-recents" class="launcher-recents" hidden></div>
             <div class="apps-grid" id="apps-grid" aria-label="All applications" data-apps-grid>
             <div class="app-tile" data-app="tasks">
                 <div class="app-tile-icon">

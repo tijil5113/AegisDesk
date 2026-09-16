@@ -255,6 +255,16 @@ class GlobalSearch {
                 }));
             } catch (e) { /* ignore */ }
         }
+        const bookmarkSource = (typeof bookmarksApp !== 'undefined' && Array.isArray(bookmarksApp.bookmarks))
+            ? bookmarksApp.bookmarks
+            : (storage.get('bookmarks', []) || []);
+        this.searchIndex.bookmarks = (Array.isArray(bookmarkSource) ? bookmarkSource : []).slice(0, 200).map((b) => ({
+            id: b.id || b.url,
+            title: b.name || b.title || b.url || 'Bookmark',
+            url: b.url || '',
+            type: 'bookmark',
+            data: b
+        }));
     }
 
     performSearch(query) {
@@ -302,6 +312,14 @@ class GlobalSearch {
         if (allow('file') || cat === 'files') {
             (this.searchIndex.files || []).forEach(file => {
                 if ((file.title || '').toLowerCase().includes(lowerQuery)) this.results.push(file);
+            });
+        }
+
+        if (cat === 'all') {
+            (this.searchIndex.bookmarks || []).forEach((bm) => {
+                if ((bm.title || '').toLowerCase().includes(lowerQuery) || (bm.url || '').toLowerCase().includes(lowerQuery)) {
+                    this.results.push(bm);
+                }
             });
         }
 
@@ -363,11 +381,13 @@ class GlobalSearch {
             files: [],
             help: [],
             commands: [],
+            bookmarks: [],
             ask: []
         };
         
         results.forEach(result => {
             if (result.type === 'ask') grouped.ask.push(result);
+            else if (result.type === 'bookmark') grouped.bookmarks.push(result);
             else if (grouped[result.type + 's']) grouped[result.type + 's'].push(result);
             else if (result.type === 'help') grouped.help.push(result);
             else if (result.type === 'file') grouped.files.push(result);
@@ -393,6 +413,7 @@ class GlobalSearch {
             files: 'Files',
             help: 'Help',
             commands: 'Commands',
+            bookmarks: 'Bookmarks',
             ask: 'Ask Aegis'
         };
         return titles[type] || type;
@@ -404,9 +425,42 @@ class GlobalSearch {
         
         if (this.results.length === 0) {
             const q = this.searchInput?.value?.trim();
-            container.innerHTML = q
-                ? '<div class="aegis-empty global-search-empty"><strong>No results</strong><span>Try an app name such as Mail or Music.</span></div>'
-                : '<div class="aegis-empty global-search-empty"><strong>Search AegisDesk</strong><span>Apps, notes, tasks, mail, and music stay local and instant.</span></div>';
+            if (q) {
+                container.innerHTML = '<div class="aegis-empty global-search-empty"><strong>No results</strong><span>Try an app name such as Mail or Music.</span></div>';
+                return;
+            }
+            const recentApps = (typeof AegisRecent !== 'undefined' ? AegisRecent.apps() : []).slice(0, 4);
+            const recentCmds = (typeof AegisRecent !== 'undefined' ? AegisRecent.commands() : []).slice(0, 4);
+            let recents = '';
+            if (recentApps.length || recentCmds.length) {
+                recents = '<div class="aegis-search-recents">';
+                if (recentApps.length) {
+                    recents += '<div class="global-search-header">Recent apps</div>' + recentApps.map((id, i) => {
+                        const title = (typeof APP_REGISTRY !== 'undefined' && APP_REGISTRY[id] && APP_REGISTRY[id].title) || id;
+                        return `<div class="global-search-result" data-recent-app="${this.escapeHtml(id)}" role="option"><div class="global-search-result-icon">📱</div><div class="global-search-result-content"><div class="global-search-result-title">${this.escapeHtml(title)}</div></div></div>`;
+                    }).join('');
+                }
+                if (recentCmds.length) {
+                    recents += '<div class="global-search-header">Recent commands</div>' + recentCmds.map((id) => {
+                        const def = (typeof AegisActions !== 'undefined' && AegisActions.get(id)) || { title: id };
+                        return `<div class="global-search-result" data-recent-cmd="${this.escapeHtml(id)}" role="option"><div class="global-search-result-icon">⚡</div><div class="global-search-result-content"><div class="global-search-result-title">${this.escapeHtml(def.title)}</div></div></div>`;
+                    }).join('');
+                }
+                recents += '</div>';
+            }
+            container.innerHTML = '<div class="aegis-empty global-search-empty"><strong>Search AegisDesk</strong><span>Apps, notes, tasks, mail, and music stay local and instant.</span></div>' + recents;
+            container.querySelectorAll('[data-recent-app]').forEach((el) => {
+                el.addEventListener('click', () => {
+                    if (typeof AegisActions !== 'undefined') AegisActions.openApp(el.getAttribute('data-recent-app'));
+                    this.hide();
+                });
+            });
+            container.querySelectorAll('[data-recent-cmd]').forEach((el) => {
+                el.addEventListener('click', () => {
+                    if (typeof AegisActions !== 'undefined') AegisActions.run(el.getAttribute('data-recent-cmd'), {});
+                    this.hide();
+                });
+            });
             return;
         }
         
@@ -449,6 +503,7 @@ class GlobalSearch {
             file: '📄',
             help: '❓',
             command: '⚡',
+            bookmark: '🔖',
             ask: '✦'
         };
         return icons[result.type] || '📄';
@@ -502,13 +557,12 @@ class GlobalSearch {
                 break;
                 
             case 'note':
-                if (typeof notesApp !== 'undefined') {
+                if (typeof AegisActions !== 'undefined') {
+                    AegisActions.run('notes.open', { id: result.id || (result.data && result.data.id) });
+                } else if (typeof notesApp !== 'undefined') {
                     notesApp.open();
-                    // Focus on note if possible
                     setTimeout(() => {
-                        if (notesApp.openNote) {
-                            notesApp.openNote(result.id);
-                        }
+                        if (notesApp.openNote) notesApp.openNote(result.id);
                     }, 100);
                 }
                 break;
@@ -524,6 +578,11 @@ class GlobalSearch {
                 break;
             case 'file':
                 if (typeof AegisActions !== 'undefined') AegisActions.run('files.open', { path: result.data && result.data.path });
+                break;
+            case 'bookmark':
+                if (typeof AegisActions !== 'undefined') {
+                    AegisActions.run('bookmarks.open', { url: result.url || (result.data && result.data.url), name: result.title });
+                }
                 break;
             case 'ask':
                 if (typeof AegisIntelligence !== 'undefined') AegisIntelligence.show(result.query);

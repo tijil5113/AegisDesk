@@ -379,6 +379,7 @@
             ask.id = 'aegis-ask-bar';
             ask.className = 'aegis-ask-bar';
             ask.innerHTML = '<span class="aegis-intel-kicker">Ask Aegis</span>' +
+                '<button type="button" class="aegis-btn" data-ask="explain">Explain</button>' +
                 '<button type="button" class="aegis-btn" data-ask="summarize">Summarize</button>' +
                 '<button type="button" class="aegis-btn" data-ask="rewrite">Rewrite</button>' +
                 '<button type="button" class="aegis-btn" data-ask="tasks">Extract tasks</button>' +
@@ -392,8 +393,27 @@
                 var selected = (contentInput.value || '').slice(contentInput.selectionStart, contentInput.selectionEnd);
                 var text = selected || contentInput.value || titleInput.value || '';
                 if (!text.trim()) return;
-                if (mode === 'task' && typeof AegisActions !== 'undefined') {
-                    AegisActions.run('tasks.create', { text: text.slice(0, 200), description: text.slice(0, 1000) });
+                if (mode === 'task' && typeof AegisAsk !== 'undefined') {
+                    var titleGuess = (selected || (titleInput.value || '') || text.split('\n')[0]).slice(0, 200);
+                    AegisAsk.preview('Create task from note', titleGuess,
+                        '<label class="aegis-field">Title<input id="aegis-task-title" class="aegis-intel-input" value="' + self.escapeHtml(titleGuess) + '"></label>' +
+                        '<label class="aegis-field">Details<textarea id="aegis-task-details" class="aegis-intel-input" rows="3">' + self.escapeHtml(text.slice(0, 1000)) + '</textarea></label>' +
+                        '<label class="aegis-field">Due (optional)<input id="aegis-task-due" class="aegis-intel-input" type="date"></label>' +
+                        '<p><button type="button" class="aegis-btn aegis-btn-primary" id="aegis-confirm-one-task">Create task</button></p>');
+                    setTimeout(function () {
+                        var go = document.getElementById('aegis-confirm-one-task');
+                        if (!go) return;
+                        go.addEventListener('click', function () {
+                            var titleEl = document.getElementById('aegis-task-title');
+                            var detailsEl = document.getElementById('aegis-task-details');
+                            var dueEl = document.getElementById('aegis-task-due');
+                            AegisActions.run('tasks.create', {
+                                text: (titleEl && titleEl.value) || titleGuess,
+                                description: detailsEl ? detailsEl.value : '',
+                                dueDate: dueEl && dueEl.value ? dueEl.value : null
+                            });
+                        });
+                    }, 50);
                     return;
                 }
                 if (typeof AegisAsk === 'undefined') return;
@@ -434,7 +454,7 @@
                         }, 50);
                         return;
                     }
-                    AegisAsk.preview(mode === 'rewrite' ? 'Rewrite preview' : 'Summary', res.content,
+                    AegisAsk.preview(mode === 'rewrite' ? 'Rewrite preview' : (mode === 'explain' ? 'Explanation' : 'Summary'), res.content,
                         '<p>Source note was not changed.</p>');
                 });
             });
@@ -692,7 +712,7 @@
         contentInput.addEventListener('keydown', function (e) {
             if (e.ctrlKey && e.key === 'b') { e.preventDefault(); self.wrapSelection(contentInput, '**', '**'); }
             if (e.ctrlKey && e.key === 'i') { e.preventDefault(); self.wrapSelection(contentInput, '*', '*'); }
-            if (e.ctrlKey && e.key === 'k') { e.preventDefault(); self.insertLink(contentInput); }
+            if (e.ctrlKey && e.key === 'l') { e.preventDefault(); self.insertLink(contentInput); }
         });
 
         winEl.addEventListener('keydown', function (e) {

@@ -22,17 +22,21 @@
     }
 
     function toast(message, type) {
-        if (global.notificationSystem && notificationSystem.show) {
-            notificationSystem.show('AegisDesk', message, type || 'info');
-        } else if (global.notificationCenter && notificationCenter.show) {
-            notificationCenter.show('AegisDesk', message, { type: type || 'info' });
-        }
-        if (global.AegisActivity) AegisActivity.record({
-            app: 'system',
-            type: type === 'error' ? 'error' : 'action',
-            title: message,
-            status: type === 'error' ? 'failed' : 'ok'
-        });
+        try {
+            if (global.notificationSystem && notificationSystem.show) {
+                notificationSystem.show('AegisDesk', message, type || 'info');
+            } else if (global.notificationCenter && notificationCenter.show) {
+                notificationCenter.show('AegisDesk', message, { type: type || 'info' });
+            }
+        } catch (e) { /* toast must never fail an action */ }
+        try {
+            if (global.AegisActivity) AegisActivity.record({
+                app: 'system',
+                type: type === 'error' ? 'error' : 'action',
+                title: message,
+                status: type === 'error' ? 'failed' : 'ok'
+            });
+        } catch (e) { /* ignore */ }
     }
 
     function getNotes() {
@@ -110,26 +114,24 @@
 
     function confirmAction(def, args) {
         return new Promise(function (resolve) {
+            var settled = false;
+            function done(value) {
+                if (settled) return;
+                settled = true;
+                resolve(value);
+            }
             if (global.aegisShell && typeof aegisShell.dialog === 'function') {
                 aegisShell.dialog({
                     title: def.title || 'Confirm',
                     body: def.confirmText ? def.confirmText(args) : ('Run “' + def.title + '”?'),
                     confirmLabel: def.confirmLabel || 'Continue',
                     danger: def.risk >= RISK.DESTRUCTIVE,
-                    onConfirm: function () { resolve(true); }
+                    onConfirm: function () { done(true); },
+                    onCancel: function () { done(false); }
                 });
-                var overlay = document.getElementById('aegis-dialog-overlay');
-                var cancel = overlay && overlay.querySelector('[data-aegis-dialog="cancel"]');
-                if (cancel) {
-                    var prev = cancel.onclick;
-                    cancel.onclick = function () {
-                        if (typeof prev === 'function') prev();
-                        resolve(false);
-                    };
-                }
                 return;
             }
-            resolve(window.confirm(def.title || 'Confirm this action?'));
+            done(window.confirm(def.title || 'Confirm this action?'));
         });
     }
 
@@ -613,6 +615,36 @@
             if (!global.AegisFocus) return { success: false, error: 'Focus Mode unavailable' };
             AegisFocus.exit();
             return { success: true, message: 'Focus Mode off' };
+        }
+    });
+
+    define({
+        id: 'focus.pause',
+        title: 'Pause Focus timer',
+        description: 'Pause the Focus Mode countdown without leaving Focus',
+        application: 'system',
+        category: 'Workspace',
+        risk: RISK.LOCAL,
+        handler: function () {
+            if (!global.AegisFocus) return { success: false, error: 'Focus Mode unavailable' };
+            if (!AegisFocus.active) return { success: false, error: 'Focus Mode is not on' };
+            AegisFocus.pause();
+            return { success: true, message: 'Focus timer paused' };
+        }
+    });
+
+    define({
+        id: 'focus.resume',
+        title: 'Resume Focus timer',
+        description: 'Resume a paused Focus Mode countdown',
+        application: 'system',
+        category: 'Workspace',
+        risk: RISK.LOCAL,
+        handler: function () {
+            if (!global.AegisFocus) return { success: false, error: 'Focus Mode unavailable' };
+            if (!AegisFocus.active) return { success: false, error: 'Focus Mode is not on' };
+            AegisFocus.resume();
+            return { success: true, message: 'Focus timer resumed' };
         }
     });
 

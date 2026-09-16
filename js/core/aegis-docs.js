@@ -135,14 +135,14 @@
             title: 'Focus Mode',
             group: 'System',
             body: `
-                <p>Focus Mode quiets non-critical notifications and reduces desktop visual noise. An optional timer can be started from Aegis Intelligence (“enter focus 25 minutes”). Critical errors still appear.</p>`
+                <p>Focus Mode quiets non-critical notifications and reduces desktop visual noise. Start a timer from Aegis Intelligence (“enter focus 25 minutes”). Pause or resume with “pause focus” / “resume focus”, or exit with “exit focus”. Critical errors still appear.</p>`
         },
         {
             id: 'spaces',
             title: 'Spaces and session restore',
             group: 'System',
             body: `
-                <p>Spaces are named workspaces. Windows belong to a Space. Switch with <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + arrows or the overview. Session restore reopens apps and geometry after reload, clamped to the current viewport. Corrupt session data is ignored so the desktop can still boot.</p>
+                <p>Spaces are named workspaces. Windows belong to a Space. Switch with <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + arrows or the overview. Overview lists windows in each Space and can move them. Session restore reopens apps and geometry after reload, clamped to the current viewport. Corrupt session data is ignored so the desktop can still boot.</p>
                 <p>Window layouts (Focus, Two columns, Main + side) arrange currently open windows. Drag to move them afterward.</p>`
         },
         {

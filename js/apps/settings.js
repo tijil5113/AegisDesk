@@ -239,6 +239,13 @@ class SettingsApp {
                             <button type="button" class="settings-toggle ${this.prefOn('aiEnabled') ? 'active' : ''}" data-os-pref="aiEnabled" aria-pressed="${this.prefOn('aiEnabled')}">AI interpretation</button>
                         </div>
                     </div>
+                    <div class="settings-item">
+                        <div class="settings-item-label" style="flex: 1;">
+                            <div class="settings-item-title">Remember Focus Mode</div>
+                            <div class="settings-item-desc">If a Focus session is still running, restore it after reload. Critical errors still appear.</div>
+                            <button type="button" class="settings-toggle ${this.prefOn('focusPersist') ? 'active' : ''}" data-os-pref="focusPersist" aria-pressed="${this.prefOn('focusPersist')}">Remember Focus</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="settings-section">

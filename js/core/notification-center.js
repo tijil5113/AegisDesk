@@ -10,6 +10,12 @@ class NotificationCenter {
         this.initialized = false;
     }
 
+    normalizeHistory(raw) {
+        if (Array.isArray(raw)) return raw.filter((n) => n && typeof n === 'object');
+        if (raw && typeof raw === 'object') return Object.values(raw).filter((n) => n && typeof n === 'object');
+        return [];
+    }
+
     async init() {
         if (this.initialized) return;
         
@@ -18,7 +24,7 @@ class NotificationCenter {
         this.focusMode = storage.get('notification_focus_mode', false);
         
         // Load history
-        this.history = storage.get('notification_history', []);
+        this.history = this.normalizeHistory(storage.get('notification_history', []));
         
         // Create UI
         this.createUI();
@@ -196,6 +202,7 @@ class NotificationCenter {
 
     // Add to history
     addToHistory(notification) {
+        this.history = this.normalizeHistory(this.history);
         this.history.unshift(notification);
         if (this.history.length > this.maxHistory) {
             this.history = this.history.slice(0, this.maxHistory);
@@ -225,6 +232,7 @@ class NotificationCenter {
         }
         
         // History
+        this.history = this.normalizeHistory(this.history);
         if (this.history.length === 0) {
             historyContainer.innerHTML = '<div class="notification-center-empty">No notification history</div>';
         } else {
@@ -243,6 +251,16 @@ class NotificationCenter {
             if (readBtn) {
                 readBtn.addEventListener('click', () => this.markAsRead(id));
             }
+            item.querySelectorAll('.notification-action').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const actionId = btn.getAttribute('data-action-id');
+                    const appId = btn.getAttribute('data-app');
+                    if ((actionId === 'open' || actionId === 'retry') && appId && typeof AegisActions !== 'undefined') {
+                        AegisActions.openApp(appId);
+                    }
+                    this.dismiss(id);
+                });
+            });
         });
     }
 
@@ -264,6 +282,9 @@ class NotificationCenter {
                     </div>
                 </div>
                 <div class="notification-actions">
+                    ${(notification.actions || []).filter(a => a && a.id !== 'dismiss').map(a =>
+                        `<button type="button" class="notification-action" data-action-id="${this.escapeHtml(a.id)}" data-app="${this.escapeHtml(a.appId || '')}">${this.escapeHtml(a.label || a.id)}</button>`
+                    ).join('')}
                     ${!notification.read ? `<button class="notification-mark-read" title="Mark as read">✓</button>` : ''}
                     <button class="notification-dismiss" title="Dismiss">×</button>
                 </div>

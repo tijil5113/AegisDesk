@@ -145,10 +145,16 @@
     function closeDialog() {
         var overlay = document.getElementById('aegis-dialog-overlay');
         if (!overlay) return;
+        var wasOpen = overlay.classList.contains('visible');
         overlay.classList.remove('visible');
         overlay.setAttribute('aria-hidden', 'true');
         var prev = overlay._aegisPrevFocus;
         if (prev && typeof prev.focus === 'function') prev.focus();
+        if (wasOpen && typeof overlay._aegisOnCancel === 'function') {
+            var cancel = overlay._aegisOnCancel;
+            overlay._aegisOnCancel = null;
+            cancel();
+        }
     }
 
     function dialog(options) {
@@ -186,8 +192,12 @@
         var cancelBtn = overlay.querySelector('[data-aegis-dialog="cancel"]');
         confirmBtn.textContent = options.confirmLabel || 'Confirm';
         confirmBtn.className = 'aegis-btn ' + (options.danger ? 'aegis-btn-danger' : 'aegis-btn-primary');
-        cancelBtn.onclick = function () { closeDialog(); };
+        overlay._aegisOnCancel = options.onCancel || null;
+        cancelBtn.onclick = function () {
+            closeDialog();
+        };
         confirmBtn.onclick = function () {
+            overlay._aegisOnCancel = null;
             closeDialog();
             if (typeof options.onConfirm === 'function') options.onConfirm();
         };

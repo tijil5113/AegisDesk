@@ -108,6 +108,8 @@
             var mins = q.match(/(\d+)\s*(?:min|minutes?)/i);
             return { id: 'focus.enter', args: { minutes: mins ? Number(mins[1]) : 25 } };
         }
+        if (/^pause focus/.test(lower)) return { id: 'focus.pause', args: {} };
+        if (/^resume focus/.test(lower)) return { id: 'focus.resume', args: {} };
         if (/^(exit|end|stop|leave) focus/.test(lower)) return { id: 'focus.exit', args: {} };
 
         if (/clipboard/.test(lower)) return { id: 'clipboard.show', args: {} };
@@ -257,9 +259,21 @@
                 inputEl.focus();
                 return;
             }
+            var cancelPreview = e.target.closest('#aegis-intel-cancel-preview');
+            if (cancelPreview) {
+                setStatus('<strong>Cancelled</strong><span>Action cancelled.</span>');
+                return;
+            }
             var runBtn = e.target.closest('[data-run-action]');
-            if (runBtn) {
-                global.AegisActions.run(runBtn.getAttribute('data-run-action'), JSON.parse(runBtn.getAttribute('data-args') || '{}'));
+            if (runBtn && global.AegisActions) {
+                var actionId = runBtn.getAttribute('data-run-action');
+                var actionArgs = {};
+                try { actionArgs = JSON.parse(runBtn.getAttribute('data-args') || '{}'); } catch (err) { actionArgs = {}; }
+                global.AegisActions.run(actionId, actionArgs).then(function (result) {
+                    var msg = result && (result.cancelled ? 'Action cancelled.' : (result.message || result.error || ''));
+                    setStatus('<strong>' + escapeHtml(result && result.success ? 'Done' : (result && result.cancelled ? 'Cancelled' : 'Could not complete')) + '</strong><span>' + escapeHtml(msg) + '</span>', !(result && (result.success || result.cancelled)));
+                    if (result && result.success) setTimeout(hide, 650);
+                });
             }
         });
         overlay.addEventListener('keydown', function (e) {
@@ -316,14 +330,18 @@
             var ai = await resolveWithAI(query);
             if (ai.type === 'action') {
                 var def = global.AegisActions.get(ai.id);
-                if (def && def.risk >= 3) {
+                if (def && def.risk >= 1) {
+                    var riskNote = def.risk >= 3
+                        ? 'External actions are prepared only. Mail is never sent automatically.'
+                        : 'This would change local data. Review it, then confirm.';
                     resultsEl.innerHTML =
                         '<div class="aegis-intel-preview">' +
                         '<strong>Review before continuing</strong>' +
                         '<p>' + escapeHtml(def.description) + '</p>' +
                         '<pre>' + escapeHtml(JSON.stringify(ai.args, null, 2)) + '</pre>' +
-                        '<p>External actions are prepared only. Mail is never sent automatically.</p>' +
-                        '<button type="button" class="aegis-btn aegis-btn-primary" data-run-action="' + escapeHtml(ai.id) + '" data-args="' + escapeHtml(JSON.stringify(ai.args)) + '">Continue</button>' +
+                        '<p>' + escapeHtml(riskNote) + '</p>' +
+                        '<button type="button" class="aegis-btn aegis-btn-primary" data-run-action="' + escapeHtml(ai.id) + '" data-args="' + escapeHtml(JSON.stringify(ai.args)) + '">Continue</button> ' +
+                        '<button type="button" class="aegis-btn aegis-btn-ghost" id="aegis-intel-cancel-preview">Cancel</button>' +
                         '</div>';
                     pushHistory(query, 'Needs confirmation: ' + def.title);
                     busy = false;

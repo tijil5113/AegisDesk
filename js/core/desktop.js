@@ -85,7 +85,7 @@ class Desktop {
         
         // Use event delegation for app tiles (works with dynamically rendered tiles)
         menu.addEventListener('click', (e) => {
-            const tile = e.target.closest('.app-tile');
+            const tile = e.target.closest('.app-tile, .launcher-recent-chip');
             if (tile) {
                 const appId = tile.dataset.app;
                 const url = tile.dataset.url;
@@ -428,6 +428,21 @@ class Desktop {
                 </div>
             `;
         }).join('');
+
+        var recentsHost = menu.querySelector('#launcher-recents');
+        if (recentsHost && typeof AegisRecent !== 'undefined') {
+            var recentIds = (AegisRecent.apps() || []).filter(function (id) { return APP_REGISTRY[id]; }).slice(0, 4);
+            if (recentIds.length) {
+                recentsHost.hidden = false;
+                recentsHost.innerHTML = '<p class="launcher-recents-label">Recent</p>' + recentIds.map(function (id) {
+                    var app = APP_REGISTRY[id];
+                    return '<button type="button" class="launcher-recent-chip" data-app="' + id + '">' + (app.title || id) + '</button>';
+                }).join('');
+            } else {
+                recentsHost.hidden = true;
+                recentsHost.innerHTML = '';
+            }
+        }
         
         // Setup tooltip positioning after render
         this.setupAppTileTooltips(appsGrid);

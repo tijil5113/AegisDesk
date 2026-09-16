@@ -48,6 +48,33 @@ class NextGenFilesApp {
         
         this.attachEvents(window);
         this.loadFolder(window, this.currentPath);
+        this.consumeOpenIntent(window);
+    }
+
+    consumeOpenIntent(window) {
+        try {
+            const intent = (typeof storage !== 'undefined' && storage.get)
+                ? storage.get('files_open_intent', null)
+                : null;
+            if (!intent) return;
+            if (Date.now() - (intent.ts || 0) > 120000) {
+                storage.remove('files_open_intent');
+                return;
+            }
+            storage.remove('files_open_intent');
+            if (intent.query && window.querySelector('#files-search')) {
+                const input = window.querySelector('#files-search');
+                input.value = intent.query;
+                this.searchQuery = intent.query;
+                this.loadFolder(window, this.currentPath);
+            }
+            if (intent.path) {
+                const parent = intent.path.lastIndexOf('/') > 0
+                    ? intent.path.slice(0, intent.path.lastIndexOf('/')) || '/'
+                    : '/';
+                this.loadFolder(window, parent);
+            }
+        } catch (e) { /* ignore */ }
     }
     
     render() {
@@ -825,6 +852,7 @@ class NextGenFilesApp {
         
         menu.innerHTML = `
             <button class="context-item" data-action="open">Open</button>
+            <button class="context-item" data-action="quicklook">Quick Look</button>
             <button class="context-item" data-action="rename">Rename</button>
             <button class="context-item" data-action="copy">Copy</button>
             <button class="context-item" data-action="cut">Cut</button>
@@ -854,6 +882,17 @@ class NextGenFilesApp {
                     this.loadFolder(window, file.path);
                 } else {
                     this.openFile(file);
+                }
+                break;
+            case 'quicklook':
+                if (typeof AegisQuickLook !== 'undefined') {
+                    AegisQuickLook.show({
+                        kind: 'Virtual file',
+                        title: file.name || file.path,
+                        meta: 'Virtual Files workspace — not the host disk',
+                        body: file.path,
+                        open: () => this.openFile(file)
+                    });
                 }
                 break;
             case 'rename':
