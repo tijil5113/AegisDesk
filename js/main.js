@@ -1,4 +1,10 @@
 // Main Application Entry Point
+window.addEventListener('error', (event) => {
+    console.error('[AegisDesk] window error', event.error || event.message);
+});
+window.addEventListener('unhandledrejection', (event) => {
+    console.error('[AegisDesk] unhandled rejection', event.reason);
+});
 document.addEventListener('DOMContentLoaded', () => {
     const isFileProtocol = (typeof location !== 'undefined' && (location.protocol === 'file:' || location.protocol === 'null'));
     if (isFileProtocol) {

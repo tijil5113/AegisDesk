@@ -862,11 +862,13 @@
 
     NotesApp.prototype.updatePreview = function (previewDiv, markdown) {
         if (!previewDiv) return;
+        var html = '';
         if (typeof marked !== 'undefined') {
-            previewDiv.innerHTML = marked.parse(markdown || '');
+            html = marked.parse(markdown || '');
         } else {
-            previewDiv.innerHTML = this.simpleMarkdown(markdown || '');
+            html = this.simpleMarkdown(markdown || '');
         }
+        previewDiv.innerHTML = this.sanitizePreviewHtml(html);
         this.processCrossLinks(previewDiv);
         previewDiv.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
             cb.addEventListener('change', function () {
@@ -1342,10 +1344,23 @@
     };
 
     NotesApp.prototype.escapeHtml = function (s) {
-        if (s == null) return '';
-        var d = document.createElement('div');
-        d.textContent = s;
-        return d.innerHTML;
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    };
+
+    NotesApp.prototype.sanitizePreviewHtml = function (html) {
+        var wrap = document.createElement('div');
+        wrap.innerHTML = String(html || '');
+        wrap.querySelectorAll('script, style, iframe, object, embed, link, meta').forEach(function (el) { el.remove(); });
+        wrap.querySelectorAll('*').forEach(function (el) {
+            Array.from(el.attributes).forEach(function (attr) {
+                var name = attr.name.toLowerCase();
+                if (name.indexOf('on') === 0 || name === 'srcdoc' || (name === 'href' && /^\s*javascript:/i.test(attr.value))) {
+                    el.removeAttribute(attr.name);
+                }
+            });
+        });
+        return wrap.innerHTML;
     };
 
     NotesApp.prototype.openNote = function (noteId) {

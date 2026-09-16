@@ -1,202 +1,75 @@
-# AegisDesk 🚀
+# AegisDesk
 
-An AI-powered mini operating system website that replaces scattered life-management apps with a single desktop-style interface. Manage your tasks, notes, weather, and interact with an AI assistant all in one beautiful, persistent, and personalized environment.
+AegisDesk is a browser-based operating environment: windows, a launcher, search, applications, and an optional server-side account layer. It is not a native OS and does not claim host filesystem, unrestricted shell, or guaranteed email delivery.
 
-![AegisDesk](https://img.shields.io/badge/AegisDesk-v1.0.0-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
+## Local setup
 
-## ✨ Features
-
-### 🖥️ Desktop-Style Interface
-- **Draggable Windows**: Move windows around like a real desktop OS
-- **Resizable Windows**: Adjust window size to your preference
-- **Window Management**: Minimize, maximize, and close windows
-- **Taskbar**: Quick access to pinned apps and active windows
-- **Persistent Storage**: All your data is saved locally using browser storage
-
-### 📱 Applications
-
-#### ✅ Tasks App
-- Create and manage your to-do list
-- Mark tasks as complete
-- Delete tasks
-- All tasks are automatically saved
-
-#### 📝 Notes App
-- Rich text notes with titles
-- Auto-save functionality
-- Multiple notes management
-- Quick access to recent notes
-
-#### 🌤️ Weather App
-- Real-time weather for **30+ cities in Tamil Nadu**
-- Beautiful city cards with detailed weather information
-- Temperature, humidity, wind speed, and conditions
-- Cities included: Chennai, Coimbatore, Madurai, Tiruchirappalli, Salem, and more!
-
-#### 🤖 AI Assistant
-- Chat with an AI-powered assistant
-- Ask questions, get help, or just chat
-- Optional OpenAI API integration for enhanced capabilities
-- Local fallback responses for basic queries
-
-#### 🌐 Browser
-- Built-in web browser
-- Navigate to any website
-- Support for Google, YouTube, and custom URLs
-- Browser history and navigation controls
-
-#### ⚙️ Settings
-- Customize your experience
-- Configure AI API keys
-- Manage animations and auto-save
-- Clear all data option
-
-### 🎨 Beautiful UI
-- Modern glassmorphism design
-- Smooth animations and transitions
-- Dark theme with gradient backgrounds
-- Responsive layout
-- Professional and polished interface
-
-## 🚀 Getting Started
-
-### Installation
-
-1. Clone or download this repository
-2. Open `index.html` in a modern web browser
-3. That's it! No build process or dependencies required.
-
-### Usage
-
-- **Open Apps Menu**: Click the app icon in the taskbar or press `Alt + Space`
-- **Open Apps**: Click on app tiles in the menu or use pinned icons in the taskbar
-- **Keyboard Shortcuts**:
-  - `Alt + Space`: Open/Close apps menu
-  - `Alt + 1-9`: Open pinned apps (1-9)
-  - `Escape`: Close apps menu
-- **Search**: Use the search bar in the taskbar to quickly find and open apps
-- **Drag Windows**: Click and drag window title bars to move them
-- **Resize Windows**: Drag window edges or corners to resize
-
-## 🔧 Configuration
-
-### Mail (Resend)
-
-See [MAIL.md](MAIL.md) for setup. Required server variables: `RESEND_API_KEY`, `MAIL_FROM`. Optional: `MAIL_REPLY_TO`, `MAIL_FOUNDER_NAME`, `MAIL_APP_URL`. Never put the API key in the browser.
-
-### AI Assistant Setup
-
-The AI Assistant uses a secure serverless API endpoint to keep your API key safe. You have two options:
-
-#### Option 1: Serverless API (Recommended - Secure)
-
-1. **Deploy to Vercel** (or similar platform with serverless functions):
-   - Connect your repository to Vercel
-   - Add environment variable: `OPENAI_API_KEY` with your OpenAI API key
-   - The `/api/chat.js` endpoint will handle API calls securely
-   - No API key needed in the browser!
-
-2. **Get your OpenAI API key**:
-   - Visit https://platform.openai.com/api-keys
-   - Create a new API key
-   - Copy it to your deployment platform's environment variables
-
-#### Option 2: Client-Side (Legacy - Less Secure)
-
-If you're running locally without a serverless function:
-1. Open the Settings app
-2. Navigate to "AI Assistant" section
-3. Enter your OpenAI API key
-4. The key is stored locally in your browser
-
-**Note**: The serverless API approach is recommended for production deployments as it keeps your API key secure on the server side.
-
-### Weather API
-
-The weather app uses Open-Meteo API (free, no key required) for real-time weather data. If the API is unavailable, it falls back to sample data.
-
-## 📁 Project Structure
-
-```
-AegisDesk/
-├── index.html              # Main HTML file
-├── api/
-│   └── chat.js            # Serverless API endpoint (Vercel/Netlify)
-├── styles/
-│   ├── main.css           # Main styles and desktop UI
-│   ├── window.css         # Window styles
-│   └── apps.css           # App-specific styles
-├── js/
-│   ├── main.js            # Application entry point
-│   ├── utils/
-│   │   ├── storage.js     # Local storage utility
-│   │   └── drag.js        # Drag and drop functionality
-│   ├── core/
-│   │   ├── desktop.js     # Desktop core functionality
-│   │   └── window-manager.js  # Window management system
-│   └── apps/
-│       ├── tasks.js       # Tasks app
-│       ├── notes.js       # Notes app
-│       ├── weather.js     # Weather app
-│       ├── ai-chat.js     # AI Assistant app
-│       ├── browser.js     # Browser app
-│       └── settings.js    # Settings app
-└── README.md              # This file
+```bash
+npm install
+cp .env.example .env
+npm start
 ```
 
-## 🛠️ Technologies Used
+Open `http://localhost:3000/`. The public website works without a database. Account sign-up and password login need PostgreSQL.
 
-- **HTML5**: Structure and markup
-- **CSS3**: Modern styling with glassmorphism, gradients, and animations
-- **Vanilla JavaScript (ES6+)**: No frameworks, pure JavaScript for maximum performance
-- **Local Storage API**: Persistent data storage
-- **Open-Meteo API**: Weather data
-- **OpenAI API** (optional): AI chat capabilities
+## Database
 
-## 🎯 Features Roadmap
+AegisDesk uses PostgreSQL with `pg` (node-postgres) and versioned SQL migrations. That stack was chosen because this Express app is small: parameterized SQL, no ORM generate step, and Railway provides `DATABASE_URL` natively.
 
-- [ ] Multiple desktop workspaces
-- [ ] Custom wallpaper support
-- [ ] App marketplace for adding more apps
-- [ ] File manager
-- [ ] Calendar and events
-- [ ] Email integration
-- [ ] Music player
-- [ ] Themes and customization
-- [ ] Multi-language support
+```bash
+# .env
+DATABASE_URL=postgres://USER:PASSWORD@HOST:PORT/DB
+npm run migrate
+```
 
-## 📝 License
+Schema lives in `db/migrations/`. Migrations never drop user tables. Device-local Notes, Tasks, Bookmarks, theme, and similar data stay in the browser. The database stores accounts, sessions, and an empty `user_preferences` row for future expansion.
 
-This project is open source and available under the MIT License.
+## Authentication
 
-## 🤝 Contributing
+- **Sign up / Sign in:** email + password. Passwords are hashed with bcryptjs. Sessions are random tokens stored hashed in PostgreSQL and issued as HttpOnly, SameSite=Lax cookies (`Secure` in production).
+- **Sign out:** `POST /api/auth/logout` revokes the server session and clears cookies.
+- **Optional allowlist:** if `LOGIN_ALLOWED_EMAILS` is set, only those emails can create accounts or use the access-code gate.
+- **Legacy access code:** `POST /api/login` still supports email + `LOGIN_ACCESS_CODE` for private deployments.
 
-Contributions are welcome! Feel free to open issues or submit pull requests.
+Required for accounts: `DATABASE_URL`. Recommended for the access-code gate: `SESSION_SECRET`. Missing provider keys do not take down the public website.
 
-## 💡 Tips
+## Scripts
 
-- **Persistent Data**: All your tasks, notes, and settings are saved automatically
-- **Multiple Windows**: Open multiple instances of apps by clicking the app icon again
-- **Window Positions**: Window positions and sizes are remembered between sessions
-- **Search**: Type URLs or app names in the search bar for quick access
-- **Keyboard Navigation**: Use keyboard shortcuts for faster navigation
+| Command | Purpose |
+| --- | --- |
+| `npm start` | Run Express (`server.js`) |
+| `npm run migrate` | Apply SQL migrations |
+| `npm run build` | Copy a static `dist/` snapshot |
+| `npm run test:auth` | Validation + Intl checks; live DB tests if `DATABASE_URL` works |
+| `npm run secret-scan` | Scan for hardcoded credential assignments |
 
-## 🐛 Troubleshooting
+## Railway
 
-- **Weather not loading**: Check your internet connection. The app will use sample data if the API is unavailable.
-- **AI not responding**: 
-  - If using serverless API: Check that `OPENAI_API_KEY` environment variable is set in your deployment platform
-  - If using client-side: Make sure you've entered a valid OpenAI API key in Settings
-  - Check browser console for error messages
-- **Windows not saving position**: Clear your browser cache and try again
-- **Data not persisting**: Ensure localStorage is enabled in your browser
+1. Web service from this repo. Start command: `npm start`. Health check: `/health`.
+2. PostgreSQL plugin. Copy `DATABASE_URL` onto the web service.
+3. Run `npm run migrate` once against that database (Railway one-off command or local with the production URL).
+4. Set `SESSION_SECRET`. Optionally `LOGIN_ALLOWED_EMAILS` / `LOGIN_ACCESS_CODE`.
+5. Optional providers: `OPENAI_API_KEY`, `RESEND_API_KEY`, `MAIL_FROM`, `YOUTUBE_API_KEY`, `NEWS_API_KEY`, `GNEWS_API_KEY`.
 
-## 📧 Support
+Do not put secrets in frontend code. `/health` reports `service` and `database` (`ok` / `unavailable` / `unconfigured`) without connection details.
 
-For issues, questions, or suggestions, please open an issue on the repository.
+## Security notes
 
----
+- Authenticated APIs require an account session or the legacy gate cookie when those are configured.
+- Login/signup/AI/mail/provider routes are rate-limited.
+- State-changing cookie routes check Origin/Referer (CSRF). SameSite=Lax is not treated as sufficient by itself.
+- CSP allows `'unsafe-inline'` because existing boot/theme scripts are inline, and YouTube embeds for Music. That is an acknowledged exception, not a claim of a locked-down CSP.
+- Notes markdown preview is sanitized against script/event-handler injection. Do not treat that as a complete HTML sanitizer for every app.
 
-Made with ❤️ for organizing your digital life.
+## Browser limitations
 
+AegisDesk is tested as a Chromium web app. Other browsers are not claimed unless separately tested. Files is a virtual workspace. Terminal is simulated. System Monitor reports browser metrics. Many sites block iframe embedding.
+
+## Testing
+
+After `npm start`:
+
+- Public pages: `/`, `/login.html`, `/signup.html`
+- `GET /health`
+- Create an account (needs migrations + `DATABASE_URL`)
+- Desktop: launcher, World Clock, Settings → Sign out

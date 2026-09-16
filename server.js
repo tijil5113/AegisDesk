@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import chatHandler from './api/chat.js';
 import intentHandler from './api/intent.js';
@@ -8,8 +9,18 @@ import newsHandler from './api/news.js';
 import gnewsHandler from './api/gnews.js';
 import musicHandler from './api/music.js';
 import mailHandler from './api/mail.js';
-import loginHandler, { requireGateIfConfigured, requireMailGate } from './api/login.js';
+import loginHandler, { isLoginConfigured } from './api/login.js';
+import {
+  signupHandler,
+  accountLoginHandler,
+  logoutHandler,
+  sessionHandler,
+  requireAccountOrGate,
+  requireMailAuth
+} from './api/accounts.js';
 import { applyCors, handlePreflight } from './api/cors.js';
+import { applySecurityHeaders, envReport, rateLimit, requireSameOrigin } from './api/security.js';
+import { pingDatabase, isDatabaseConfigured } from './db/pool.js';
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -18,7 +29,7 @@ const isProd = process.env.NODE_ENV === 'production';
 
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
-
+app.use(applySecurityHeaders);
 app.use(express.json({ limit: '2mb' }));
 
 app.use((err, req, res, next) => {
@@ -44,25 +55,6 @@ function wrap(handler) {
   };
 }
 
-const chatHits = new Map();
-function rateLimitChat(req, res, next) {
-  const ip = req.ip || req.socket?.remoteAddress || 'unknown';
-  const now = Date.now();
-  const windowMs = 60 * 1000;
-  const max = 20;
-  const entry = chatHits.get(ip) || { count: 0, start: now };
-  if (now - entry.start > windowMs) {
-    entry.count = 0;
-    entry.start = now;
-  }
-  entry.count += 1;
-  chatHits.set(ip, entry);
-  if (entry.count > max) {
-    return res.status(429).json({ error: 'Too many requests. Try again shortly.' });
-  }
-  return next();
-}
-
 function corsFor(methods) {
   return (req, res, next) => {
     applyCors(req, res, methods);
@@ -70,31 +62,56 @@ function corsFor(methods) {
   };
 }
 
+const limitLogin = rateLimit({ windowMs: 15 * 60 * 1000, max: 12, key: 'login' });
+const limitSignup = rateLimit({ windowMs: 60 * 60 * 1000, max: 8, key: 'signup' });
+const limitChat = rateLimit({ windowMs: 60 * 1000, max: 20, key: 'chat' });
+const limitMail = rateLimit({ windowMs: 60 * 1000, max: 30, key: 'mail' });
+const limitProvider = rateLimit({ windowMs: 60 * 1000, max: 40, key: 'provider' });
+
 app.options('/api/login', (req, res) => handlePreflight(req, res, 'POST, OPTIONS'));
-app.post('/api/login', corsFor('POST, OPTIONS'), wrap(loginHandler));
+app.post('/api/login', corsFor('POST, OPTIONS'), requireSameOrigin, limitLogin, wrap(loginHandler));
+
+app.options('/api/auth/signup', (req, res) => handlePreflight(req, res, 'POST, OPTIONS'));
+app.post('/api/auth/signup', corsFor('POST, OPTIONS'), requireSameOrigin, limitSignup, wrap(signupHandler));
+
+app.options('/api/auth/login', (req, res) => handlePreflight(req, res, 'POST, OPTIONS'));
+app.post('/api/auth/login', corsFor('POST, OPTIONS'), requireSameOrigin, limitLogin, wrap(accountLoginHandler));
+
+app.options('/api/auth/logout', (req, res) => handlePreflight(req, res, 'POST, OPTIONS'));
+app.post('/api/auth/logout', corsFor('POST, OPTIONS'), requireSameOrigin, wrap(logoutHandler));
+
+app.options('/api/auth/session', (req, res) => handlePreflight(req, res, 'GET, OPTIONS'));
+app.get('/api/auth/session', corsFor('GET, OPTIONS'), wrap(sessionHandler));
 
 app.options('/api/chat', (req, res) => handlePreflight(req, res, 'POST, OPTIONS'));
-app.post('/api/chat', corsFor('POST, OPTIONS'), requireGateIfConfigured, rateLimitChat, wrap(chatHandler));
+app.post('/api/chat', corsFor('POST, OPTIONS'), requireAccountOrGate, limitChat, wrap(chatHandler));
 
 app.options('/api/intent', (req, res) => handlePreflight(req, res, 'POST, OPTIONS'));
-app.post('/api/intent', corsFor('POST, OPTIONS'), requireGateIfConfigured, rateLimitChat, wrap(intentHandler));
+app.post('/api/intent', corsFor('POST, OPTIONS'), requireAccountOrGate, limitChat, wrap(intentHandler));
 
 app.options('/api/news', (req, res) => handlePreflight(req, res, 'POST, OPTIONS'));
-app.post('/api/news', corsFor('POST, OPTIONS'), requireGateIfConfigured, wrap(newsHandler));
+app.post('/api/news', corsFor('POST, OPTIONS'), requireAccountOrGate, limitProvider, wrap(newsHandler));
 
 app.options('/api/gnews', (req, res) => handlePreflight(req, res, 'POST, OPTIONS'));
-app.post('/api/gnews', corsFor('POST, OPTIONS'), requireGateIfConfigured, wrap(gnewsHandler));
+app.post('/api/gnews', corsFor('POST, OPTIONS'), requireAccountOrGate, limitProvider, wrap(gnewsHandler));
 
 app.options('/api/music', (req, res) => handlePreflight(req, res, 'POST, OPTIONS'));
-app.post('/api/music', corsFor('POST, OPTIONS'), requireGateIfConfigured, wrap(musicHandler));
+app.post('/api/music', corsFor('POST, OPTIONS'), requireAccountOrGate, limitProvider, wrap(musicHandler));
 
 app.options('/api/mail/*', (req, res) => handlePreflight(req, res, 'GET, POST, OPTIONS'));
-app.all('/api/mail/*', corsFor('GET, POST, OPTIONS'), requireMailGate, wrap(mailHandler));
+app.all('/api/mail/*', corsFor('GET, POST, OPTIONS'), requireMailAuth, limitMail, wrap(mailHandler));
 
-app.get('/health', (req, res) => {
+app.get('/health', async (req, res) => {
+  const db = await pingDatabase();
+  const report = envReport();
   res.status(200).json({
     status: 'ok',
-    service: 'AegisDesk'
+    service: 'ok',
+    database: db.configured ? (db.ok ? 'ok' : 'unavailable') : 'unconfigured',
+    auth: {
+      accounts: report.auth.database,
+      gate: isLoginConfigured()
+    }
   });
 });
 
@@ -131,14 +148,23 @@ app.use(express.static(__dirname, {
   }
 }));
 
+const notFoundPage = path.join(__dirname, '404.html');
+
 app.get('*', (req, res) => {
+  if (String(req.path || '').startsWith('/api/')) {
+    return res.status(404).json({ error: 'Not found' });
+  }
   if (req.path.endsWith('.html')) {
     const target = path.join(__dirname, path.basename(req.path));
     return res.sendFile(target, (err) => {
-      if (err) res.status(404).send('Not found');
+      if (err) {
+        if (fs.existsSync(notFoundPage)) return res.status(404).sendFile(notFoundPage);
+        return res.status(404).send('Not found');
+      }
     });
   }
-  res.sendFile(path.join(__dirname, 'index.html'));
+  if (fs.existsSync(notFoundPage)) return res.status(404).sendFile(notFoundPage);
+  res.status(404).sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.use((err, req, res, next) => {
@@ -153,13 +179,26 @@ app.use((err, req, res, next) => {
 
 const PORT = Number(process.env.PORT) || 3000;
 
+function logStartup() {
+  const report = envReport();
+  console.log(`AegisDesk server running on port ${PORT}`);
+  console.log(`Open: http://localhost:${PORT}/`);
+  if (isDatabaseConfigured()) {
+    console.log('Database: DATABASE_URL configured');
+  } else {
+    console.warn('Database: DATABASE_URL is not set. Public site still works; account login/signup will return a structured error.');
+  }
+  if (isProd && !report.auth.sessionSecret) {
+    console.warn('Production SESSION_SECRET is not set. Set it for cookie integrity on the legacy access-code gate.');
+  }
+  if (isProd && !report.auth.database && !isLoginConfigured()) {
+    console.warn('Production has neither DATABASE_URL nor the access-code login gate.');
+  }
+}
+
 function tryListen(port) {
   const server = app.listen(port, () => {
-    console.log(`AegisDesk server running on port ${port}`);
-    console.log(`Open: http://localhost:${port}/`);
-    if (isProd && (!process.env.LOGIN_ACCESS_CODE || !process.env.LOGIN_ALLOWED_EMAILS)) {
-      console.warn('Production login gate is not configured (LOGIN_ACCESS_CODE / LOGIN_ALLOWED_EMAILS).');
-    }
+    logStartup();
   });
   server.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {

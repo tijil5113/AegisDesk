@@ -71,7 +71,15 @@ class DesktopWidgets {
         };
 
         updateClock();
-        setInterval(updateClock, 1000);
+        this._clockInterval = setInterval(updateClock, 1000);
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                if (this._clockInterval) { clearInterval(this._clockInterval); this._clockInterval = null; }
+            } else if (!this._clockInterval) {
+                updateClock();
+                this._clockInterval = setInterval(updateClock, 1000);
+            }
+        });
         return widget;
     }
 

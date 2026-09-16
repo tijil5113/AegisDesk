@@ -53,26 +53,54 @@
     <link rel="stylesheet" href="styles/aegis-os-shell.css">
     <link rel="stylesheet" href="styles/aegis-apps.css">
     <link rel="stylesheet" href="styles/aegis-intelligence.css">
+    <link rel="stylesheet" href="styles/aegis-world-clock.css">
     <!-- CSS loader must run before lazy-CSS script so critical path works -->
     <script src="js/css-loader.js"></script>
     <script>
         (function enforceLogin() {
             const CURRENT_SESSION_KEY = 'aegisdesk_current_session';
             const SESSIONS_KEY = 'aegisdesk_sessions';
+            const AUTH_FLAG = 'aegisdesk_auth_ok';
             const isLoginPage = /login\.html/i.test(window.location.pathname);
             if (isLoginPage) return;
+            function redirectLogin() { window.location.replace('login.html'); }
+            function reveal() { document.documentElement.style.visibility = ''; }
+            function remember(user) {
+                try {
+                    localStorage.setItem(AUTH_FLAG, '1');
+                    localStorage.setItem(CURRENT_SESSION_KEY, 'AEGIS-LIVE');
+                    var sessions = {};
+                    try { sessions = JSON.parse(localStorage.getItem(SESSIONS_KEY) || '{}'); } catch (e) { sessions = {}; }
+                    sessions['AEGIS-LIVE'] = { email: user && user.email, createdAt: Date.now(), lastActiveAt: Date.now(), kind: 'account' };
+                    localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
+                } catch (e) { /* ignore */ }
+            }
             try {
                 const currentId = localStorage.getItem(CURRENT_SESSION_KEY);
-                if (!currentId) {
-                    window.location.href = 'login.html';
+                const flagged = localStorage.getItem(AUTH_FLAG) === '1';
+                if (currentId) {
+                    const sessions = JSON.parse(localStorage.getItem(SESSIONS_KEY) || '{}');
+                    if (!sessions[currentId] && !flagged) {
+                        redirectLogin();
+                    }
                     return;
                 }
-                const sessions = JSON.parse(localStorage.getItem(SESSIONS_KEY) || '{}');
-                if (!sessions[currentId]) {
-                    window.location.href = 'login.html';
-                }
+                if (flagged) return;
+                document.documentElement.style.visibility = 'hidden';
+                fetch('/api/auth/session', { credentials: 'same-origin' }).then(function (res) { return res.json(); }).then(function (data) {
+                    if (data && data.authenticated && data.user) {
+                        remember(data.user);
+                        reveal();
+                        return;
+                    }
+                    if (data && (data.accountsConfigured || data.gateConfigured)) {
+                        redirectLogin();
+                        return;
+                    }
+                    reveal();
+                }).catch(function () { redirectLogin(); });
             } catch (error) {
-                window.location.href = 'login.html';
+                redirectLogin();
             }
         })();
     </script>
@@ -128,6 +156,7 @@
         }
     </script>
     <script src="js/core/auth.js" defer></script>
+    <script src="js/auth/aegis-auth-ui.js" defer></script>
     <!-- Local xterm.js CSS (NO CDN - OFFLINE SAFE) -->
     <link rel="stylesheet" href="vendor/xterm/xterm.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -218,6 +247,14 @@
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
             </svg>
             Lock OS
+        </div>
+        <div class="power-menu-item" data-action="sign-out" role="menuitem">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Sign out
         </div>
         <div class="power-menu-item" data-action="restart" role="menuitem">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -844,6 +881,8 @@
     <script src="js/apps/news-reader.js" defer></script>
     <script src="js/apps/news.js" defer></script>
     <script src="js/apps/help.js" defer></script>
+    <script src="js/core/world-clock-engine.js" defer></script>
+    <script src="js/apps/world-clock.js" defer></script>
     <script src="js/main.js" defer></script>
     
     <!-- Power Menu & Quick Launch Handler -->
@@ -884,7 +923,23 @@
                         }
                     } else if (action === 'lock') {
                         if (typeof notificationSystem !== 'undefined') {
-                            notificationSystem.info('Lock', 'OS locked (demo mode)');
+                            notificationSystem.info('Lock', 'Session stays on this device until you sign out.');
+                        }
+                    } else if (action === 'sign-out') {
+                        const run = () => {
+                            if (window.AegisAuthUI && AegisAuthUI.logout) AegisAuthUI.logout();
+                            else window.location.href = 'login.html';
+                        };
+                        if (window.aegisShell && aegisShell.dialog) {
+                            aegisShell.dialog({
+                                title: 'Sign out',
+                                body: 'This ends the server session. Notes, tasks, and other device-local data stay in this browser.',
+                                confirmLabel: 'Sign out',
+                                danger: true,
+                                onConfirm: run
+                            });
+                        } else if (confirm('Sign out of AegisDesk?')) {
+                            run();
                         }
                     } else if (action === 'restart') {
                         const run = () => window.location.reload();

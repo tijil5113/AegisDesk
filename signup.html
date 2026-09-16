@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create account — AegisDesk</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Create your AegisDesk identity.">
+    <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="assets/brand/aegis-mark-app.svg">
+    <meta name="theme-color" content="#020617">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/aegis-auth.css">
+</head>
+<body class="auth-body auth-signup">
+    <div class="auth-atmosphere" aria-hidden="true">
+        <div class="auth-mark-space">
+            <div class="auth-ring"></div>
+            <div class="auth-ring"></div>
+            <div class="auth-ring"></div>
+            <div class="auth-shard"></div>
+            <div class="auth-shard"></div>
+            <div class="auth-shard"></div>
+        </div>
+    </div>
+
+    <div class="auth-shell">
+        <main class="auth-panel">
+            <div class="auth-brand">
+                <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+                    <circle cx="32" cy="32" r="27" stroke="currentColor" stroke-width="2.6"/>
+                    <path d="M32 14 L18.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
+                    <path d="M32 14 L45.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
+                    <path d="M23.5 36.8 H40.5" stroke="#38BDF8" stroke-width="2.8" stroke-linecap="round"/>
+                </svg>
+                <div>
+                    <strong>AegisDesk</strong>
+                    <span>Begin</span>
+                </div>
+            </div>
+            <h1>Create your Aegis identity</h1>
+            <p class="auth-lede">A name, an email, and a password. Your notes and tasks stay on this device unless you choose otherwise later.</p>
+
+            <form id="signup-form" class="auth-form" novalidate>
+                <div class="auth-field">
+                    <label for="display-name">Display name</label>
+                    <input id="display-name" name="name" type="text" autocomplete="name" maxlength="80" required placeholder="How you want to appear">
+                </div>
+                <div class="auth-field">
+                    <label for="email">Email</label>
+                    <input id="email" name="email" type="email" autocomplete="email" inputmode="email" required placeholder="you@example.com">
+                </div>
+                <div class="auth-field">
+                    <label for="password">Password</label>
+                    <div class="auth-secret">
+                        <input id="password" name="password" type="password" autocomplete="new-password" required minlength="8" maxlength="128" placeholder="At least 8 characters">
+                        <button class="auth-toggle" id="toggle-password" type="button" aria-pressed="false" aria-controls="password" aria-label="Show password">Show</button>
+                    </div>
+                    <p class="auth-hint" id="password-hint">Use 8 or more characters. Avoid reusing a password from another service.</p>
+                </div>
+                <div class="auth-field">
+                    <label for="confirm-password">Confirm password</label>
+                    <div class="auth-secret">
+                        <input id="confirm-password" name="confirmPassword" type="password" autocomplete="new-password" required minlength="8" maxlength="128" placeholder="Repeat password">
+                        <button class="auth-toggle" id="toggle-confirm" type="button" aria-pressed="false" aria-controls="confirm-password" aria-label="Show confirm password">Show</button>
+                    </div>
+                </div>
+                <button class="auth-submit" type="submit" id="signup-submit">
+                    <span class="btn-label">Create account</span>
+                    <span class="btn-spinner" aria-hidden="true"></span>
+                </button>
+                <div id="signup-status" class="auth-status" role="status" aria-live="polite"></div>
+            </form>
+
+            <div class="auth-alt">
+                <a href="login.html">Already have an account</a>
+                <a href="index.html">Back to website</a>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/auth/aegis-auth-ui.js"></script>
+    <script>
+        (function () {
+            const ui = window.AegisAuthUI;
+            const form = document.getElementById('signup-form');
+            const status = document.getElementById('signup-status');
+            const submit = document.getElementById('signup-submit');
+            ui.bindToggle(document.getElementById('toggle-password'), document.getElementById('password'));
+            ui.bindToggle(document.getElementById('toggle-confirm'), document.getElementById('confirm-password'));
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                ui.setStatus(status, '');
+                const displayName = document.getElementById('display-name').value.trim();
+                const email = document.getElementById('email').value.trim().toLowerCase();
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirm-password').value;
+                if (password !== confirmPassword) {
+                    ui.setStatus(status, 'Passwords do not match.', 'error');
+                    document.getElementById('confirm-password').focus();
+                    return;
+                }
+                if (password.length < 8) {
+                    ui.setStatus(status, 'Password must be at least 8 characters.', 'error');
+                    return;
+                }
+                ui.setBusy(submit, true);
+                try {
+                    const response = await fetch('/api/auth/signup', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ displayName, email, password, confirmPassword })
+                    });
+                    const data = await ui.readJson(response);
+                    if (!response.ok) {
+                        ui.setStatus(status, data.error || 'Could not create the account.', 'error');
+                        return;
+                    }
+                    ui.rememberLocalSession(data.user || { email, displayName });
+                    ui.setStatus(status, 'Identity created. Opening AegisDesk…', 'success');
+                    setTimeout(ui.goDesktop, 320);
+                } catch (_) {
+                    ui.setStatus(status, 'Could not reach AegisDesk. Start the server and try again.', 'error');
+                } finally {
+                    ui.setBusy(submit, false);
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

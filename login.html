@@ -2,702 +2,189 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AegisDesk — Secure Access</title>
+    <title>Sign in — AegisDesk</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Sign in to AegisDesk.">
+    <meta name="description" content="Return to your AegisDesk workspace.">
     <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="assets/brand/aegis-mark-app.svg">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <meta name="theme-color" content="#020617">
-    <style>
-        :root {
-            color-scheme: dark;
-            --aegis-bg-base: #030712;
-            --aegis-bg-surface: #0f172a;
-            --aegis-bg-elevated: rgba(15, 23, 42, 0.88);
-            --aegis-text-primary: #f8fafc;
-            --aegis-text-muted: rgba(226, 232, 240, 0.6);
-            --aegis-accent: #6366f1;
-            --aegis-accent-hover: #a78bfa;
-            --aegis-success: #10b981;
-            --aegis-danger: #ef4444;
-            --aegis-border-default: rgba(148, 163, 184, 0.12);
-            --bg-deep: var(--aegis-bg-base);
-            --bg-mid: var(--aegis-bg-surface);
-            --bg-card: var(--aegis-bg-elevated);
-            --accent: var(--aegis-accent);
-            --accent-bright: var(--aegis-accent-hover);
-            --accent-soft: rgba(99, 102, 241, 0.12);
-            --text-primary: var(--aegis-text-primary);
-            --text-muted: var(--aegis-text-muted);
-            --success: var(--aegis-success);
-            --border: var(--aegis-border-default);
-        }
-
-        * {
-            box-sizing: border-box;
-            font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-        }
-
-        @keyframes fade-up {
-            from { opacity: 0; transform: translate3d(0, 16px, 0); }
-            to { opacity: 1; transform: translate3d(0, 0, 0); }
-        }
-
-        @keyframes fade-in {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        html, body {
-            margin: 0;
-            min-height: 100vh;
-            background: var(--bg-deep);
-            color: var(--text-primary);
-        }
-
-        body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 32px;
-            overflow-x: hidden;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background:
-                radial-gradient(ellipse 80% 50% at 20% 40%, rgba(99, 102, 241, 0.18), transparent 50%),
-                radial-gradient(ellipse 60% 40% at 80% 20%, rgba(139, 92, 246, 0.12), transparent 45%),
-                radial-gradient(ellipse 50% 30% at 50% 80%, rgba(14, 165, 233, 0.08), transparent 40%);
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .orb {
-            position: fixed;
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 0;
-            opacity: 0.28;
-        }
-        .orb-1 { width: 320px; height: 320px; background: radial-gradient(circle, rgba(99, 102, 241, 0.35), transparent 70%); top: 8%; left: 4%; }
-        .orb-2 { width: 240px; height: 240px; background: radial-gradient(circle, rgba(139, 92, 246, 0.28), transparent 70%); top: 62%; right: 8%; }
-        .orb-3 { width: 200px; height: 200px; background: radial-gradient(circle, rgba(14, 165, 233, 0.22), transparent 70%); bottom: 16%; left: 18%; }
-
-        .layout {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 520px;
-            animation: fade-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        .brand-block {
-            text-align: center;
-            margin-bottom: 40px;
-            animation: fade-in 0.6s ease-out 0.2s both;
-        }
-
-        .brand-logo-mark {
-            width: 72px;
-            height: 72px;
-            margin: 0 auto 16px;
-            color: #818cf8;
-        }
-        .brand-logo-mark svg { width: 100%; height: 100%; display: block; }
-        .brand-logo-mark .aegis-mark-ring {
-            stroke-dasharray: 100;
-            stroke-dashoffset: 100;
-            animation: aegisRingDraw 420ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .brand-logo-mark .aegis-mark-leg {
-            opacity: 0;
-            animation: fade-in 240ms ease 160ms forwards;
-        }
-        .brand-logo-mark .aegis-mark-slit {
-            opacity: 0;
-            animation: fade-in 260ms ease 280ms forwards;
-        }
-        @keyframes aegisRingDraw {
-            to { stroke-dasharray: 88 12; stroke-dashoffset: 6; }
-        }
-        .brand-logo {
-            font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            font-size: clamp(36px, 8vw, 52px);
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.85) 50%, rgba(167, 139, 250, 0.9) 100%);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin: 0;
-        }
-
-        .brand-tag {
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-top: 8px;
-        }
-
-        .card {
-            background: var(--bg-card);
-            border-radius: 24px;
-            padding: 36px;
-            border: 1px solid var(--border);
-            box-shadow: 0 32px 64px -24px rgba(0, 0, 0, 0.5);
-            display: grid;
-            gap: 28px;
-            animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
-        }
-
-        .card-title {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-
-        .card-title h2 {
-            margin: 0;
-            font-size: 20px;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-        }
-
-        .card-title .badge {
-            font-size: 11px;
-            padding: 5px 10px;
-            border-radius: 999px;
-            background: rgba(16, 185, 129, 0.15);
-            color: #34d399;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-        }
-
-        .section {
-            display: grid;
-            gap: 16px;
-            padding: 20px;
-            border-radius: 16px;
-            background: rgba(0, 0, 0, 0.25);
-            border: 1px solid rgba(255,255,255,0.04);
-            transition: border-color 0.3s ease, background 0.3s ease;
-        }
-
-        .section:focus-within {
-            border-color: rgba(99, 102, 241, 0.3);
-            background: rgba(99, 102, 241, 0.04);
-        }
-
-        .section h3 {
-            margin: 0;
-            font-size: 15px;
-            font-weight: 600;
-            letter-spacing: -0.01em;
-        }
-
-        .section p {
-            margin: 0;
-            font-size: 13px;
-            color: var(--text-muted);
-            line-height: 1.5;
-        }
-
-        label {
-            font-size: 11px;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        input {
-            width: 100%;
-            padding: 14px 16px;
-            border-radius: 12px;
-            border: 1px solid rgba(148, 163, 184, 0.15);
-            background: rgba(15, 23, 42, 0.6);
-            color: var(--text-primary);
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        input::placeholder {
-            color: rgba(148, 163, 184, 0.4);
-        }
-
-        input:hover {
-            border-color: rgba(148, 163, 184, 0.3);
-        }
-
-        input:focus-visible {
-            border-color: rgba(99, 102, 241, 0.6);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
-            background: rgba(15, 23, 42, 0.8);
-        }
-
-        .field-wrap { position: relative; }
-        .toggle-secret {
-            position: absolute;
-            right: 10px;
-            top: 32px;
-            width: auto;
-            padding: 6px 8px;
-            border: 0;
-            background: transparent;
-            color: var(--text-muted);
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .toggle-secret:focus-visible {
-            outline: 2px solid var(--accent);
-            outline-offset: 2px;
-        }
-
-        .split {
-            display: grid;
-            gap: 14px;
-            grid-template-columns: 1fr 1fr;
-        }
-
-        @media (max-width: 480px) {
-            .split { grid-template-columns: 1fr; }
-        }
-
-        .actions {
-            display: grid;
-            gap: 10px;
-        }
-
-        button {
-            width: 100%;
-            padding: 14px 18px;
-            border-radius: 12px;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        button:disabled {
-            opacity: 0.6;
-            cursor: wait;
-            transform: none;
-        }
-        button:focus-visible {
-            outline: 2px solid var(--accent-bright);
-            outline-offset: 2px;
-        }
-
-        .primary-btn {
-            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
-            color: white;
-            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.35);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .primary-btn::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
-            opacity: 0;
-            transition: opacity 0.25s ease;
-        }
-
-        .primary-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 28px rgba(99, 102, 241, 0.45);
-        }
-
-        .primary-btn:hover::before {
-            opacity: 1;
-        }
-
-        .primary-btn:active {
-            transform: translateY(0);
-        }
-
-        .primary-btn.is-loading {
-            pointer-events: none;
-            opacity: 0.8;
-        }
-        .primary-btn .btn-spinner {
-            display: none;
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(255,255,255,0.35);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-            margin: 0 auto;
-        }
-        .primary-btn.is-loading .btn-label { display: none; }
-        .primary-btn.is-loading .btn-spinner { display: block; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .ghost-btn {
-            background: rgba(148, 163, 184, 0.1);
-            color: var(--text-primary);
-            border: 1px solid rgba(148, 163, 184, 0.2);
-        }
-
-        .ghost-btn:hover {
-            background: rgba(148, 163, 184, 0.18);
-            border-color: rgba(148, 163, 184, 0.35);
-        }
-
-        .status {
-            padding: 12px 14px;
-            border-radius: 12px;
-            font-size: 13px;
-            display: none;
-            animation: fade-in 0.3s ease;
-        }
-
-        .status.success {
-            display: block;
-            background: rgba(16, 185, 129, 0.12);
-            color: #34d399;
-            border: 1px solid rgba(16, 185, 129, 0.25);
-        }
-
-        .status.error {
-            display: block;
-            background: rgba(239, 68, 68, 0.12);
-            color: #fca5a5;
-            border: 1px solid rgba(239, 68, 68, 0.25);
-        }
-
-        .session-box {
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 16px;
-            border-radius: 14px;
-            background: rgba(16, 185, 129, 0.08);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            animation: fade-in 0.4s ease;
-        }
-
-        .session-box.visible {
-            display: flex;
-        }
-
-        .session-code {
-            font-family: "JetBrains Mono", "SF Mono", monospace;
-            font-weight: 600;
-            font-size: 13px;
-            letter-spacing: 0.1em;
-            color: #34d399;
-        }
-
-        .divider {
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.2), transparent);
-        }
-
-        .resume-pill {
-            display: inline-flex;
-            gap: 8px;
-            align-items: center;
-            font-size: 12px;
-            padding: 6px 12px;
-            border-radius: 999px;
-            background: rgba(14, 165, 233, 0.12);
-            color: #7dd3fc;
-            font-weight: 600;
-            width: fit-content;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation: none !important;
-                transition-duration: 0.01ms !important;
-            }
-            .layout, .card, .brand-block { opacity: 1; transform: none; }
-            .brand-logo-mark .aegis-mark-ring {
-                stroke-dasharray: 88 12;
-                stroke-dashoffset: 6;
-            }
-            .brand-logo-mark .aegis-mark-leg,
-            .brand-logo-mark .aegis-mark-slit { opacity: 1; }
-            .orb { display: none; }
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/aegis-auth.css">
 </head>
-<body>
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
-    <div class="orb orb-3"></div>
-
-    <div class="layout">
-        <div class="brand-block">
-            <div class="brand-logo-mark" aria-hidden="true">
-                <svg viewBox="0 0 64 64" fill="none">
-                    <circle class="aegis-mark-ring" cx="32" cy="32" r="27" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" pathLength="100" stroke-dasharray="88 12" stroke-dashoffset="6"/>
-                    <path class="aegis-mark-leg" d="M32 14 L18.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
-                    <path class="aegis-mark-leg" d="M32 14 L45.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
-                    <path class="aegis-mark-slit" d="M23.5 36.8 H40.5" stroke="#38BDF8" stroke-width="2.8" stroke-linecap="round"/>
-                </svg>
-            </div>
-            <h1 class="brand-logo">AegisDesk</h1>
-            <div class="brand-tag">Protected Access</div>
+<body class="auth-body auth-login">
+    <div class="auth-atmosphere" aria-hidden="true">
+        <div class="auth-horizon"></div>
+        <div class="auth-mark-space">
+            <div class="auth-ring"></div>
+            <div class="auth-ring"></div>
+            <div class="auth-ring"></div>
         </div>
+    </div>
 
-        <main class="card">
-            <div class="card-title">
-                <h2>Login Console</h2>
-                <span class="badge">Trusted Access</span>
+    <div class="auth-loading" id="auth-loading" role="status" aria-live="polite" aria-hidden="true">
+        <p>Checking your session…</p>
+    </div>
+
+    <div class="auth-shell">
+        <main class="auth-panel">
+            <div class="auth-brand">
+                <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+                    <circle class="aegis-mark-ring" cx="32" cy="32" r="27" stroke="currentColor" stroke-width="2.6"/>
+                    <path d="M32 14 L18.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
+                    <path d="M32 14 L45.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
+                    <path d="M23.5 36.8 H40.5" stroke="#38BDF8" stroke-width="2.8" stroke-linecap="round"/>
+                </svg>
+                <div>
+                    <strong>AegisDesk</strong>
+                    <span>Return</span>
+                </div>
             </div>
+            <h1>Welcome back</h1>
+            <p class="auth-lede">Your workspace is waiting. Sign in to continue where you left off.</p>
 
-            <form id="login-form" class="section">
-                <h3>Login with Email + Secret Code</h3>
-                <p>Use your approved email and the shared secret code.</p>
-                <div class="split">
-                    <div>
-                        <label for="email">Email ID</label>
-                        <input id="email" type="email" autocomplete="username" placeholder="name@citchennai.net" required>
-                    </div>
-                    <div class="field-wrap">
-                        <label for="secret">Secret Code</label>
-                        <input id="secret" type="password" autocomplete="current-password" placeholder="Enter 6-digit code" required>
-                        <button class="toggle-secret" id="toggle-secret" type="button" aria-pressed="false" aria-controls="secret">Show</button>
+            <form id="account-login" class="auth-form" novalidate>
+                <div class="auth-field">
+                    <label for="email">Email</label>
+                    <input id="email" name="email" type="email" autocomplete="username" inputmode="email" required placeholder="you@example.com">
+                </div>
+                <div class="auth-field">
+                    <label for="password">Password</label>
+                    <div class="auth-secret">
+                        <input id="password" name="password" type="password" autocomplete="current-password" required minlength="8" maxlength="128" placeholder="Your password">
+                        <button class="auth-toggle" id="toggle-password" type="button" aria-pressed="false" aria-controls="password" aria-label="Show password">Show</button>
                     </div>
                 </div>
-                <div class="actions">
-                    <button class="primary-btn" type="submit" id="login-submit">
-                        <span class="btn-label">Login & Generate Session ID</span>
+                <button class="auth-submit" type="submit" id="login-submit">
+                    <span class="btn-label">Enter AegisDesk</span>
+                    <span class="btn-spinner" aria-hidden="true"></span>
+                </button>
+                <div id="login-status" class="auth-status" role="status" aria-live="polite"></div>
+            </form>
+
+            <div class="auth-alt">
+                <a href="signup.html">Create an account</a>
+                <a href="index.html">Back to website</a>
+            </div>
+
+            <details class="auth-gate" id="legacy-gate">
+                <summary>Workspace access code</summary>
+                <p class="auth-hint">For deployments that still use the shared access code.</p>
+                <form id="gate-login" class="auth-form">
+                    <div class="auth-field">
+                        <label for="gate-email">Approved email</label>
+                        <input id="gate-email" type="email" autocomplete="username" placeholder="name@example.com">
+                    </div>
+                    <div class="auth-field">
+                        <label for="gate-secret">Access code</label>
+                        <div class="auth-secret">
+                            <input id="gate-secret" type="password" autocomplete="current-password" placeholder="Access code">
+                            <button class="auth-toggle" id="toggle-gate" type="button" aria-pressed="false" aria-controls="gate-secret" aria-label="Show access code">Show</button>
+                        </div>
+                    </div>
+                    <button class="auth-submit" type="submit" id="gate-submit">
+                        <span class="btn-label">Continue with access code</span>
                         <span class="btn-spinner" aria-hidden="true"></span>
                     </button>
-                </div>
-                <div id="login-status" class="status" role="status" aria-live="polite"></div>
-            </form>
-
-            <div class="session-box" id="session-box">
-                <div>
-                    <div class="fine-print" style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Your Session ID</div>
-                    <div class="session-code" id="session-code">AEGIS-0000-0000</div>
-                </div>
-                <button class="ghost-btn" id="copy-session" type="button">Copy</button>
-            </div>
-
-            <div class="actions" id="continue-actions" style="display:none;">
-                <button class="primary-btn" id="continue-btn" type="button">Enter AegisDesk</button>
-            </div>
-
-            <a href="index.html" class="ghost-btn" style="margin-top:12px;display:inline-flex;">Back to website</a>
-
-            <div class="divider"></div>
-
-            <form id="resume-form" class="section">
-                <div class="resume-pill">Resume with Session ID</div>
-                <p>Closed the tab? Enter your Session ID to jump back in.</p>
-                <div>
-                    <label for="resume-id">Session ID</label>
-                    <input id="resume-id" type="text" placeholder="AEGIS-XXXX-XXXX" required>
-                </div>
-                <div class="actions">
-                    <button class="ghost-btn" type="submit">Resume Session</button>
-                </div>
-                <div id="resume-status" class="status" role="status" aria-live="polite"></div>
-            </form>
+                    <div id="gate-status" class="auth-status" role="status" aria-live="polite"></div>
+                </form>
+            </details>
         </main>
     </div>
 
+    <script src="js/auth/aegis-auth-ui.js"></script>
     <script>
-        const SESSIONS_KEY = 'aegisdesk_sessions';
-        const CURRENT_SESSION_KEY = 'aegisdesk_current_session';
-        const LAST_ROUTE_KEY = 'aegisdesk_last_route';
-        const SESSION_PENDING_KEY = 'aegisdesk_session_pending';
+        (function () {
+            const ui = window.AegisAuthUI;
+            const loginForm = document.getElementById('account-login');
+            const gateForm = document.getElementById('gate-login');
+            const loginStatus = document.getElementById('login-status');
+            const gateStatus = document.getElementById('gate-status');
+            const loginSubmit = document.getElementById('login-submit');
+            const gateSubmit = document.getElementById('gate-submit');
+            const loading = document.getElementById('auth-loading');
 
-        const loginForm = document.getElementById('login-form');
-        const resumeForm = document.getElementById('resume-form');
-        const loginStatus = document.getElementById('login-status');
-        const resumeStatus = document.getElementById('resume-status');
-        const sessionBox = document.getElementById('session-box');
-        const sessionCode = document.getElementById('session-code');
-        const copyBtn = document.getElementById('copy-session');
-        const continueActions = document.getElementById('continue-actions');
-        const continueBtn = document.getElementById('continue-btn');
-        const loginSubmit = document.getElementById('login-submit');
-        const toggleSecret = document.getElementById('toggle-secret');
-        const secretInput = document.getElementById('secret');
+            ui.bindToggle(document.getElementById('toggle-password'), document.getElementById('password'));
+            ui.bindToggle(document.getElementById('toggle-gate'), document.getElementById('gate-secret'));
 
-        if (toggleSecret && secretInput) {
-            toggleSecret.addEventListener('click', () => {
-                const show = secretInput.type === 'password';
-                secretInput.type = show ? 'text' : 'password';
-                toggleSecret.textContent = show ? 'Hide' : 'Show';
-                toggleSecret.setAttribute('aria-pressed', show ? 'true' : 'false');
-            });
-        }
-
-        function loadSessions() {
-            try {
-                return JSON.parse(localStorage.getItem(SESSIONS_KEY) || '{}');
-            } catch (error) {
-                return {};
-            }
-        }
-
-        function saveSessions(sessions) {
-            localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
-        }
-
-        function generateSessionId() {
-            const bytes = new Uint8Array(6);
-            if (window.crypto && window.crypto.getRandomValues) {
-                window.crypto.getRandomValues(bytes);
-            } else {
-                for (let i = 0; i < bytes.length; i += 1) {
-                    bytes[i] = Math.floor(Math.random() * 256);
-                }
-            }
-            const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('').toUpperCase();
-            return `AEGIS-${hex.slice(0, 4)}-${hex.slice(4, 8)}`;
-        }
-
-        function setStatus(el, message, type) {
-            el.textContent = message;
-            el.className = `status ${type}`;
-        }
-
-        function clearStatus(el) {
-            el.textContent = '';
-            el.className = 'status';
-        }
-
-        function setActiveSession(sessionId) {
-            const sessions = loadSessions();
-            if (!sessions[sessionId]) return false;
-            sessions[sessionId].lastActiveAt = Date.now();
-            localStorage.setItem(CURRENT_SESSION_KEY, sessionId);
-            saveSessions(sessions);
-            return true;
-        }
-
-        function redirectToDesktop() {
-            localStorage.setItem(SESSION_PENDING_KEY, 'false');
-            const lastRoute = localStorage.getItem(LAST_ROUTE_KEY) || 'desktop.html';
-            window.location.href = lastRoute;
-        }
-
-        function showSession(sessionId) {
-            sessionCode.textContent = sessionId;
-            sessionBox.classList.add('visible');
-            continueActions.style.display = 'block';
-        }
-
-        loginForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            clearStatus(loginStatus);
-            if (loginSubmit) {
-                loginSubmit.disabled = true;
-                loginSubmit.classList.add('is-loading');
-                loginSubmit.setAttribute('aria-busy', 'true');
+            function generateSessionId() {
+                const bytes = new Uint8Array(6);
+                if (window.crypto && window.crypto.getRandomValues) window.crypto.getRandomValues(bytes);
+                const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+                return 'AEGIS-' + hex.slice(0, 4) + '-' + hex.slice(4, 8);
             }
 
-            const email = document.getElementById('email').value.trim().toLowerCase();
-            const secret = document.getElementById('secret').value.trim();
-
-            try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'same-origin',
-                    body: JSON.stringify({ email, secret, sessionId: generateSessionId() })
-                });
-                const data = await response.json().catch(() => ({}));
-                if (!response.ok) {
-                    setStatus(loginStatus, data.error || 'Login failed. Check server configuration.', 'error');
+            ui.fetchSession().then((data) => {
+                if (data && data.authenticated && data.user) {
+                    ui.rememberLocalSession(data.user);
+                    ui.setStatus(loginStatus, 'You are already signed in. Opening AegisDesk…', 'success');
+                    setTimeout(ui.goDesktop, 350);
                     return;
                 }
-
-                const sessionId = data.sessionId;
-                const sessions = loadSessions();
-                sessions[sessionId] = {
-                    email: data.email || email,
-                    createdAt: Date.now(),
-                    lastActiveAt: Date.now()
-                };
-
-                saveSessions(sessions);
-                localStorage.setItem(CURRENT_SESSION_KEY, sessionId);
-                localStorage.setItem(SESSION_PENDING_KEY, 'false');
-
-                setStatus(loginStatus, 'Access granted. Session ID generated.', 'success');
-                showSession(sessionId);
-            } catch (error) {
-                setStatus(loginStatus, 'Could not reach the login service. Start the AegisDesk server and try again.', 'error');
-            } finally {
-                if (loginSubmit) {
-                    loginSubmit.disabled = false;
-                    loginSubmit.classList.remove('is-loading');
-                    loginSubmit.removeAttribute('aria-busy');
+                if (!data || data.gateConfigured === false) {
+                    const gate = document.getElementById('legacy-gate');
+                    if (gate && data && data.accountsConfigured) gate.hidden = true;
                 }
-            }
-        });
+            });
 
-        resumeForm.addEventListener('submit', (event) => {
-            event.preventDefault();
-            clearStatus(resumeStatus);
-            const resumeId = document.getElementById('resume-id').value.trim().toUpperCase();
-
-            const sessions = loadSessions();
-            if (!sessions[resumeId]) {
-                setStatus(resumeStatus, 'Session ID not found. Check and try again.', 'error');
-                return;
-            }
-
-            localStorage.setItem(CURRENT_SESSION_KEY, resumeId);
-            localStorage.setItem(SESSION_PENDING_KEY, 'false');
-            sessions[resumeId].lastActiveAt = Date.now();
-            saveSessions(sessions);
-            setStatus(resumeStatus, 'Session verified. Redirecting...', 'success');
-            setTimeout(redirectToDesktop, 500);
-        });
-
-        copyBtn.addEventListener('click', () => {
-            const value = sessionCode.textContent;
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(value).then(() => {
-                    copyBtn.textContent = 'Copied';
-                    setTimeout(() => {
-                        copyBtn.textContent = 'Copy';
-                    }, 1200);
-                });
-            } else {
-                setStatus(loginStatus, 'Copy not supported. Please copy manually.', 'error');
-            }
-        });
-
-        continueBtn.addEventListener('click', redirectToDesktop);
-
-        (function autoShowActiveSession() {
-            const current = localStorage.getItem(CURRENT_SESSION_KEY);
-            const sessions = loadSessions();
-            const pending = localStorage.getItem(SESSION_PENDING_KEY) === 'true';
-            if (current && sessions[current]) {
-                if (pending) {
-                    setStatus(loginStatus, 'Session ID required to resume. Enter it below.', 'error');
-                } else {
-                    showSession(current);
-                    setStatus(loginStatus, 'Active session detected. Continue when ready.', 'success');
+            loginForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                ui.setStatus(loginStatus, '');
+                ui.setBusy(loginSubmit, true);
+                const email = document.getElementById('email').value.trim().toLowerCase();
+                const password = document.getElementById('password').value;
+                try {
+                    const response = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password })
+                    });
+                    const data = await ui.readJson(response);
+                    if (!response.ok) {
+                        ui.setStatus(loginStatus, data.error || 'Could not sign in.', 'error');
+                        return;
+                    }
+                    ui.rememberLocalSession(data.user || { email });
+                    ui.setStatus(loginStatus, 'Signed in. Opening your workspace…', 'success');
+                    setTimeout(ui.goDesktop, 280);
+                } catch (_) {
+                    ui.setStatus(loginStatus, 'Could not reach AegisDesk. Start the server and try again.', 'error');
+                } finally {
+                    ui.setBusy(loginSubmit, false);
                 }
-            }
+            });
+
+            gateForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                ui.setStatus(gateStatus, '');
+                ui.setBusy(gateSubmit, true);
+                const email = document.getElementById('gate-email').value.trim().toLowerCase();
+                const secret = document.getElementById('gate-secret').value.trim();
+                try {
+                    const response = await fetch('/api/login', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, secret, sessionId: generateSessionId() })
+                    });
+                    const data = await ui.readJson(response);
+                    if (!response.ok) {
+                        ui.setStatus(gateStatus, data.error || 'Access code login failed.', 'error');
+                        return;
+                    }
+                    ui.rememberLocalSession({ email: data.email || email, displayName: email.split('@')[0], id: data.sessionId });
+                    ui.setStatus(gateStatus, 'Access granted. Opening AegisDesk…', 'success');
+                    setTimeout(ui.goDesktop, 280);
+                } catch (_) {
+                    ui.setStatus(gateStatus, 'Could not reach the login service.', 'error');
+                } finally {
+                    ui.setBusy(gateSubmit, false);
+                }
+            });
+
+            if (loading) loading.classList.remove('is-on');
         })();
     </script>
 </body>

@@ -67,7 +67,10 @@
             <path d="M7.2 17.2c.4-2.6 2.2-4 4.8-4s4.4 1.4 4.8 4" ${stroke}/>`),
         help: tile('#1D4ED8', `<circle cx="12" cy="12" r="6.2" ${stroke}/>
             <path d="M10 10a2 2 0 013.6.8c0 1.4-1.8 1.8-1.8 2.8" ${stroke}/>
-            <circle cx="12" cy="16.1" r="0.7" fill="#F8FAFC"/>`)
+            <circle cx="12" cy="16.1" r="0.7" fill="#F8FAFC"/>`),
+        'world-clock': tile('#0F766E', `<circle cx="12" cy="12" r="6.2" ${stroke}/>
+            <path d="M6 12h12M12 6c1.8 2 2.7 4 2.7 6s-.9 4-2.7 6c-1.8-2-2.7-4-2.7-6s.9-4 2.7-6z" ${stroke}/>
+            <circle cx="12" cy="12" r="1" fill="#F8FAFC"/>`)
     };
 
     const CATALOG = [
@@ -91,7 +94,8 @@
         { id: 'system-intelligence', name: 'System Intelligence', description: 'A local activity dashboard for this session. Distinct from Aegis Intelligence commands.' },
         { id: 'user', name: 'User Profile', description: 'Identity and preferences stored for the signed-in AegisDesk session.' },
         { id: 'help', name: 'Help', description: 'Documentation for desktop, windows, search, applications, and shortcuts.' },
-        { id: 'weather', name: 'Weather', description: 'Live conditions from Open-Meteo when the network is available.' }
+        { id: 'weather', name: 'Weather', description: 'Live conditions from Open-Meteo when the network is available.' },
+        { id: 'world-clock', name: 'World Clock', description: 'Many cities at once, using IANA time zones and the browser clock. Daylight saving stays correct automatically.' }
     ];
 
     global.AEGIS_APP_ICONS = ICONS;

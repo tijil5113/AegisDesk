@@ -393,7 +393,7 @@ class Desktop {
         // For now we render all tiles; grid has contain: paint so scroll is cheap.
 
         // Get app order (preserve existing order from HTML if possible)
-        const appOrder = ['tasks', 'notes', 'weather', 'ai-chat', 'code-editor', 'terminal', 'drawing', 'system-monitor', 'gallery', 'music', 'browser', 'bookmarks', 'calculator', 'calendar', 'mail', 'files', 'settings', 'system-intelligence', 'news-hub', 'user', 'help'];
+        const appOrder = ['tasks', 'notes', 'weather', 'world-clock', 'ai-chat', 'code-editor', 'terminal', 'drawing', 'system-monitor', 'gallery', 'music', 'browser', 'bookmarks', 'calculator', 'calendar', 'mail', 'files', 'settings', 'system-intelligence', 'news-hub', 'user', 'help'];
         
         // Render apps from registry (full render; switch to virtualized when appOrder.length > threshold)
         appsGrid.innerHTML = appOrder.map(appId => {
@@ -695,6 +695,9 @@ class Desktop {
             case 'calculator':
                 if (typeof calculatorApp !== 'undefined') calculatorApp.open();
                 break;
+            case 'world-clock':
+                if (typeof worldClockApp !== 'undefined' && worldClockApp.open) worldClockApp.open();
+                break;
             case 'calendar':
                 if (typeof calendarApp !== 'undefined') calendarApp.open();
                 break;
@@ -790,6 +793,9 @@ class Desktop {
                 'files': 'files',
                 'calc': 'calculator',
                 'calculator': 'calculator',
+                'world clock': 'world-clock',
+                'world-clock': 'world-clock',
+                'timezone': 'world-clock',
                 'calendar': 'calendar',
                 'mail': 'mail',
                 'email': 'mail',

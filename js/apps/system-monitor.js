@@ -672,6 +672,12 @@ class SystemMonitorApp {
         };
         this.fpsRafId = window.requestAnimationFrame(loop);
 
+        this._onVisibility = () => {
+            if (document.hidden) this.stopSamplingLoops();
+            else if (win && win.isConnected) this.startSamplingLoops(win);
+        };
+        document.addEventListener('visibilitychange', this._onVisibility);
+
         // Passive network metrics from Network Information API
         if (navigator.connection) {
             this.networkInterval = setInterval(() => {
@@ -704,6 +710,10 @@ class SystemMonitorApp {
         if (this.networkInterval) {
             clearInterval(this.networkInterval);
             this.networkInterval = null;
+        }
+        if (this._onVisibility) {
+            document.removeEventListener('visibilitychange', this._onVisibility);
+            this._onVisibility = null;
         }
     }
 

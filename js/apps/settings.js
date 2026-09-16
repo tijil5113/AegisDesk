@@ -249,6 +249,19 @@ class SettingsApp {
                 </div>
 
                 <div class="settings-section">
+                    <div class="settings-section-title">Account</div>
+                    <div class="settings-item">
+                        <div class="settings-item-label" style="flex: 1;">
+                            <div class="settings-item-title">Signed-in identity</div>
+                            <div class="settings-item-desc" id="settings-account-desc">Account email and display name come from the server session when available. Notes, tasks, and bookmarks stay on this device.</div>
+                            <button type="button" id="settings-signout-btn" style="margin-top: 12px; padding: 8px 16px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); border-radius: 6px; color: #ef4444; cursor: pointer; font-size: 13px;">
+                                Sign out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
                     <div class="settings-section-title">System Intelligence</div>
                     <div class="settings-item">
                         <div class="settings-item-label" style="flex: 1;">
@@ -327,6 +340,21 @@ class SettingsApp {
                 }
             });
         });
+
+        const signOutBtn = content.querySelector('#settings-signout-btn');
+        const accountDesc = content.querySelector('#settings-account-desc');
+        try {
+            const profile = JSON.parse(localStorage.getItem('aegisdesk_account_profile') || 'null');
+            if (profile && accountDesc) {
+                accountDesc.textContent = (profile.displayName || 'Signed in') + (profile.email ? ' · ' + profile.email : '') + '. Notes, tasks, and bookmarks stay on this device.';
+            }
+        } catch (_) { /* ignore */ }
+        if (signOutBtn) {
+            signOutBtn.addEventListener('click', () => {
+                if (window.AegisAuthUI && AegisAuthUI.logout) AegisAuthUI.logout();
+                else window.location.href = 'login.html';
+            });
+        }
 
         // API Key input
         const apiKeyInput = content.querySelector('#openai-api-key');

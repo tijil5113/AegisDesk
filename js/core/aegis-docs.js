@@ -14,7 +14,7 @@
                 <p>AegisDesk is a web operating environment. After you sign in, the desktop is your workspace: windows, a taskbar, a launcher, and search.</p>
                 <ol>
                     <li>Open the public site, then choose <strong>Launch AegisDesk</strong>.</li>
-                    <li>Sign in with an allowed email and access code when the login gate is configured.</li>
+                    <li>Sign in with email and password, or create an account. A legacy access-code gate may still be configured for private deployments.</li>
                     <li>Use the launcher or taskbar to open applications inside windows.</li>
                 </ol>
                 <p>Preferences, notes, tasks, bookmarks, and similar data stay in this browser unless an application says otherwise.</p>`
@@ -75,6 +75,7 @@
                     <li><strong>Terminal</strong> is a simulated AegisDesk shell.</li>
                     <li><strong>System Monitor</strong> reports browser runtime metrics, not host hardware telemetry.</li>
                     <li><strong>Weather</strong> uses Open-Meteo when the network is available.</li>
+                    <li><strong>World Clock</strong> shows many cities using IANA time zones. Offsets are calculated by the browser, including daylight saving.</li>
                 </ul>`
         },
         {
@@ -108,6 +109,20 @@
             body: `
                 <p>Aegis Intelligence is the system command surface. Known phrases such as “open calculator” or “switch to dark theme” run locally. Natural language is mapped only to registered actions. The model cannot execute JavaScript, open arbitrary endpoints, or send mail by itself.</p>
                 <p>Compose-email requests open Mail with a draft. You send it. Destructive local deletes are not exposed as AI actions.</p>`
+        },
+        {
+            id: 'world-clock',
+            title: 'World Clock',
+            group: 'Apps',
+            body: `
+                <p>World Clock is an AegisDesk application and a compact panel from the taskbar clock. Times use <code>Intl.DateTimeFormat</code> and IANA zones such as <code>America/New_York</code> and <code>Asia/Kolkata</code>. You can add, remove, reorder, search, and restore the default cities. Selection is stored in this browser.</p>`
+        },
+        {
+            id: 'accounts',
+            title: 'Accounts',
+            group: 'System',
+            body: `
+                <p>Sign up creates a server-side account with a hashed password. Sign in issues an HttpOnly session cookie. Sign out revokes that session. Notes, tasks, bookmarks, and similar app data remain device-local and are not deleted when you add an account database.</p>`
         },
         {
             id: 'quick-look',

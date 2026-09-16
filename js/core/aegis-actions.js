@@ -190,7 +190,8 @@
         profile: 'user', user: 'user',
         news: 'news-hub', 'news-hub': 'news-hub',
         code: 'code-editor', editor: 'code-editor', 'code-editor': 'code-editor',
-        chat: 'ai-chat', ai: 'ai-chat', assistant: 'ai-chat', 'ai-chat': 'ai-chat'
+        chat: 'ai-chat', ai: 'ai-chat', assistant: 'ai-chat', 'ai-chat': 'ai-chat',
+        clock: 'world-clock', 'world-clock': 'world-clock', timezone: 'world-clock', timezones: 'world-clock'
     };
 
     function resolveAppId(name) {
@@ -210,7 +211,7 @@
 
     ['mail', 'music', 'calendar', 'settings', 'calculator',
         'browser', 'bookmarks', 'weather', 'terminal', 'gallery', 'drawing',
-        'system-monitor', 'insights', 'user', 'news-hub', 'code-editor', 'ai-chat'].forEach(function (id) {
+        'system-monitor', 'insights', 'user', 'news-hub', 'code-editor', 'ai-chat', 'world-clock'].forEach(function (id) {
         define({
             id: id.replace(/-/g, '') + '.open',
             title: 'Open ' + id,

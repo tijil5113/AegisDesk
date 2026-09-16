@@ -450,6 +450,13 @@ const APP_REGISTRY = {
             }
         }
     },
+    'world-clock': {
+        title: 'World Clock',
+        iconSVG: (typeof AEGIS_APP_ICONS !== 'undefined' && AEGIS_APP_ICONS['world-clock']) || `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="#5eead4" stroke-width="1.7"/><path d="M6 12h12M12 6c1.8 2 2.7 4 2.7 6s-.9 4-2.7 6c-1.8-2-2.7-4-2.7-6s.9-4 2.7-6z" stroke="#5eead4" stroke-width="1.5"/></svg>`,
+        open: function() {
+            if (typeof worldClockApp !== 'undefined' && worldClockApp.open) worldClockApp.open();
+        }
+    },
     'calendar': {
         title: 'Calendar',
         iconSVG: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

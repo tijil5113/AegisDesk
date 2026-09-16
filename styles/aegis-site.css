@@ -211,7 +211,16 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 
 .os-window--mail { left: 0; top: 24px; z-index: 2; }
 .os-window--music { right: 8px; top: 0; z-index: 3; width: min(280px, 86%); }
-.os-window--tasks { left: 48px; bottom: 0; z-index: 1; width: min(300px, 90%); }
+.os-window--clock { left: 36px; bottom: 8px; z-index: 1; width: min(300px, 90%); }
+.site-stage .os-window {
+    animation: siteStageFloat 9s ease-in-out infinite;
+}
+.site-stage .os-window--music { animation-delay: -2s; }
+.site-stage .os-window--clock { animation-delay: -5s; }
+@keyframes siteStageFloat {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    50% { transform: translate3d(0, -8px, 0); }
+}
 
 .mail-row, .task-row {
     display: flex;
@@ -387,11 +396,12 @@ kbd {
         transition: none !important;
         scroll-behavior: auto !important;
     }
+    .site-stage .os-window { transform: none !important; }
+    .io-pending { opacity: 1 !important; transform: none !important; }
 }
 
-.reveal {
-    animation: siteReveal 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
+.io-pending { opacity: 0.01; transform: translate3d(0, 16px, 0); }
+.io-in { animation: siteReveal 520ms cubic-bezier(0.16, 1, 0.3, 1) both; }
 @keyframes siteReveal {
     from { opacity: 0; transform: translate3d(0, 16px, 0); }
     to { opacity: 1; transform: none; }

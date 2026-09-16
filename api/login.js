@@ -5,7 +5,7 @@ import crypto from 'crypto';
 
 const COOKIE_NAME = 'aegis_gate';
 
-function allowedEmails() {
+export function allowedEmails() {
   return String(process.env.LOGIN_ALLOWED_EMAILS || '')
     .split(',')
     .map((s) => s.trim().toLowerCase())

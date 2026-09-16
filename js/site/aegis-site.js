@@ -44,6 +44,7 @@
                 <nav class="site-nav" id="site-nav" aria-label="Primary">
                     ${nav}
                     <a class="site-cta" href="login.html">Launch AegisDesk</a>
+                    <a class="site-btn-secondary" href="signup.html">Create account</a>
                 </nav>
             </div>
         </header>`;
@@ -73,6 +74,7 @@
                     <div>
                         <h3>Launch</h3>
                         <a href="login.html">Sign in</a>
+                        <a href="signup.html">Create account</a>
                         <a href="desktop.html">Desktop</a>
                     </div>
                 </div>
@@ -127,5 +129,20 @@
         }
         renderAppsGrid(document.getElementById('apps-showcase'));
         renderDocs(document.getElementById('docs-content'));
+
+        var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (!reduce && 'IntersectionObserver' in window) {
+            var nodes = document.querySelectorAll('.site-section, .site-card, .site-hero .reveal');
+            nodes.forEach(function (el) { el.classList.add('io-pending'); });
+            var io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('io-in');
+                        io.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+            nodes.forEach(function (el) { io.observe(el); });
+        }
     });
 })();
