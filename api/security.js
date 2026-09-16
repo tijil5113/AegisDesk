@@ -72,6 +72,8 @@ export function applySecurityHeaders(req, res, next) {
 
   // CSP: allow required product sources. unsafe-inline is required for existing
   // inline boot/theme scripts and app markup. YouTube embeds are used by Music.
+  // Monaco Code Editor and JSZip load from jsDelivr (same host as marked.js).
+  // blob: workers are required by Monaco. This is not a locked-down CSP.
   const csp = [
     "default-src 'self'",
     "base-uri 'self'",
@@ -79,9 +81,10 @@ export function applySecurityHeaders(req, res, next) {
     "object-src 'none'",
     "frame-ancestors 'self'",
     "img-src 'self' data: blob: https:",
-    "font-src 'self' data: https://fonts.gstatic.com",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.youtube.com https://www.youtube-nocookie.com",
+    "font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
+    "script-src 'self' 'unsafe-inline' blob: https://cdn.jsdelivr.net https://www.youtube.com https://www.youtube-nocookie.com",
+    "worker-src 'self' blob:",
     "connect-src 'self' https://api.open-meteo.com https://cdn.jsdelivr.net",
     "media-src 'self' blob: https:",
     "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://youtube.com https://www.google.com https://maps.google.com"

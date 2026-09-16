@@ -26,18 +26,26 @@ class VSCodeEditorApp {
         }
         
         this.monacoLoadPromise = new Promise((resolve, reject) => {
-            // Use unpkg CDN (recommended by Monaco docs)
+            // Monaco from jsDelivr so it matches the production CSP.
             const loaderScript = document.createElement('script');
-            loaderScript.src = 'https://unpkg.com/monaco-editor@latest/min/vs/loader.js';
+            loaderScript.src = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/loader.js';
             loaderScript.onload = () => {
                 if (!window.require) {
                     reject(new Error('Monaco loader failed'));
                     return;
                 }
                 
+                window.MonacoEnvironment = window.MonacoEnvironment || {
+                    getWorkerUrl: function () {
+                        return URL.createObjectURL(new Blob([
+                            "self.MonacoEnvironment={baseUrl:'https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/'};",
+                            "importScripts('https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/base/worker/workerMain.js');"
+                        ], { type: 'text/javascript' }));
+                    }
+                };
                 window.require.config({ 
                     paths: { 
-                        vs: 'https://unpkg.com/monaco-editor@latest/min/vs' 
+                        vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs' 
                     } 
                 });
                 

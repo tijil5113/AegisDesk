@@ -59,7 +59,7 @@ Do not put secrets in frontend code. `/health` reports `service` and `database` 
 - Authenticated APIs require an account session or the legacy gate cookie when those are configured.
 - Login/signup/AI/mail/provider routes are rate-limited.
 - State-changing cookie routes check Origin/Referer (CSRF). SameSite=Lax is not treated as sufficient by itself.
-- CSP allows `'unsafe-inline'` because existing boot/theme scripts are inline, and YouTube embeds for Music. That is an acknowledged exception, not a claim of a locked-down CSP.
+- CSP allows `'unsafe-inline'` because existing boot/theme scripts are inline, and YouTube embeds for Music. Monaco and JSZip load from `cdn.jsdelivr.net`; Monaco also needs `blob:` workers. That is an acknowledged exception, not a claim of a locked-down CSP.
 - Notes markdown preview is sanitized against script/event-handler injection. Do not treat that as a complete HTML sanitizer for every app.
 
 ## Browser limitations

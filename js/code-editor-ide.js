@@ -16,7 +16,7 @@
     var STORAGE_PREVIEW_VISIBLE = 'codeEditorIdePreviewVisible';
     var STORAGE_PREVIEW_RATIO = 'codeEditorIdePreviewRatio';
     var PREVIEW_DEBOUNCE_MS = 600;
-    var MONACO_CDN = 'https://unpkg.com/monaco-editor@0.44.0/min/vs';
+    var MONACO_CDN = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs';
 
     var THEMES = [
         { id: 'dark-pro', name: 'Dark Pro', monaco: 'vs-dark' },
@@ -232,6 +232,14 @@
             }
             var self = this;
             function doRequire() {
+                window.MonacoEnvironment = window.MonacoEnvironment || {
+                    getWorkerUrl: function () {
+                        return URL.createObjectURL(new Blob([
+                            "self.MonacoEnvironment={baseUrl:'https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/'};",
+                            "importScripts('https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/base/worker/workerMain.js');"
+                        ], { type: 'text/javascript' }));
+                    }
+                };
                 window.require.config({
                     paths: { vs: MONACO_CDN },
                     'vs/nls': { availableLanguages: {} }
@@ -241,8 +249,7 @@
                     IDE.defineThemes();
                     onReady();
                 }, function () {
-                    var el = document.getElementById('monaco-container');
-                    if (el) el.innerHTML = '<p style="color:#f48771;padding:20px">Failed to load editor. Check network.</p>';
+                    IDE.installFallbackEditor('Failed to load editor. Check network.');
                     onReady();
                 });
             }
@@ -251,14 +258,52 @@
                 return;
             }
             var script = document.createElement('script');
-            script.src = MONACO_CDN.replace('/min/vs', '') + '/vs/loader.js';
+            script.src = MONACO_CDN + '/loader.js';
             script.onload = doRequire;
             script.onerror = function () {
-                var el = document.getElementById('monaco-container');
-                if (el) el.innerHTML = '<p style="color:#f48771;padding:20px">Failed to load Monaco. Check network.</p>';
+                IDE.installFallbackEditor('Failed to load Monaco. Check network.');
                 onReady();
             };
             document.head.appendChild(script);
+        },
+
+        installFallbackEditor: function (message) {
+            var container = document.getElementById('monaco-container');
+            if (!container) return;
+            container.innerHTML = '';
+            var note = document.createElement('p');
+            note.className = 'ide-fallback-note';
+            note.setAttribute('role', 'status');
+            note.textContent = message + ' A plain editor is available; syntax highlighting is off.';
+            var ta = document.createElement('textarea');
+            ta.className = 'ide-plain-editor';
+            ta.setAttribute('spellcheck', 'false');
+            ta.setAttribute('aria-label', 'Code');
+            container.appendChild(note);
+            container.appendChild(ta);
+            var contentFns = [];
+            ta.addEventListener('input', function () {
+                contentFns.forEach(function (fn) { try { fn(); } catch (e) {} });
+            });
+            this.usingFallbackEditor = true;
+            this.editor = {
+                getValue: function () { return ta.value; },
+                setValue: function (value) { ta.value = value == null ? '' : String(value); },
+                layout: function () {},
+                focus: function () { ta.focus(); },
+                getSelection: function () { return null; },
+                getModel: function () {
+                    return { getValue: function () { return ta.value; }, getValueInRange: function () { return ''; } };
+                },
+                setModel: function (model) {
+                    ta.value = model && typeof model.getValue === 'function' ? model.getValue() : '';
+                },
+                onDidChangeCursorPosition: function () { return { dispose: function () {} }; },
+                onDidChangeModelContent: function (fn) { contentFns.push(fn); return { dispose: function () {} }; },
+                onDidChangeModel: function () { return { dispose: function () {} }; },
+                deltaDecorations: function () { return []; },
+                getAction: function () { return { run: function () {} }; }
+            };
         },
 
         defineThemes: function () {
@@ -484,6 +529,9 @@
             if (this.editor && window.monaco) {
                 var model = window.monaco.editor.createModel(file.content || '', file.language || 'plaintext');
                 this.editor.setModel(model);
+                this.editor.focus();
+            } else if (this.editor && this.usingFallbackEditor) {
+                this.editor.setValue(file.content || '');
                 this.editor.focus();
             }
             var el = document.getElementById('ide-status-language');
