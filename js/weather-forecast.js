@@ -49,9 +49,12 @@ class WeatherForecast {
     loadWeatherForecast(city) {
         const display = document.getElementById('weather-display');
         display.innerHTML = `
+            <div class="aegis-app-notice" data-tone="warning" style="margin-bottom:16px;">
+                <div><strong>Demo forecast page.</strong> These values are sample data, not live weather. Use the Weather app in AegisDesk for Open-Meteo conditions.</div>
+            </div>
             <div style="text-align: center; padding: 40px;">
                 <div class="window-loading-spinner" style="margin: 0 auto 16px;"></div>
-                <p style="color: var(--text-muted);">Loading forecast for ${city}...</p>
+                <p style="color: var(--text-muted);">Loading sample forecast for ${city}...</p>
             </div>
         `;
 

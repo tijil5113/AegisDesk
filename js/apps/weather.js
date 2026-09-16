@@ -1,190 +1,139 @@
-// Weather App - Tamil Nadu Cities
+// Weather — live Open-Meteo conditions. Never present sample data as live weather.
 class WeatherApp {
     constructor() {
         this.windowId = 'weather';
-        this.apiKey = 'your_api_key_here'; // Replace with actual API key
         this.cities = [
-            'Chennai', 'Coimbatore', 'Madurai', 'Tiruchirappalli', 'Salem',
-            'Tirunelveli', 'Tiruppur', 'Erode', 'Vellore', 'Thoothukudi',
-            'Dindigul', 'Thanjavur', 'Hosur', 'Nagercoil', 'Karur',
-            'Kanchipuram', 'Neyveli', 'Kumbakonam', 'Cuddalore', 'Avadi',
-            'Rajapalayam', 'Pollachi', 'Sivakasi', 'Tiruvannamalai', 'Pudukkottai',
-            'Ooty', 'Kodaikanal', 'Yercaud', 'Kanyakumari', 'Mahabalipuram'
+            { name: 'Chennai', latitude: 13.0827, longitude: 80.2707 },
+            { name: 'Coimbatore', latitude: 11.0168, longitude: 76.9558 },
+            { name: 'Madurai', latitude: 9.9252, longitude: 78.1198 },
+            { name: 'Tiruchirappalli', latitude: 10.7905, longitude: 78.7047 },
+            { name: 'Salem', latitude: 11.6643, longitude: 78.1460 },
+            { name: 'Tirunelveli', latitude: 8.7139, longitude: 77.7567 },
+            { name: 'Erode', latitude: 11.3410, longitude: 77.7172 },
+            { name: 'Vellore', latitude: 12.9165, longitude: 79.1325 },
+            { name: 'Thanjavur', latitude: 10.7870, longitude: 79.1378 },
+            { name: 'Ooty', latitude: 11.4064, longitude: 76.6932 }
         ];
+        this.abort = null;
     }
 
     open() {
-        const content = this.render();
-        const window = windowManager.createWindow(this.windowId, {
-            title: 'Weather - Tamil Nadu',
+        const win = windowManager.createWindow(this.windowId, {
+            title: 'Weather',
             width: 900,
             height: 700,
             class: 'app-weather',
-            icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <linearGradient id="weatherGradientApp" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:1" />
-                        <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
-                    </linearGradient>
-                    <linearGradient id="sunGradientApp" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
-                    </linearGradient>
-                </defs>
-                <!-- Sun rays -->
-                <circle cx="7" cy="7" r="3.5" fill="url(#sunGradientApp)" opacity="0.9"/>
-                <line x1="7" y1="2" x2="7" y2="4" stroke="url(#sunGradientApp)" stroke-width="1.5" stroke-linecap="round"/>
-                <line x1="7" y1="10" x2="7" y2="12" stroke="url(#sunGradientApp)" stroke-width="1.5" stroke-linecap="round"/>
-                <line x1="2" y1="7" x2="4" y2="7" stroke="url(#sunGradientApp)" stroke-width="1.5" stroke-linecap="round"/>
-                <line x1="10" y1="7" x2="12" y2="7" stroke="url(#sunGradientApp)" stroke-width="1.5" stroke-linecap="round"/>
-                <line x1="4.24" y1="4.24" x2="5.66" y2="5.66" stroke="url(#sunGradientApp)" stroke-width="1.5" stroke-linecap="round"/>
-                <line x1="8.34" y1="8.34" x2="9.76" y2="9.76" stroke="url(#sunGradientApp)" stroke-width="1.5" stroke-linecap="round"/>
-                <line x1="9.76" y1="4.24" x2="8.34" y2="5.66" stroke="url(#sunGradientApp)" stroke-width="1.5" stroke-linecap="round"/>
-                <line x1="5.66" y1="8.34" x2="4.24" y2="9.76" stroke="url(#sunGradientApp)" stroke-width="1.5" stroke-linecap="round"/>
-                <!-- Cloud -->
-                <path d="M18 16.5c0 1.38-1.12 2.5-2.5 2.5h-9c-1.38 0-2.5-1.12-2.5-2.5 0-1.04.64-1.93 1.54-2.3-.15-.5-.24-1.02-.24-1.55 0-2.76 2.24-5 5-5 1.2 0 2.3.43 3.16 1.14C14.5 6.5 15.88 7.5 17.5 7.5c1.38 0 2.5 1.12 2.5 2.5 0 .53-.17 1.02-.45 1.43.8.37 1.45 1.26 1.45 2.07z" fill="url(#weatherGradientApp)" opacity="0.95"/>
-                <!-- Cloud highlight -->
-                <ellipse cx="15.5" cy="15" rx="2" ry="1.2" fill="white" opacity="0.3"/>
-            </svg>`,
-            content: content
+            icon: (window.AEGIS_APP_ICONS && window.AEGIS_APP_ICONS.weather) || '',
+            content: this.render()
         });
-
-        this.attachEvents(window);
-        this.loadWeather(window);
+        this.attachEvents(win);
+        this.loadWeather(win);
+        win.addEventListener('close', () => {
+            if (this.abort) this.abort.abort();
+        });
     }
 
     render() {
         return `
-            <div class="weather-container">
-                <div class="weather-header">
-                    <h2>Tamil Nadu Weather</h2>
-                    <a href="weather-forecast.html" target="_blank" class="weather-forecast-link">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
-                            <polyline points="15 3 21 3 21 9"></polyline>
-                            <line x1="10" y1="14" x2="21" y2="3"></line>
-                        </svg>
-                        <span>View Detailed Forecast</span>
-                    </a>
-                </div>
-                <div class="weather-cities" id="weather-cities">
-                    ${this.renderLoading()}
+            <div class="weather-container aegis-app">
+                <header class="aegis-app-header">
+                    <div>
+                        <h2 class="aegis-app-title">Weather</h2>
+                        <p class="aegis-app-subtitle">Live conditions from Open-Meteo</p>
+                    </div>
+                    <div class="aegis-app-toolbar">
+                        <button type="button" class="aegis-btn" id="weather-refresh">Refresh</button>
+                    </div>
+                </header>
+                <div class="aegis-app-body">
+                    <p class="weather-source">Source: Open-Meteo. This is not a sample dataset.</p>
+                    <div class="weather-cities" id="weather-cities"></div>
                 </div>
             </div>
         `;
     }
 
-    renderLoading() {
+    attachEvents(win) {
+        win.querySelector('#weather-refresh')?.addEventListener('click', () => this.loadWeather(win));
+    }
+
+    async loadWeather(win) {
+        const container = win.querySelector('#weather-cities');
+        if (!container) return;
+        container.innerHTML = window.AegisAppKit
+            ? AegisAppKit.loadingState('Loading live weather')
+            : '<p>Loading…</p>';
+        if (this.abort) this.abort.abort();
+        this.abort = new AbortController();
+        try {
+            const data = await Promise.all(this.cities.map((city) => this.fetchCity(city, this.abort.signal)));
+            container.innerHTML = data.map((city) => this.renderCity(city)).join('');
+        } catch (error) {
+            if (error.name === 'AbortError') return;
+            container.innerHTML = window.AegisAppKit
+                ? AegisAppKit.errorState(
+                    'Weather is unavailable',
+                    'Open-Meteo could not be reached. Check the network and try again.',
+                    'Retry',
+                    'id="weather-retry"'
+                )
+                : `<p role="alert">${this.escapeHtml(error.message)}</p>`;
+            container.querySelector('#weather-retry')?.addEventListener('click', () => this.loadWeather(win));
+        }
+    }
+
+    async fetchCity(city, signal) {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.latitude}&longitude=${city.longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m`;
+        const response = await fetch(url, { signal });
+        if (!response.ok) throw new Error('Open-Meteo request failed');
+        const json = await response.json();
+        const current = json.current || {};
+        return {
+            name: city.name,
+            temp: current.temperature_2m,
+            feelsLike: current.apparent_temperature,
+            humidity: current.relative_humidity_2m,
+            windSpeed: current.wind_speed_10m,
+            condition: this.getWeatherCondition(current.weather_code)
+        };
+    }
+
+    renderCity(city) {
+        const temp = city.temp == null ? '—' : `${Math.round(city.temp)}°C`;
         return `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">
-                <div class="window-loading-spinner" style="margin: 0 auto 16px;"></div>
-                <p>Loading weather data...</p>
-            </div>
-        `;
-    }
-
-    renderCities(weatherData) {
-        return weatherData.map(city => `
-            <div class="weather-city-card">
+            <article class="weather-city-card">
                 <div class="city-name">${this.escapeHtml(city.name)}</div>
                 <div class="city-weather-main">
                     <div>
-                        <div class="city-temp">${Math.round(city.temp)}°C</div>
-                        <div class="city-condition">${city.condition}</div>
+                        <div class="city-temp">${temp}</div>
+                        <div class="city-condition">${this.escapeHtml(city.condition)}</div>
                     </div>
-                    <div style="font-size: 48px;">${this.getWeatherIcon(city.condition)}</div>
                 </div>
                 <div class="city-details">
-                    <div class="city-detail-item">
-                        <span>Feels like</span>
-                        <span>${Math.round(city.feelsLike)}°C</span>
-                    </div>
-                    <div class="city-detail-item">
-                        <span>Humidity</span>
-                        <span>${city.humidity}%</span>
-                    </div>
-                    <div class="city-detail-item">
-                        <span>Wind</span>
-                        <span>${city.windSpeed} km/h</span>
-                    </div>
+                    <div class="city-detail-item"><span>Feels like</span><span>${city.feelsLike == null ? '—' : Math.round(city.feelsLike) + '°C'}</span></div>
+                    <div class="city-detail-item"><span>Humidity</span><span>${city.humidity == null ? '—' : city.humidity + '%'}</span></div>
+                    <div class="city-detail-item"><span>Wind</span><span>${city.windSpeed == null ? '—' : city.windSpeed + ' km/h'}</span></div>
                 </div>
-            </div>
-        `).join('');
-    }
-
-    async loadWeather(window) {
-        const container = window.querySelector('#weather-cities');
-        
-        // For demo purposes, using sample data
-        // To use real weather data, you would need:
-        // 1. A geocoding service to get coordinates for each city
-        // 2. Or use a weather API that accepts city names directly
-        // 3. Or maintain a city coordinates database
-        
-        // Simulate loading delay for better UX
-        setTimeout(() => {
-            const weatherData = this.getSampleWeatherData();
-            container.innerHTML = this.renderCities(weatherData);
-        }, 800);
-    }
-
-    getSampleWeatherData() {
-        return this.cities.map(city => this.getSampleCityData(city));
-    }
-
-    getSampleCityData(cityName) {
-        const conditions = ['Sunny', 'Partly Cloudy', 'Cloudy', 'Rainy', 'Thunderstorm'];
-        const condition = conditions[Math.floor(Math.random() * conditions.length)];
-        
-        return {
-            name: cityName,
-            temp: Math.round(25 + Math.random() * 10),
-            feelsLike: Math.round(26 + Math.random() * 10),
-            humidity: Math.round(60 + Math.random() * 30),
-            windSpeed: Math.round(5 + Math.random() * 15),
-            condition: condition
-        };
+            </article>
+        `;
     }
 
     getWeatherCondition(code) {
-        // WMO Weather interpretation codes
         const codes = {
-            0: 'Clear', 1: 'Clear', 2: 'Partly Cloudy', 3: 'Cloudy',
-            45: 'Foggy', 48: 'Foggy', 51: 'Drizzle', 53: 'Drizzle',
-            55: 'Drizzle', 61: 'Rainy', 63: 'Rainy', 65: 'Rainy',
-            71: 'Snowy', 73: 'Snowy', 75: 'Snowy', 77: 'Snowy',
-            80: 'Rainy', 81: 'Rainy', 82: 'Rainy', 85: 'Snowy',
-            86: 'Snowy', 95: 'Thunderstorm', 96: 'Thunderstorm', 99: 'Thunderstorm'
+            0: 'Clear', 1: 'Clear', 2: 'Partly cloudy', 3: 'Cloudy',
+            45: 'Foggy', 48: 'Foggy', 51: 'Drizzle', 53: 'Drizzle', 55: 'Drizzle',
+            61: 'Rain', 63: 'Rain', 65: 'Rain', 71: 'Snow', 73: 'Snow', 75: 'Snow',
+            80: 'Rain', 81: 'Rain', 82: 'Rain', 95: 'Thunderstorm', 96: 'Thunderstorm', 99: 'Thunderstorm'
         };
-        return codes[code] || 'Clear';
+        return codes[code] || 'Conditions unavailable';
     }
 
-    getWeatherIcon(condition) {
-        const icons = {
-            'Sunny': '☀️',
-            'Clear': '☀️',
-            'Partly Cloudy': '⛅',
-            'Cloudy': '☁️',
-            'Rainy': '🌧️',
-            'Drizzle': '🌦️',
-            'Thunderstorm': '⛈️',
-            'Snowy': '❄️',
-            'Foggy': '🌫️'
-        };
-        return icons[condition] || '☀️';
-    }
-
-    attachEvents(window) {
-        // Refresh button could be added here
-    }
-
-    escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+    escapeHtml(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
     }
 }
 
 const weatherApp = new WeatherApp();
-

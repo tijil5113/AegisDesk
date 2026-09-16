@@ -6,6 +6,8 @@ class DrawingApp {
         this.currentColor = '#6366f1';
         this.currentSize = 5;
         this.tool = 'pen';
+        this.history = [];
+        this.historyIndex = -1;
     }
 
     open() {
@@ -30,7 +32,7 @@ class DrawingApp {
             <div class="drawing-container">
                 <div class="drawing-toolbar">
                     <div class="drawing-tools">
-                        <button class="drawing-tool-btn active" data-tool="pen" title="Pen">
+                        <button class="drawing-tool-btn active" data-tool="pen" title="Brush" aria-pressed="true" aria-label="Brush">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
                                 <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
@@ -38,14 +40,9 @@ class DrawingApp {
                                 <circle cx="11" cy="11" r="2"></circle>
                             </svg>
                         </button>
-                        <button class="drawing-tool-btn" data-tool="eraser" title="Eraser">
+                        <button class="drawing-tool-btn" data-tool="eraser" title="Eraser" aria-label="Eraser">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
-                        </button>
-                        <button class="drawing-tool-btn" data-tool="fill" title="Fill">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"></path>
                             </svg>
                         </button>
                     </div>
@@ -65,8 +62,10 @@ class DrawingApp {
                         <span id="size-value">${this.currentSize}</span>
                     </div>
                     <div class="drawing-actions">
-                        <button class="drawing-btn" id="clear-btn">Clear</button>
-                        <button class="drawing-btn" id="save-btn">Save</button>
+                        <button class="drawing-btn" id="undo-btn" type="button">Undo</button>
+                        <button class="drawing-btn" id="redo-btn" type="button">Redo</button>
+                        <button class="drawing-btn" id="clear-btn" type="button">Clear</button>
+                        <button class="drawing-btn" id="save-btn" type="button">Save PNG</button>
                     </div>
                 </div>
                 <div class="drawing-canvas-container">
@@ -83,8 +82,8 @@ class DrawingApp {
         const ctx = canvas.getContext('2d');
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        this.pushHistory(canvas);
 
-        // Resize canvas to fit container
         const container = window.querySelector('.drawing-canvas-container');
         if (container) {
             const resizeCanvas = () => {
@@ -93,8 +92,27 @@ class DrawingApp {
                 canvas.style.height = rect.height + 'px';
             };
             resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
         }
+    }
+
+    pushHistory(canvas) {
+        const snapshot = canvas.toDataURL();
+        this.history = this.history.slice(0, this.historyIndex + 1);
+        this.history.push(snapshot);
+        if (this.history.length > 30) this.history.shift();
+        this.historyIndex = this.history.length - 1;
+    }
+
+    restoreHistory(canvas, ctx) {
+        const snapshot = this.history[this.historyIndex];
+        if (!snapshot) return;
+        const image = new Image();
+        image.onload = () => {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+        };
+        image.src = snapshot;
     }
 
     attachEvents(window) {
@@ -109,6 +127,8 @@ class DrawingApp {
         const sizeValue = window.querySelector('#size-value');
         const clearBtn = window.querySelector('#clear-btn');
         const saveBtn = window.querySelector('#save-btn');
+        const undoBtn = window.querySelector('#undo-btn');
+        const redoBtn = window.querySelector('#redo-btn');
 
         // Tool selection
         toolButtons.forEach(btn => {
@@ -195,6 +215,7 @@ class DrawingApp {
             if (this.isDrawing) {
                 ctx.beginPath();
                 this.isDrawing = false;
+                this.pushHistory(canvas);
             }
         };
 
@@ -230,11 +251,29 @@ class DrawingApp {
             canvas.dispatchEvent(mouseEvent);
         });
 
+        if (undoBtn) {
+            undoBtn.addEventListener('click', () => {
+                if (this.historyIndex > 0) {
+                    this.historyIndex -= 1;
+                    this.restoreHistory(canvas, ctx);
+                }
+            });
+        }
+        if (redoBtn) {
+            redoBtn.addEventListener('click', () => {
+                if (this.historyIndex < this.history.length - 1) {
+                    this.historyIndex += 1;
+                    this.restoreHistory(canvas, ctx);
+                }
+            });
+        }
+
         if (clearBtn) {
             clearBtn.addEventListener('click', () => {
                 if (confirm('Clear the entire canvas?')) {
                     ctx.fillStyle = '#ffffff';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    this.pushHistory(canvas);
                 }
             });
         }

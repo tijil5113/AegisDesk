@@ -206,9 +206,10 @@ class BrowserApp {
                         <button type="button" class="quick-launch-open-btn" id="quick-launch-open-btn" title="Open in your browser">Open in browser</button>
                     </div>
                 </div>
+                <div class="quick-launch-bookmarks" id="quick-launch-bookmarks" hidden></div>
                 <div class="quick-launch-content" id="quick-launch-content">
                     <div class="quick-launch-panel quick-launch-panel-global" id="quick-launch-panel-global" role="tabpanel" aria-label="Global sites">
-                        <p class="quick-launch-intro">Open any site in your system browser. Click a card below.</p>
+                        <p class="quick-launch-intro">AegisDesk Browser launches sites in a new browser tab. Many sites refuse iframe embedding; this app does not try to bypass that restriction. Saved bookmarks appear below when Bookmarks has data.</p>
                         <div class="quick-launch-categories">${globalHtml}</div>
                     </div>
                     <div class="quick-launch-panel quick-launch-panel-india hidden" id="quick-launch-panel-india" role="tabpanel" aria-label="India sites" hidden>
@@ -294,6 +295,40 @@ class BrowserApp {
                 if (panelGlobal) filterCategories(panelGlobal);
                 if (panelIndia) filterCategories(panelIndia);
             });
+        }
+
+        this.renderSavedBookmarks(content, openInBrowser);
+    }
+
+    async renderSavedBookmarks(content, openInBrowser) {
+        const host = content.querySelector('#quick-launch-bookmarks');
+        if (!host) return;
+        try {
+            const list = (typeof bookmarksApp !== 'undefined' && bookmarksApp.getAllBookmarks)
+                ? await bookmarksApp.getAllBookmarks()
+                : [];
+            const items = Array.isArray(list) ? list.slice(0, 8) : [];
+            if (!items.length) {
+                host.hidden = true;
+                host.innerHTML = '';
+                return;
+            }
+            host.hidden = false;
+            host.innerHTML = `<h3 class="quick-launch-category-title">Bookmarks</h3>
+                <div class="quick-launch-grid">${items.map((item) => `
+                    <button type="button" class="quick-launch-card" data-url="${this.escapeHtml(item.url || '')}">
+                        <span class="quick-launch-card-name">${this.escapeHtml(item.title || item.url || 'Bookmark')}</span>
+                    </button>
+                `).join('')}</div>
+                <button type="button" class="aegis-btn aegis-btn-ghost" id="open-bookmarks-app">Open Bookmarks</button>`;
+            host.querySelectorAll('[data-url]').forEach((btn) => {
+                btn.addEventListener('click', () => openInBrowser(btn.dataset.url || ''));
+            });
+            host.querySelector('#open-bookmarks-app')?.addEventListener('click', () => {
+                if (typeof APP_REGISTRY !== 'undefined' && APP_REGISTRY.bookmarks) APP_REGISTRY.bookmarks.open();
+            });
+        } catch (error) {
+            host.hidden = true;
         }
     }
     

@@ -1,0 +1,489 @@
+/**
+ * AegisDesk application interiors — Spec 2
+ * Shared chrome on top of the Spec 1 design system.
+ */
+
+.window-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.aegis-iframe-shell,
+.mail-window-container,
+.music-window-container,
+.calendar-window-container {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    background: var(--aegis-bg-base);
+}
+
+.aegis-iframe-shell iframe,
+.mail-window-container iframe,
+.music-window-container iframe,
+.calendar-window-container iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: var(--aegis-bg-base);
+}
+
+.aegis-app {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    color: var(--aegis-text-primary);
+    background: var(--aegis-bg-surface);
+    font: var(--aegis-type-body);
+}
+
+.aegis-app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--aegis-space-3);
+    min-height: 52px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--aegis-border-subtle);
+    background: color-mix(in srgb, var(--aegis-bg-elevated) 88%, transparent);
+    flex-shrink: 0;
+}
+
+.aegis-app-title {
+    margin: 0;
+    font: var(--aegis-type-section);
+    letter-spacing: var(--aegis-tracking-tight);
+}
+
+.aegis-app-subtitle,
+.aegis-app-meta {
+    margin: 2px 0 0;
+    font: var(--aegis-type-caption);
+    color: var(--aegis-text-muted);
+}
+
+.aegis-app-toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.aegis-app-body {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 14px;
+}
+
+.aegis-app-split {
+    display: grid;
+    grid-template-columns: minmax(180px, 240px) 1fr;
+    min-height: 0;
+    height: 100%;
+}
+
+.aegis-app-nav {
+    border-right: 1px solid var(--aegis-border-subtle);
+    padding: 10px;
+    overflow: auto;
+    background: color-mix(in srgb, var(--aegis-bg-elevated) 55%, transparent);
+}
+
+.aegis-app-nav button,
+.aegis-app-nav a {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: var(--aegis-radius-control);
+    background: transparent;
+    color: var(--aegis-text-secondary);
+    font: var(--aegis-type-secondary);
+    text-align: left;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.aegis-app-nav button:hover,
+.aegis-app-nav a:hover,
+.aegis-app-nav button[aria-current="page"],
+.aegis-app-nav button.active {
+    background: var(--aegis-accent-soft);
+    color: var(--aegis-text-primary);
+}
+
+.aegis-app-empty,
+.aegis-app-loading,
+.aegis-app-error {
+    min-height: 220px;
+}
+
+.aegis-app-notice {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    border-radius: var(--aegis-radius-card);
+    border: 1px solid var(--aegis-border-default);
+    background: var(--aegis-accent-soft);
+    color: var(--aegis-text-secondary);
+    font: var(--aegis-type-secondary);
+}
+
+.aegis-app-notice strong {
+    color: var(--aegis-text-primary);
+}
+
+.aegis-app-notice[data-tone="warning"] {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.35);
+}
+
+.aegis-app-notice[data-tone="danger"] {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.32);
+}
+
+.aegis-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 22px;
+    padding: 0 8px;
+    border-radius: var(--aegis-radius-pill);
+    font: var(--aegis-type-caption);
+    background: var(--aegis-accent-soft);
+    color: var(--aegis-text-secondary);
+}
+
+.aegis-status[data-state="sending"] { color: var(--aegis-warning); }
+.aegis-status[data-state="sent"] { color: var(--aegis-success); }
+.aegis-status[data-state="failed"] { color: var(--aegis-danger); }
+
+.music-recent {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 18px 0;
+    color: var(--aegis-text-muted, #94a3b8);
+    font-size: 0.8rem;
+}
+.music-recent-chip {
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    background: rgba(15, 23, 42, 0.6);
+    color: inherit;
+    border-radius: 999px;
+    padding: 4px 10px;
+    cursor: pointer;
+}
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+    width: 100%;
+    border-collapse: collapse;
+    font: var(--aegis-type-secondary);
+}
+
+.aegis-docs-table th,
+.aegis-docs-table td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--aegis-border-subtle);
+    vertical-align: top;
+}
+
+.aegis-docs-table kbd,
+.help-app kbd {
+    display: inline-flex;
+    min-width: 1.4em;
+    justify-content: center;
+    padding: 2px 6px;
+    border-radius: 6px;
+    border: 1px solid var(--aegis-border-default);
+    background: var(--aegis-bg-elevated);
+    font: var(--aegis-type-code);
+}
+
+/* Calculator */
+.app-calculator .window-content,
+.calculator-container {
+    background: var(--aegis-bg-surface);
+}
+
+.calculator-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 14px;
+    gap: 12px;
+}
+
+.calculator-display {
+    border-radius: var(--aegis-radius-card);
+    border: 1px solid var(--aegis-border-default);
+    background: rgba(2, 6, 23, 0.45);
+    padding: 14px 16px;
+}
+
+.calculator-input {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: var(--aegis-text-primary);
+    font: 600 1.5rem / 1.2 var(--aegis-font-mono);
+    text-align: right;
+    outline: none;
+}
+
+.calculator-result {
+    min-height: 1.4em;
+    text-align: right;
+    color: var(--aegis-text-muted);
+    font: var(--aegis-type-code);
+}
+
+.calculator-result.calc-error {
+    color: var(--aegis-danger);
+}
+
+.calculator-buttons {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    flex: 1;
+}
+
+.calc-btn {
+    min-height: 44px;
+    border-radius: var(--aegis-radius-control);
+    border: 1px solid var(--aegis-border-default);
+    background: var(--aegis-bg-elevated);
+    color: var(--aegis-text-primary);
+    font: var(--aegis-type-button);
+    cursor: pointer;
+}
+
+.calc-btn:hover { background: var(--aegis-accent-soft); }
+.calc-btn:focus-visible {
+    outline: var(--aegis-focus-ring);
+    outline-offset: var(--aegis-focus-offset);
+}
+.calc-btn-operator,
+.calc-btn-func { color: var(--aegis-accent-hover); }
+.calc-btn-equals {
+    background: var(--aegis-accent);
+    border-color: transparent;
+    color: #fff;
+    grid-column: span 2;
+}
+.calc-btn-zero { grid-column: span 2; }
+.calc-btn-clear { color: var(--aegis-warning); }
+
+/* Drawing */
+.drawing-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.drawing-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--aegis-border-subtle);
+}
+
+.drawing-tool-btn,
+.drawing-btn {
+    min-height: 36px;
+    min-width: 36px;
+    border-radius: var(--aegis-radius-control);
+    border: 1px solid var(--aegis-border-default);
+    background: var(--aegis-bg-elevated);
+    color: var(--aegis-text-primary);
+    cursor: pointer;
+}
+
+.drawing-tool-btn.active,
+.drawing-tool-btn[aria-pressed="true"] {
+    background: var(--aegis-accent-soft);
+    border-color: var(--aegis-border-strong);
+}
+
+.drawing-canvas-container {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    background: #0b1220;
+}
+
+#drawing-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+    background: #fff;
+}
+
+/* Weather */
+.weather-container {
+    height: 100%;
+    overflow: auto;
+    padding: 16px;
+}
+
+.weather-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+}
+
+.weather-cities {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+}
+
+.weather-city-card {
+    padding: 14px;
+    border-radius: var(--aegis-radius-card);
+    border: 1px solid var(--aegis-border-default);
+    background: var(--aegis-bg-elevated);
+}
+
+.city-temp {
+    font: var(--aegis-type-heading);
+}
+
+.weather-source {
+    font: var(--aegis-type-caption);
+    color: var(--aegis-text-muted);
+}
+
+/* Settings */
+.settings-container.aegis-app,
+.app-settings .settings-container {
+    height: 100%;
+    overflow: auto;
+}
+
+.settings-layout {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    min-height: 100%;
+}
+
+.settings-nav button {
+    width: 100%;
+}
+
+.settings-section {
+    padding: 8px 0 18px;
+    border-bottom: 1px solid var(--aegis-border-subtle);
+}
+
+.settings-section-title {
+    font: var(--aegis-type-label);
+    letter-spacing: var(--aegis-tracking-wide);
+    text-transform: uppercase;
+    color: var(--aegis-text-muted);
+    margin-bottom: 10px;
+}
+
+/* Browser */
+.browser-container,
+.aegis-browser {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.aegis-browser-bar {
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--aegis-border-subtle);
+}
+
+.aegis-browser-bar input {
+    flex: 1;
+}
+
+.browser-embed-note {
+    margin: 12px 14px 0;
+}
+
+/* Help */
+.help-app {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    height: 100%;
+    min-height: 0;
+}
+
+.help-search {
+    padding: 0 14px 10px;
+}
+
+.help-content {
+    overflow: auto;
+    padding: 0 14px 20px;
+}
+
+.help-section {
+    margin-bottom: 22px;
+}
+
+.help-section h3 {
+    font: var(--aegis-type-section);
+    margin: 0 0 8px;
+}
+
+/* System monitor honesty */
+.monitor-honesty {
+    margin: 12px 14px 0;
+}
+
+@media (max-width: 720px) {
+    .aegis-app-split,
+    .settings-layout {
+        grid-template-columns: 1fr;
+    }
+    .aegis-app-nav {
+        border-right: 0;
+        border-bottom: 1px solid var(--aegis-border-subtle);
+        display: flex;
+        gap: 6px;
+        overflow-x: auto;
+    }
+    .calculator-buttons {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+html.aegis-reduced-motion .calc-btn,
+html.aegis-reduced-motion .drawing-tool-btn {
+    transition: none;
+}

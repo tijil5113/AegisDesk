@@ -67,6 +67,9 @@ class SystemInsightsApp {
                         </button>
                     </div>
                 </div>
+                <div class="aegis-app-notice" style="margin:12px 16px 0;">
+                    <div><strong>Local session dashboard.</strong> System Intelligence summarizes activity in this browser. It is not the upcoming OS-wide Aegis Intelligence layer, and it is not a second copy of AI Assistant.</div>
+                </div>
                 
                 <!-- Main Content -->
                 <div class="insights-content">
@@ -686,7 +689,17 @@ class SystemInsightsApp {
             btn.addEventListener('click', () => {
                 window.querySelectorAll('.section-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                // TODO: Update analytics for selected period
+                const period = btn.dataset.period || btn.textContent.trim().toLowerCase();
+                this.selectedPeriod = period;
+                this.updateAll(window);
+                const status = window.querySelector('#insights-period-status');
+                if (status) {
+                    status.textContent = period === 'today' || period === 'day'
+                        ? 'Showing events recorded today in this browser.'
+                        : period === 'week'
+                            ? 'Showing events recorded this week in this browser.'
+                            : 'Showing all locally recorded events.';
+                }
             });
         });
     }

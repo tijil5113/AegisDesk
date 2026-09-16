@@ -129,7 +129,7 @@ class SystemMonitorApp {
                 <div class="system-monitor-header">
                     <div class="system-monitor-title-group">
                         <h2>System Monitor</h2>
-                        <div class="system-monitor-subtitle">Real-time device, performance, and app telemetry</div>
+                        <div class="system-monitor-subtitle">Browser runtime metrics — not host operating-system telemetry</div>
                     </div>
                     <div class="system-monitor-header-actions">
                         <button class="system-btn system-btn-ghost" id="system-theme-toggle" title="Change Theme">🎨</button>
@@ -156,6 +156,12 @@ class SystemMonitorApp {
                 <div class="system-monitor-main">
                     <!-- OVERVIEW -->
                     <section class="system-tab-panel active" data-tab-panel="overview" aria-label="Overview">
+                        <div class="aegis-app-notice monitor-honesty">
+                            <div>
+                                <strong>Factual sources.</strong>
+                                CPU load is estimated from event-loop lag and JS heap. Memory is the JavaScript heap when the browser exposes it. Battery and network use Web APIs when available. This is not host CPU, RAM, or hardware telemetry.
+                            </div>
+                        </div>
                         <div class="system-stats-grid">
                             <div class="system-stat-card">
                                 <div class="stat-icon cpu-icon">
@@ -184,7 +190,7 @@ class SystemMonitorApp {
                                     </svg>
                                 </div>
                                 <div class="stat-info">
-                                    <div class="stat-label">Memory Usage</div>
+                                    <div class="stat-label">JS heap</div>
                                     <div class="stat-value" id="memory-value">–%</div>
                                     <div class="stat-bar">
                                         <div class="stat-bar-fill" id="memory-bar" style="width: 0%"></div>

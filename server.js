@@ -114,7 +114,7 @@ app.use('/api', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'login.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.use(express.static(__dirname, {
@@ -134,7 +134,7 @@ app.get('*', (req, res) => {
       if (err) res.status(404).send('Not found');
     });
   }
-  res.sendFile(path.join(__dirname, 'welcome.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.use((err, req, res, next) => {
@@ -152,7 +152,7 @@ const PORT = Number(process.env.PORT) || 3000;
 function tryListen(port) {
   const server = app.listen(port, () => {
     console.log(`AegisDesk server running on port ${port}`);
-    console.log(`Open: http://localhost:${port}/login.html`);
+    console.log(`Open: http://localhost:${port}/`);
     if (isProd && (!process.env.LOGIN_ACCESS_CODE || !process.env.LOGIN_ALLOWED_EMAILS)) {
       console.warn('Production login gate is not configured (LOGIN_ACCESS_CODE / LOGIN_ALLOWED_EMAILS).');
     }

@@ -5,6 +5,7 @@ class MusicPage {
         this.debugMode = false;
         this.lastSearchQuery = '';
         this.searchGeneration = 0;
+        this.recentSearches = this.loadRecentSearches();
         
         // Wait for DOM
         if (document.readyState === 'loading') {
@@ -32,6 +33,7 @@ class MusicPage {
         
         // Initial render
         this.renderAll();
+        this.renderRecentSearches();
         
         console.log('✅ Music Page initialized');
     }
@@ -297,6 +299,7 @@ class MusicPage {
         if (!q || !window.youtubeSearchAPI) return;
 
         this.lastSearchQuery = q;
+        this.rememberSearch(q);
         const generation = ++this.searchGeneration;
         this.hideError();
         this.showSearchLoading();
@@ -544,6 +547,42 @@ class MusicPage {
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     }
     
+    loadRecentSearches() {
+        try {
+            const raw = localStorage.getItem('aegisdesk_music_recent_searches');
+            const parsed = raw ? JSON.parse(raw) : [];
+            return Array.isArray(parsed) ? parsed.slice(0, 8) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    rememberSearch(query) {
+        const next = [query, ...this.recentSearches.filter((item) => item !== query)].slice(0, 8);
+        this.recentSearches = next;
+        try {
+            localStorage.setItem('aegisdesk_music_recent_searches', JSON.stringify(next));
+        } catch (e) {}
+        this.renderRecentSearches();
+    }
+
+    renderRecentSearches() {
+        const host = document.getElementById('music-recent-searches');
+        if (!host) return;
+        if (!this.recentSearches.length) {
+            host.hidden = true;
+            host.innerHTML = '';
+            return;
+        }
+        host.hidden = false;
+        host.innerHTML = `<span>Recent</span>${this.recentSearches.map((item) =>
+            `<button type="button" class="music-recent-chip" data-query="${this.escapeHtml(item)}">${this.escapeHtml(item)}</button>`
+        ).join('')}`;
+        host.querySelectorAll('[data-query]').forEach((btn) => {
+            btn.addEventListener('click', () => this.performSearch(btn.dataset.query));
+        });
+    }
+
     escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;

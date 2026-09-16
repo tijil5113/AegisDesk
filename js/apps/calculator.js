@@ -299,6 +299,9 @@ class CalculatorApp {
             const normalized = this.insertImplicitMultiplication(tokens);
             const rpn = this.toRPN(normalized);
             const value = this.evalRPN(rpn);
+            if (value === Infinity || value === -Infinity) {
+                return { ok: false, message: 'Cannot divide by zero' };
+            }
             if (!Number.isFinite(value)) {
                 return { ok: false, message: 'Error' };
             }
@@ -499,7 +502,7 @@ class CalculatorApp {
                         stack.push(a * b);
                         break;
                     case '/':
-                        stack.push(b === 0 ? NaN : a / b);
+                        stack.push(b === 0 ? Infinity : a / b);
                         break;
                     case '^':
                         stack.push(Math.pow(a, b));
@@ -513,6 +516,7 @@ class CalculatorApp {
     }
 
     formatNumber(num) {
+        if (num === Infinity || num === -Infinity) return 'Cannot divide by zero';
         if (!Number.isFinite(num)) return 'Error';
         if (Object.is(num, -0)) num = 0;
         const abs = Math.abs(num);

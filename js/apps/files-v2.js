@@ -53,6 +53,9 @@ class NextGenFilesApp {
     render() {
         return `
             <div class="files-v2-container">
+                <div class="aegis-app-notice" style="margin:10px 12px 0;">
+                    <div><strong>Virtual workspace.</strong> Files stored here live in this browser. This is not unrestricted access to your computer disk.</div>
+                </div>
                 <!-- Toolbar -->
                 <div class="files-toolbar">
                     <div class="toolbar-left">

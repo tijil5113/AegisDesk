@@ -10,6 +10,7 @@ class CSSLoader {
             'styles/modern-system.css',
             'styles/performance-optimized.css',
             'styles/aegis-os-shell.css',
+            'styles/aegis-apps.css',
             'styles/boot-sequence.css'
         ];
     }

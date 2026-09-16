@@ -134,11 +134,19 @@ const APP_REGISTRY = {
             <circle cx="18" cy="6" r="0.8" fill="#c4b5fd" opacity="0.8"/>
             <circle cx="10" cy="18" r="0.8" fill="#c4b5fd" opacity="0.8"/>
         </svg>`,
-        open: function(url) {
-            // Always open ai-chat.html - use provided URL or default
-            const aiChatUrl = url || 'ai-chat.html';
-            console.log('AI Assistant opening:', aiChatUrl);
-            window.open(aiChatUrl, '_blank');
+        open: function() {
+            if (window.AegisAppKit && typeof AegisAppKit.openIframeApp === 'function') {
+                AegisAppKit.openIframeApp('ai-chat', {
+                    title: 'AI Assistant',
+                    src: 'ai-chat.html',
+                    iconId: 'ai-chat',
+                    width: 1120,
+                    height: 760,
+                    className: 'app-ai-chat'
+                });
+                return;
+            }
+            window.open('ai-chat.html', '_blank');
         }
     },
     'browser': {
@@ -197,7 +205,17 @@ const APP_REGISTRY = {
             <path d="M16 6 L20 12 L16 18" stroke="#34d399" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.3"/>
         </svg>`,
         open: function() {
-            // Open standalone Code Editor IDE page (code-editor.html), same origin
+            if (window.AegisAppKit && typeof AegisAppKit.openIframeApp === 'function') {
+                AegisAppKit.openIframeApp('code-editor', {
+                    title: 'Code Editor',
+                    src: 'code-editor.html',
+                    iconId: 'code-editor',
+                    width: 1200,
+                    height: 800,
+                    className: 'app-code-editor'
+                });
+                return;
+            }
             window.open('code-editor.html', '_blank', 'noopener');
         }
     },
@@ -660,11 +678,18 @@ const APP_REGISTRY = {
             <path d="M20 4 L20 6 L18 4 Z" fill="rgba(0,0,0,0.2)"/>
         </svg>`,
         open: function() {
-            // Always use server URL to ensure API works
-            const serverUrl = window.location.protocol === 'file:' 
-                ? 'http://localhost:3000/news.html' 
-                : (window.location.origin + '/news.html');
-            window.open(serverUrl, '_blank');
+            if (window.AegisAppKit && typeof AegisAppKit.openIframeApp === 'function') {
+                AegisAppKit.openIframeApp('news-hub', {
+                    title: 'News',
+                    src: 'news.html',
+                    iconId: 'news-hub',
+                    width: 1200,
+                    height: 800,
+                    className: 'app-news'
+                });
+                return;
+            }
+            window.open('news.html', '_blank');
         }
     },
     'news-reader': {
@@ -703,6 +728,17 @@ const APP_REGISTRY = {
             <circle cx="12" cy="12" r="8" fill="url(#userGlow)" opacity="0.3"/>
         </svg>`,
         open: function() {
+            if (window.AegisAppKit && typeof AegisAppKit.openIframeApp === 'function') {
+                AegisAppKit.openIframeApp('user', {
+                    title: 'User Profile',
+                    src: 'user.html',
+                    iconId: 'user',
+                    width: 920,
+                    height: 720,
+                    className: 'app-user'
+                });
+                return;
+            }
             window.open('user.html', '_blank');
         }
     },
@@ -735,6 +771,14 @@ const APP_REGISTRY = {
         }
     }
 };
+
+if (typeof window !== 'undefined' && window.AEGIS_APP_ICONS) {
+    Object.keys(APP_REGISTRY).forEach(function (id) {
+        if (window.AEGIS_APP_ICONS[id]) {
+            APP_REGISTRY[id].iconSVG = window.AEGIS_APP_ICONS[id];
+        }
+    });
+}
 
 // Attach to window for global access
 if (typeof window !== 'undefined') {

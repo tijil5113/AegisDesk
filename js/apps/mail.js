@@ -191,8 +191,12 @@ class MailApp {
                         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                         <polyline points="22,6 12,13 2,6"></polyline>
                     </svg>
-                    <h3>No emails</h3>
-                    <p>Your ${this.currentFolder} folder is empty</p>
+                    <h3>No messages</h3>
+                    <p>${this.currentFolder === 'inbox'
+                        ? 'AegisDesk Mail sends through the server mail provider. Inbound mail appears here only after a real mailbox provider is connected — sample inbox messages are not created.'
+                        : this.currentFolder === 'sent'
+                            ? 'Sent messages you dispatch from AegisDesk will appear here with Sending, Sent, or Failed status. Provider acceptance is not the same as delivered.'
+                            : 'Drafts you save will appear here.'}</p>
                 </div>
             `;
             return;
@@ -227,10 +231,10 @@ class MailApp {
                 <div class="mail-email-avatar">${avatarLetter}</div>
                 <div class="mail-email-content">
                     <div class="mail-email-header">
-                        <span class="mail-email-from">${this.escapeHtml(email.from)}</span>
+                        <span class="mail-email-from">${this.escapeHtml(email.folder === 'sent' ? email.to : email.from)}</span>
                         <span class="mail-email-time">${this.formatTime(email.date)}</span>
                     </div>
-                    <div class="mail-email-subject">${this.escapeHtml(email.subject)}</div>
+                    <div class="mail-email-subject">${this.escapeHtml(email.subject)}${email.folder === 'sent' ? ` <span class="aegis-status" data-state="${this.escapeHtml(email.deliveryStatus || 'sent')}">${this.escapeHtml((email.deliveryStatus || 'sent').replace(/^./, c => c.toUpperCase()))}</span>` : ''}</div>
                     <div class="mail-email-preview">${this.escapeHtml(email.preview || email.body.substring(0, 100))}</div>
                     ${email.attachments && email.attachments.length > 0 ? `
                         <div class="mail-email-attachment">
@@ -352,69 +356,21 @@ class MailApp {
     }
 
     async connectGmail() {
-        try {
-            // OAuth flow for Gmail
-            const authUrl = `${this.apiBaseUrl}/mail/gmail/auth`;
-            
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                // Simulate Gmail connection for local dev
-                const account = {
-                    id: `gmail_${Date.now()}`,
-                    name: 'Gmail User',
-                    email: 'user@gmail.com',
-                    provider: 'gmail',
-                    connected: true,
-                    token: 'mock_token_' + Date.now()
-                };
-                
-                this.data.accounts.push(account);
-                this.saveData();
-                this.renderAccounts();
-                this.hideAddAccountModal();
-                
-                // Fetch emails from Gmail
-                await this.fetchGmailEmails(account);
-            } else {
-                // Production: Redirect to OAuth
-                window.location.href = authUrl;
-            }
-        } catch (error) {
-            console.error('[Mail] Gmail connection error:', error);
-            alert('Failed to connect Gmail. Please try again.');
+        const authUrl = `${this.apiBaseUrl}/mail/gmail/auth`;
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            alert('Gmail inbox sync is not simulated. Connect Gmail only in a deployment with OAuth credentials configured. Outbound send still uses POST /api/mail/send.');
+            return;
         }
+        window.location.href = authUrl;
     }
 
     async connectOutlook() {
-        try {
-            // OAuth flow for Outlook
-            const authUrl = `${this.apiBaseUrl}/mail/outlook/auth`;
-            
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                // Simulate Outlook connection for local dev
-                const account = {
-                    id: `outlook_${Date.now()}`,
-                    name: 'Outlook User',
-                    email: 'user@outlook.com',
-                    provider: 'outlook',
-                    connected: true,
-                    token: 'mock_token_' + Date.now()
-                };
-                
-                this.data.accounts.push(account);
-                this.saveData();
-                this.renderAccounts();
-                this.hideAddAccountModal();
-                
-                // Fetch emails from Outlook
-                await this.fetchOutlookEmails(account);
-            } else {
-                // Production: Redirect to OAuth
-                window.location.href = authUrl;
-            }
-        } catch (error) {
-            console.error('[Mail] Outlook connection error:', error);
-            alert('Failed to connect Outlook. Please try again.');
+        const authUrl = `${this.apiBaseUrl}/mail/outlook/auth`;
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            alert('Outlook inbox sync is not simulated. Connect Outlook only in a deployment with OAuth credentials configured. Outbound send still uses POST /api/mail/send.');
+            return;
         }
+        window.location.href = authUrl;
     }
 
     async fetchGmailEmails(account) {
@@ -430,13 +386,13 @@ class MailApp {
                 const emails = await response.json();
                 this.processIncomingEmails(emails, account.id);
             } else {
-                // For local dev, add sample emails
-                this.addSampleEmails(account);
+                throw new Error('Gmail inbox is not available');
             }
         } catch (error) {
             console.error('[Mail] Failed to fetch Gmail emails:', error);
-            // For local dev, add sample emails
-            this.addSampleEmails(account);
+            if (window.notificationSystem) {
+                window.notificationSystem.error('Mail', error.message || 'Gmail inbox is not available');
+            }
         }
     }
 
@@ -453,13 +409,13 @@ class MailApp {
                 const emails = await response.json();
                 this.processIncomingEmails(emails, account.id);
             } else {
-                // For local dev, add sample emails
-                this.addSampleEmails(account);
+                throw new Error('Outlook inbox is not available');
             }
         } catch (error) {
             console.error('[Mail] Failed to fetch Outlook emails:', error);
-            // For local dev, add sample emails
-            this.addSampleEmails(account);
+            if (window.notificationSystem) {
+                window.notificationSystem.error('Mail', error.message || 'Outlook inbox is not available');
+            }
         }
     }
 
@@ -569,17 +525,13 @@ class MailApp {
                                value="${replyToEmail ? this.escapeHtml(replyToEmail.from) : ''}"
                                required autocomplete="email">
                     </div>
-                    <div class="mail-form-group" style="display: none;" id="compose-cc-group">
+                    <div class="mail-form-group" id="compose-cc-group">
                         <label for="compose-cc">Cc</label>
                         <input type="text" class="mail-input" id="compose-cc" placeholder="cc@example.com" autocomplete="email">
                     </div>
-                    <div class="mail-form-group" style="display: none;" id="compose-bcc-group">
+                    <div class="mail-form-group" id="compose-bcc-group">
                         <label for="compose-bcc">Bcc</label>
                         <input type="text" class="mail-input" id="compose-bcc" placeholder="bcc@example.com" autocomplete="email">
-                    </div>
-                    <div style="margin-bottom: 12px;">
-                        <button type="button" class="mail-btn-link" onclick="mailApp.toggleComposeField('cc')">Cc</button>
-                        <button type="button" class="mail-btn-link" onclick="mailApp.toggleComposeField('bcc')" style="margin-left: 12px;">Bcc</button>
                     </div>
                     <div class="mail-form-group">
                         <label for="compose-subject">Subject</label>

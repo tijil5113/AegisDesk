@@ -146,7 +146,7 @@ class AdvancedTerminalApp {
                     <div id="terminal-containers" class="terminal-containers"></div>
                     <div id="terminal-hint-bar" class="terminal-hint-bar" aria-live="polite">
                         <span class="terminal-hint-label">Hint:</span>
-                        <span class="terminal-hint-text" id="terminal-hint-text">Type a command (e.g. help, ls) or press Tab to autocomplete.</span>
+                        <span class="terminal-hint-text" id="terminal-hint-text">Simulated AegisDesk shell — not a host OS terminal. Type help, ls, or press Tab.</span>
                     </div>
                 </div>
                 <div id="terminal-settings-modal" class="terminal-settings-modal" style="display:none;">

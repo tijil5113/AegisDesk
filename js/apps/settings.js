@@ -32,12 +32,15 @@ class SettingsApp {
 
     render() {
         return `
-            <div class="settings-container">
-                <div class="settings-header">
-                    <h2>Settings</h2>
-                </div>
+            <div class="settings-container aegis-app">
+                <header class="aegis-app-header">
+                    <div>
+                        <h2 class="aegis-app-title">Settings</h2>
+                        <p class="aegis-app-subtitle">Preferences for this AegisDesk browser profile</p>
+                    </div>
+                </header>
                 
-                <div class="settings-section">
+                <div class="settings-section" id="settings-appearance">
                     <div class="settings-section-title">Appearance</div>
                     <div class="settings-item">
                         <div class="settings-item-label" style="flex: 1;">
@@ -78,8 +81,8 @@ class SettingsApp {
                     </div>
                 </div>
 
-                <div class="settings-section">
-                    <div class="settings-section-title">General</div>
+                <div class="settings-section" id="settings-motion">
+                    <div class="settings-section-title">Motion</div>
                     <div class="settings-item">
                         <div class="settings-item-label">
                             <div class="settings-item-title">Enable Animations</div>

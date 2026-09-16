@@ -1441,12 +1441,12 @@
             bottom: 0;
             background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(4px);
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             z-index: 10000;
-            animation: fadeIn 0.2s ease-out;
         }
+        .api-key-modal.is-open { display: flex; }
 
         .api-key-dialog {
             background: rgba(30, 41, 59, 0.98);
@@ -1707,29 +1707,29 @@
                         <path d="M2 12l10 5 10-5"></path>
                     </svg>
                 </div>
-                <h1 class="welcome-title">Welcome to AegisDesk AI</h1>
-                <p class="welcome-subtitle">Your advanced AI assistant powered by GPT-4. Ask me anything, and I'll help you with intelligent, context-aware responses.</p>
+                <h1 class="welcome-title">Aegis Assistant</h1>
+                <p class="welcome-subtitle">Ask about AegisDesk applications, writing, planning, or code. This assistant answers in conversation. It cannot yet control windows, files, or other apps — that system layer is the next development spec.</p>
                 
                 <div class="welcome-suggestions">
-                    <div class="suggestion-card" data-suggestion="What can you help me with?">
-                        <div class="suggestion-icon">💡</div>
-                        <div class="suggestion-title">Get Help</div>
-                        <div class="suggestion-desc">Ask me anything and get intelligent answers</div>
+                    <div class="suggestion-card" data-suggestion="How do I use the AegisDesk launcher, search, and window manager?">
+                        <div class="suggestion-icon">🖥️</div>
+                        <div class="suggestion-title">Desktop basics</div>
+                        <div class="suggestion-desc">Launcher, search, windows, and shortcuts</div>
                     </div>
-                    <div class="suggestion-card" data-suggestion="Explain how AI works">
-                        <div class="suggestion-icon">🤖</div>
-                        <div class="suggestion-title">Learn About AI</div>
-                        <div class="suggestion-desc">Understand complex topics easily</div>
+                    <div class="suggestion-card" data-suggestion="Help me draft a professional email I can paste into AegisDesk Mail.">
+                        <div class="suggestion-icon">✉️</div>
+                        <div class="suggestion-title">Draft mail</div>
+                        <div class="suggestion-desc">Write a message for the Mail compose app</div>
                     </div>
-                    <div class="suggestion-card" data-suggestion="Write a creative story">
-                        <div class="suggestion-icon">✍️</div>
-                        <div class="suggestion-title">Creative Writing</div>
-                        <div class="suggestion-desc">Get help with writing and content</div>
+                    <div class="suggestion-card" data-suggestion="Turn this into a task list I can enter in AegisDesk Tasks: finish the weekly review, send the client update, and schedule tomorrow morning.">
+                        <div class="suggestion-icon">✅</div>
+                        <div class="suggestion-title">Plan tasks</div>
+                        <div class="suggestion-desc">Break work into Tasks-ready items</div>
                     </div>
-                    <div class="suggestion-card" data-suggestion="Help me solve a coding problem">
+                    <div class="suggestion-card" data-suggestion="Explain this JavaScript snippet and suggest a clearer version I can paste into the Code Editor.">
                         <div class="suggestion-icon">💻</div>
-                        <div class="suggestion-title">Code Assistance</div>
-                        <div class="suggestion-desc">Get help with programming</div>
+                        <div class="suggestion-title">Code help</div>
+                        <div class="suggestion-desc">Read and rewrite code. This app does not execute it.</div>
                     </div>
                 </div>
                         </div>
@@ -1748,15 +1748,11 @@
 
     <div class="api-key-modal" id="api-key-modal" style="display: none;">
         <div class="api-key-dialog">
-            <h3>OpenAI API Key Required</h3>
-            <p>To use AegisDesk AI, you need to provide your OpenAI API key. This key is stored locally in your browser and never sent to any server except OpenAI.</p>
-            <p style="font-size: 13px; margin-top: 12px;">
-                Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank" class="api-key-link">OpenAI Platform</a>
-            </p>
-            <input type="password" class="api-key-input" id="api-key-input" placeholder="sk-...">
+            <h3>Assistant is not configured</h3>
+            <p>Aegis Assistant talks to OpenAI through the AegisDesk server. Provider credentials stay in server environment variables. Do not paste API keys into the browser.</p>
+            <p style="font-size: 13px; margin-top: 12px;">If this message appears after you send a request, the operator needs to set OPENAI_API_KEY on the server and confirm <code>/api/chat</code> is reachable.</p>
             <div class="api-key-actions">
-                <button class="btn btn-secondary" id="cancel-api-key">Cancel</button>
-                <button class="btn btn-primary" id="save-api-key">Save & Continue</button>
+                <button class="btn btn-primary" id="cancel-api-key">Close</button>
             </div>
         </div>
     </div>
