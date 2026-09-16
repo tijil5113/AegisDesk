@@ -111,9 +111,13 @@ class ModeManager {
         const config = this.modes[mode];
         if (!config) return;
         
-        // Apply theme
+        // Apply theme only when the user switches modes. On boot, honor the
+        // persisted ThemeSystem selection so reload restores light/dark correctly.
         if (typeof themeSystem !== 'undefined') {
-            themeSystem.setTheme(config.theme);
+            var persistedTheme = (typeof storage !== 'undefined') ? storage.get('theme', null) : null;
+            if (this.initialized || !persistedTheme) {
+                themeSystem.setTheme(config.theme);
+            }
         }
         
         // Apply notification rules

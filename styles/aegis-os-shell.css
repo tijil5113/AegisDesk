@@ -1,0 +1,912 @@
+/**
+ * AEGIS OS SHELL — Spec 1 visual transformation
+ * Loaded after existing critical CSS so shell surfaces inherit the design system
+ * without rewriting application interiors.
+ */
+
+/* ========== WALLPAPER / DESKTOP DEPTH ========== */
+.desktop-background,
+.aegis-wallpaper {
+    z-index: var(--aegis-z-desktop);
+    background-color: var(--aegis-bg-base);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+.desktop-background {
+    background-image:
+        radial-gradient(ellipse 90% 70% at 18% 12%, rgba(99, 102, 241, 0.22), transparent 52%),
+        radial-gradient(ellipse 70% 50% at 88% 18%, rgba(14, 165, 233, 0.10), transparent 48%),
+        radial-gradient(ellipse 80% 60% at 50% 110%, rgba(15, 23, 42, 0.92), transparent 55%),
+        linear-gradient(180deg, #020617 0%, #0b1224 48%, #020617 100%);
+}
+.desktop-background::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.34;
+    background-image:
+        linear-gradient(135deg, transparent 46%, rgba(129, 140, 248, 0.07) 50%, transparent 54%),
+        linear-gradient(45deg, transparent 46%, rgba(56, 189, 248, 0.04) 50%, transparent 54%);
+    background-size: 280px 280px, 180px 180px;
+}
+.desktop-background::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(180deg, rgba(2, 6, 23, 0.12) 0%, transparent 26%, rgba(2, 6, 23, 0.58) 100%);
+    transition: opacity var(--aegis-duration-slow) var(--aegis-ease-standard);
+}
+html.theme-light .desktop-background {
+    background-image:
+        radial-gradient(ellipse 80% 60% at 16% 8%, rgba(99, 102, 241, 0.16), transparent 50%),
+        radial-gradient(ellipse 60% 40% at 90% 10%, rgba(14, 165, 233, 0.10), transparent 46%),
+        linear-gradient(180deg, #e8eef8 0%, #f8fafc 42%, #dbe4f0 100%);
+}
+html.theme-light .desktop-background::after {
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0.08) 0%, transparent 30%, rgba(15, 23, 42, 0.10) 100%);
+}
+.desktop-layer-far,
+.desktop-layer-mid,
+.desktop-layer-near {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: opacity var(--aegis-duration-slow) var(--aegis-ease-standard);
+}
+html.aegis-reduced-motion .wallpaper-gradient,
+html.aegis-reduced-motion .grid-pattern,
+body.performance-mode .wallpaper-gradient,
+body.performance-mode .grid-pattern {
+    animation: none !important;
+}
+
+/* ========== DESKTOP TITLE — product identity, not looping glow ========== */
+.desktop-title-container {
+    pointer-events: none;
+    opacity: 1;
+    animation: none;
+    margin-top: 8px;
+}
+.desktop-title.aegis-wordmark,
+h1.aegis-wordmark.desktop-title {
+    display: block;
+    letter-spacing: -0.04em;
+    font-size: clamp(2rem, 5vw, 3.25rem);
+}
+.desktop-title.aegis-wordmark::after {
+    content: none;
+    animation: none;
+    display: none;
+}
+.desktop-brand-lockup {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+.desktop-brand-lockup .aegis-wordmark {
+    font: 700 clamp(2rem, 5vw, 3.25rem) / 1 var(--aegis-font-sans);
+    letter-spacing: -0.04em;
+    text-shadow: 0 8px 32px rgba(15, 23, 42, 0.45);
+}
+.desktop-title {
+    animation: none;
+    text-shadow: 0 8px 32px rgba(15, 23, 42, 0.45);
+}
+.title-letter {
+    animation: none;
+    will-change: auto;
+}
+.title-letter:hover {
+    transform: none;
+    filter: none;
+}
+.title-glow-effect,
+.title-particles,
+.subtitle-underline {
+    display: none;
+}
+.desktop-subtitle .subtitle-text {
+    font: var(--aegis-type-caption);
+    letter-spacing: 0.18em;
+    color: var(--aegis-text-muted);
+}
+html.theme-light .desktop-icon-name {
+    color: #0f172a;
+    text-shadow: 0 1px 6px rgba(255, 255, 255, 0.85);
+}
+html.theme-light .desktop-brand-lockup .aegis-mark-leg {
+    stroke: #0f172a;
+}
+html.theme-light .desktop-brand-lockup .aegis-wordmark {
+    color: #0f172a;
+    text-shadow: 0 8px 24px rgba(248, 250, 252, 0.7);
+}
+
+/* ========== DESKTOP ICONS ========== */
+.desktop-icon-carousel {
+    z-index: var(--aegis-z-icons);
+    animation: none;
+    opacity: 1;
+    min-height: 0;
+    top: 56px;
+    bottom: calc(var(--aegis-taskbar-height) + 8px);
+    height: auto;
+    justify-content: center;
+}
+.desktop-icon-item {
+    pointer-events: auto;
+    border-radius: var(--aegis-radius-card);
+    transition:
+        transform var(--aegis-duration-fast) var(--aegis-ease-standard),
+        opacity var(--aegis-duration-fast) var(--aegis-ease-standard);
+}
+.desktop-icon-item:hover {
+    transform: translate3d(0, -3px, 0);
+}
+.desktop-icon-item:active {
+    transform: translate3d(0, 0, 0) scale(0.97);
+}
+.desktop-icon-item:focus-visible {
+    outline: var(--aegis-focus-ring);
+    outline-offset: 4px;
+}
+.desktop-icon-item.is-selected,
+.desktop-icon-item.selected {
+    background: var(--aegis-accent-soft);
+    box-shadow: inset 0 0 0 1px var(--aegis-border-strong);
+}
+.desktop-icon-item.is-dragging,
+.desktop-icon-item.dragging {
+    opacity: 0.72;
+    transform: scale(1.02);
+}
+.desktop-icon-name {
+    font: var(--aegis-type-caption);
+    color: var(--aegis-text-secondary);
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55);
+    max-width: 92px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ========== WINDOWS ========== */
+.window {
+    background: var(--aegis-bg-elevated);
+    border: 1px solid var(--aegis-border-default);
+    border-radius: var(--aegis-radius-window);
+    box-shadow: var(--aegis-shadow-3);
+    z-index: var(--aegis-z-windows);
+    opacity: 1;
+    transform: none;
+    animation: none;
+    transition:
+        box-shadow var(--aegis-duration-fast) var(--aegis-ease-standard),
+        border-color var(--aegis-duration-fast) var(--aegis-ease-standard),
+        opacity var(--aegis-duration-fast) var(--aegis-ease-standard);
+    contain: layout style;
+}
+.window.aegis-window-enter {
+    animation: aegisWindowOpen var(--aegis-duration-standard) var(--aegis-ease-enter) both;
+}
+.window.window-closing,
+.window.aegis-window-exit {
+    animation: aegisWindowClose var(--aegis-duration-fast) var(--aegis-ease-exit) both;
+    pointer-events: none;
+}
+.window.minimizing,
+.window.window-minimizing,
+.window.aegis-window-minimize {
+    animation: aegisWindowMinimize var(--aegis-duration-standard) var(--aegis-ease-exit) both;
+    pointer-events: none;
+}
+.window.aegis-window-restore {
+    animation: aegisWindowRestore var(--aegis-duration-standard) var(--aegis-ease-enter) both;
+}
+.window.aegis-geometry-animating {
+    transition:
+        left var(--aegis-duration-standard) var(--aegis-ease-enter),
+        top var(--aegis-duration-standard) var(--aegis-ease-enter),
+        width var(--aegis-duration-standard) var(--aegis-ease-enter),
+        height var(--aegis-duration-standard) var(--aegis-ease-enter),
+        border-radius var(--aegis-duration-fast) var(--aegis-ease-standard);
+}
+.window.dragging,
+.window.resizing,
+body.aegis-dragging .window,
+body.aegis-resizing .window {
+    transition: none !important;
+    animation: none !important;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+.window.active {
+    z-index: var(--aegis-z-windows-active);
+    border-color: var(--aegis-border-strong);
+    box-shadow: var(--aegis-shadow-4), 0 0 0 1px rgba(99, 102, 241, 0.22);
+    transform: none;
+    filter: none;
+}
+.window.inactive {
+    opacity: 0.92;
+    filter: none;
+    box-shadow: var(--aegis-shadow-2);
+}
+.window.maximized {
+    border-radius: 0;
+    height: calc(100dvh - var(--aegis-taskbar-height)) !important;
+    max-height: calc(100dvh - var(--aegis-taskbar-height)) !important;
+}
+.window-titlebar {
+    height: 42px;
+    background: rgba(2, 6, 23, 0.42);
+    border-bottom: 1px solid var(--aegis-border-subtle);
+    padding: 0 10px 0 14px;
+}
+.window-title {
+    font: var(--aegis-type-card);
+    letter-spacing: var(--aegis-tracking-tight);
+}
+.window-icon {
+    width: 18px;
+    height: 18px;
+}
+.window-button {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    color: var(--aegis-text-muted);
+    border: 0;
+    background: transparent;
+    display: inline-grid;
+    place-items: center;
+}
+.window-button:hover { background: rgba(255, 255, 255, 0.08); color: var(--aegis-text-primary); }
+.window-button:active { transform: scale(0.94); }
+.window-button.close:hover { background: rgba(239, 68, 68, 0.22); color: #fecaca; }
+html.theme-light .window-titlebar { background: rgba(248, 250, 252, 0.86); }
+html.theme-light .window-content { background: rgba(248, 250, 252, 0.72); }
+html.theme-light .window-button:hover { background: rgba(15, 23, 42, 0.06); }
+.window-content {
+    background: rgba(15, 23, 42, 0.35);
+}
+.window-resize-handle.n,
+.window-resize-handle.s { height: 6px; }
+.window-resize-handle.e,
+.window-resize-handle.w { width: 6px; }
+.window-resize-handle.nw,
+.window-resize-handle.ne,
+.window-resize-handle.sw,
+.window-resize-handle.se {
+    width: 14px;
+    height: 14px;
+}
+.window-resize-handle.se::after {
+    content: '';
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid rgba(148, 163, 184, 0.45);
+    border-bottom: 2px solid rgba(148, 163, 184, 0.45);
+    border-radius: 0 0 2px 0;
+    pointer-events: none;
+}
+
+@keyframes aegisWindowOpen {
+    from { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.97); }
+    to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes aegisWindowClose {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.97); }
+}
+@keyframes aegisWindowMinimize {
+    from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+    to { opacity: 0; transform: translate3d(0, 48px, 0) scale(0.86); }
+}
+@keyframes aegisWindowRestore {
+    from { opacity: 0; transform: translate3d(0, 28px, 0) scale(0.9); }
+    to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes aegisLauncherIn {
+    from { opacity: 0; transform: translate(-50%, 8px) scale(0.98); }
+    to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+
+#aegis-snap-preview {
+    position: fixed;
+    pointer-events: none;
+    z-index: calc(var(--aegis-z-windows-active) - 1);
+    border: 1px solid var(--aegis-border-strong);
+    border-radius: var(--aegis-radius-window);
+    background: rgba(99, 102, 241, 0.12);
+    opacity: 0;
+    transform: scale(0.98);
+    transition:
+        opacity var(--aegis-duration-fast) var(--aegis-ease-standard),
+        transform var(--aegis-duration-fast) var(--aegis-ease-standard);
+}
+#aegis-snap-preview.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* ========== DOCK / TASKBAR ========== */
+.taskbar {
+    height: var(--aegis-taskbar-height);
+    background: var(--glass-bg);
+    border-top: 1px solid var(--aegis-border-subtle);
+    box-shadow: var(--aegis-shadow-2);
+    z-index: var(--aegis-z-dock);
+    padding: 0 12px;
+    gap: 8px;
+}
+.taskbar-icon,
+.taskbar-app-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.35);
+    border: 1px solid transparent;
+    transition:
+        transform var(--aegis-duration-fast) var(--aegis-ease-spring),
+        background-color var(--aegis-duration-fast) var(--aegis-ease-standard),
+        border-color var(--aegis-duration-fast) var(--aegis-ease-standard);
+}
+.taskbar-icon:hover,
+.taskbar-app-icon:hover {
+    transform: translate3d(0, -3px, 0) scale(1.06);
+    background: var(--aegis-accent-soft);
+    border-color: var(--aegis-border-strong);
+    box-shadow: none;
+}
+.taskbar-icon:active,
+.taskbar-app-icon:active { transform: translate3d(0, 0, 0) scale(0.96); }
+.taskbar-icon.running::after {
+    width: 5px;
+    height: 5px;
+    bottom: 3px;
+    background: var(--aegis-accent-hover);
+    box-shadow: none;
+    animation: none;
+    border-radius: var(--aegis-radius-pill);
+}
+.taskbar-icon.running.minimized::after {
+    width: 10px;
+    height: 3px;
+    background: var(--aegis-text-muted);
+}
+.taskbar-icon.running.active::after {
+    width: 14px;
+    height: 3px;
+    background: var(--aegis-accent);
+}
+.taskbar-icon.running.active {
+    background: var(--aegis-accent-soft);
+    box-shadow: none;
+    border-color: var(--aegis-border-strong);
+}
+.taskbar-divider {
+    background: var(--aegis-border-subtle);
+    height: 22px;
+}
+.taskbar-window {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 168px;
+    min-height: 32px;
+    padding: 4px 10px;
+    border-radius: var(--aegis-radius-pill);
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid var(--aegis-border-subtle);
+    color: var(--aegis-text-secondary);
+    font: var(--aegis-type-caption);
+    cursor: pointer;
+}
+.taskbar-window span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.taskbar-window.active {
+    color: var(--aegis-text-primary);
+    border-color: var(--aegis-border-strong);
+    background: var(--aegis-accent-soft);
+}
+.search-bar {
+    background: rgba(2, 6, 23, 0.38);
+    border: 1px solid var(--aegis-border-subtle);
+    border-radius: var(--aegis-radius-pill);
+    min-height: 36px;
+}
+.search-bar input {
+    font: var(--aegis-type-secondary);
+    color: var(--aegis-text-primary);
+}
+.time-display {
+    font: var(--aegis-type-card);
+    letter-spacing: 0.04em;
+}
+.date-display {
+    font: var(--aegis-type-caption);
+    color: var(--aegis-text-muted);
+}
+.system-tray {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.taskbar-window.minimized {
+    opacity: 0.7;
+    border-style: dashed;
+}
+
+/* ========== LAUNCHER ========== */
+.apps-menu {
+    z-index: var(--aegis-z-launcher);
+    background: var(--glass-bg);
+    border: 1px solid var(--aegis-border-default);
+    border-radius: var(--aegis-radius-dialog);
+    box-shadow: var(--aegis-shadow-4);
+    overflow: hidden;
+}
+.apps-menu:not(.visible) {
+    pointer-events: none;
+}
+.apps-menu.visible {
+    animation: none;
+}
+@media (min-width: 769px) {
+    .apps-menu.visible {
+        animation: aegisLauncherFade var(--aegis-duration-slow) var(--aegis-ease-enter) both;
+        transform: translate(-50%, 0) scale(1);
+    }
+}
+@keyframes aegisLauncherFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.apps-menu-header h2 {
+    font: var(--aegis-type-page);
+    letter-spacing: var(--aegis-tracking-tight);
+}
+.apps-menu-subtitle {
+    font: var(--aegis-type-secondary);
+    color: var(--aegis-text-muted);
+}
+.close-menu {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 0;
+    background: transparent;
+    color: var(--aegis-text-secondary);
+    cursor: pointer;
+}
+.close-menu:hover { background: var(--aegis-accent-soft); color: var(--aegis-text-primary); }
+.close-menu:focus-visible { outline: var(--aegis-focus-ring); outline-offset: 2px; }
+.launcher-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 20px 8px;
+    padding: 0 12px;
+    min-height: 40px;
+    border-radius: var(--aegis-radius-input);
+    background: rgba(2, 6, 23, 0.35);
+    border: 1px solid var(--aegis-border-subtle);
+}
+.launcher-search input {
+    flex: 1;
+    border: 0;
+    background: transparent;
+    color: var(--aegis-text-primary);
+    font: var(--aegis-type-body);
+    outline: none;
+    min-width: 0;
+}
+#apps-menu-scroll {
+    overflow-x: hidden;
+    overflow-y: auto;
+    display: block;
+}
+#apps-grid,
+.apps-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(120px, 1fr));
+    grid-auto-rows: 132px;
+    gap: 14px;
+    width: 100% !important;
+    max-width: 640px;
+    min-width: 0 !important;
+    margin: 0 auto;
+    padding: 12px 8px 24px;
+    flex-wrap: unset !important;
+    flex-direction: unset !important;
+}
+#apps-grid .app-tile,
+.apps-grid .app-tile {
+    width: auto !important;
+    height: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    flex: unset !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: var(--aegis-radius-card);
+    padding: 10px 8px;
+    cursor: pointer;
+    transition:
+        transform var(--aegis-duration-fast) var(--aegis-ease-standard),
+        background-color var(--aegis-duration-fast) var(--aegis-ease-standard);
+}
+.app-tile:hover { background: var(--aegis-accent-soft); transform: translate3d(0, -2px, 0); }
+.app-tile:active { transform: scale(0.97); }
+html.theme-light .app-tile {
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid var(--aegis-border-subtle);
+}
+html.theme-light .app-tile-name { color: var(--aegis-text-secondary); }
+.app-tile:focus-visible {
+    outline: var(--aegis-focus-ring);
+    outline-offset: 2px;
+    background: var(--aegis-accent-soft);
+}
+.app-tile-icon {
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+}
+.app-tile-icon svg { width: 40px; height: 40px; }
+.app-tile-name {
+    font: var(--aegis-type-caption);
+    color: var(--aegis-text-secondary);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+}
+.icon-size-controls {
+    padding: 0 20px 8px;
+    gap: 8px;
+}
+.icon-size-btn {
+    border-radius: var(--aegis-radius-pill);
+    border: 1px solid var(--aegis-border-subtle);
+    background: transparent;
+    color: var(--aegis-text-secondary);
+    font: var(--aegis-type-caption);
+    padding: 6px 10px;
+    cursor: pointer;
+}
+.icon-size-btn.active,
+.icon-size-btn:hover {
+    background: var(--aegis-accent-soft);
+    color: var(--aegis-text-primary);
+    border-color: var(--aegis-border-strong);
+}
+
+@media (max-width: 900px) {
+    #apps-grid, .apps-grid { grid-template-columns: repeat(3, minmax(110px, 1fr)); }
+}
+@media (max-width: 768px) {
+    .apps-menu,
+    .apps-menu.visible,
+    .apps-menu:not(.visible) {
+        animation: none !important;
+        transform: none !important;
+        left: 12px !important;
+        right: 12px !important;
+        width: auto !important;
+        max-width: none;
+        top: 12px;
+        bottom: calc(var(--aegis-taskbar-height) + 12px);
+        height: auto;
+        max-height: none;
+    }
+}
+@media (max-width: 620px) {
+    #apps-grid, .apps-grid { grid-template-columns: repeat(2, minmax(100px, 1fr)); }
+}
+
+/* ========== GLOBAL SEARCH ========== */
+.global-search-overlay {
+    z-index: var(--aegis-z-search);
+    background: var(--aegis-bg-overlay);
+    backdrop-filter: var(--aegis-blur-sm);
+    -webkit-backdrop-filter: var(--aegis-blur-sm);
+    transition: opacity var(--aegis-duration-fast) var(--aegis-ease-standard);
+}
+.global-search-panel {
+    background: var(--glass-bg-solid);
+    border: 1px solid var(--aegis-border-default);
+    border-radius: var(--aegis-radius-dialog);
+    box-shadow: var(--aegis-shadow-4);
+    transform: translate3d(0, -8px, 0) scale(0.98);
+    transition:
+        transform var(--aegis-duration-standard) var(--aegis-ease-enter),
+        opacity var(--aegis-duration-fast) var(--aegis-ease-standard);
+    max-width: 640px;
+}
+.global-search-overlay.visible .global-search-panel {
+    transform: translate3d(0, 0, 0) scale(1);
+}
+.global-search-input {
+    font: var(--aegis-type-section);
+}
+.global-search-close {
+    transition:
+        background-color var(--aegis-duration-fast) var(--aegis-ease-standard),
+        border-color var(--aegis-duration-fast) var(--aegis-ease-standard);
+}
+.global-search-result {
+    border: 1px solid transparent;
+    transition: background-color var(--aegis-duration-instant) var(--aegis-ease-standard);
+}
+.global-search-result.selected,
+.global-search-result:hover {
+    background: var(--aegis-accent-soft);
+    border-color: var(--aegis-border-strong);
+}
+.global-search-header {
+    font: var(--aegis-type-label);
+    letter-spacing: var(--aegis-tracking-wide);
+}
+.global-search-empty {
+    font: var(--aegis-type-secondary);
+    font-style: normal;
+    padding: 32px 16px;
+}
+
+/* ========== MENUS / POWER / QUICK ACTIONS ========== */
+.power-menu,
+.quick-actions-panel,
+.theme-panel {
+    background: var(--glass-bg-solid);
+    border: 1px solid var(--aegis-border-default);
+    border-radius: var(--aegis-radius-panel);
+    box-shadow: var(--aegis-shadow-3);
+    z-index: var(--aegis-z-menus);
+}
+/* Hidden full-viewport overlays must not steal pointer hits while fading. */
+.power-overlay:not(.visible) {
+    pointer-events: none;
+}
+.power-menu.visible,
+.aegis-context-menu.visible {
+    animation: aegisMenuEnter var(--aegis-duration-fast) var(--aegis-ease-enter) both;
+}
+.power-menu-item {
+    border-radius: var(--aegis-radius-control);
+}
+.power-menu-item:hover,
+.power-menu-item:focus-visible {
+    background: var(--aegis-accent-soft);
+    outline: none;
+}
+.theme-panel-overlay {
+    z-index: var(--aegis-z-dialogs) !important;
+    background: var(--aegis-bg-overlay);
+}
+
+/* Shared context menus across apps */
+.files-context-menu,
+.file-context-menu,
+.mail-context-menu,
+.bookmarks-context-menu,
+.calendar-context-menu,
+.album-context-menu,
+.aegis-context-menu {
+    background: var(--glass-bg-solid) !important;
+    border: 1px solid var(--aegis-border-default) !important;
+    border-radius: var(--aegis-radius-panel) !important;
+    box-shadow: var(--aegis-shadow-3) !important;
+    padding: 6px !important;
+    z-index: var(--aegis-z-menus);
+}
+.context-menu-item,
+.mail-context-menu-item,
+.calendar-context-menu-item {
+    border-radius: var(--aegis-radius-control);
+}
+.context-menu-item:hover,
+.mail-context-menu-item:hover,
+.calendar-context-menu-item:hover {
+    background: var(--aegis-accent-soft);
+}
+
+#aegis-desktop-menu {
+    position: fixed;
+    display: none;
+    z-index: var(--aegis-z-menus);
+}
+#aegis-desktop-menu.visible { display: block; }
+
+/* ========== NOTIFICATIONS ========== */
+.notification-container {
+    z-index: var(--aegis-z-notifications);
+    top: 16px;
+    right: 16px;
+    max-width: 360px;
+}
+.notification {
+    background: var(--glass-bg-solid);
+    border: 1px solid var(--aegis-border-default);
+    border-radius: var(--aegis-radius-card);
+    box-shadow: var(--aegis-shadow-3);
+    transform: translate3d(18px, 0, 0) scale(0.98);
+    opacity: 0;
+    transition:
+        transform var(--aegis-duration-standard) var(--aegis-ease-enter),
+        opacity var(--aegis-duration-fast) var(--aegis-ease-standard);
+}
+.notification-visible {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+}
+.notification-title { font: var(--aegis-type-card); }
+.notification-message { font: var(--aegis-type-secondary); }
+.notification-meta {
+    font: var(--aegis-type-caption);
+    color: var(--aegis-text-muted);
+    margin-top: 4px;
+}
+.notification-action {
+    background: var(--aegis-accent);
+    border-radius: var(--aegis-radius-control);
+    transition: background-color var(--aegis-duration-fast) var(--aegis-ease-standard);
+}
+.notification-action:hover { transform: none; background: var(--aegis-accent-hover); }
+.notification-center-panel {
+    z-index: var(--aegis-z-notifications);
+    background: var(--glass-bg-solid);
+    border: 1px solid var(--aegis-border-default);
+    border-radius: var(--aegis-radius-panel);
+    box-shadow: var(--aegis-shadow-4);
+}
+.notification-center-panel:not(.visible) {
+    pointer-events: none;
+    transform: translateX(100%);
+}
+.notification-center-panel.visible {
+    pointer-events: auto;
+    transform: translateX(0);
+}
+.notification-center-empty {
+    font: var(--aegis-type-secondary);
+    color: var(--aegis-text-muted);
+    padding: 28px 16px;
+    text-align: center;
+}
+
+/* ========== WIDGETS ========== */
+.desktop-widgets { z-index: var(--aegis-z-widgets); }
+.desktop-widget {
+    background: var(--aegis-bg-elevated);
+    border: 1px solid var(--aegis-border-default);
+    border-radius: var(--aegis-radius-card);
+    box-shadow: var(--aegis-shadow-2);
+    backdrop-filter: var(--aegis-blur-sm);
+    -webkit-backdrop-filter: var(--aegis-blur-sm);
+    transition:
+        transform var(--aegis-duration-fast) var(--aegis-ease-standard),
+        box-shadow var(--aegis-duration-fast) var(--aegis-ease-standard);
+}
+.desktop-widget:hover {
+    transform: translate3d(0, -2px, 0);
+    box-shadow: var(--aegis-shadow-3);
+    border-color: var(--aegis-border-strong);
+}
+.widget-title { font: var(--aegis-type-label); letter-spacing: var(--aegis-tracking-wide); }
+
+/* ========== BOOT ========== */
+.boot-overlay {
+    z-index: var(--aegis-z-critical);
+    background: var(--aegis-bg-base);
+    display: grid;
+    place-items: center;
+}
+.boot-stage {
+    display: grid;
+    justify-items: center;
+    gap: 16px;
+    text-align: center;
+}
+.boot-overlay .aegis-mark { width: 88px; height: 88px; }
+.boot-overlay .aegis-wordmark {
+    font: 700 clamp(1.6rem, 4vw, 2.4rem) / 1 var(--aegis-font-sans);
+    letter-spacing: -0.04em;
+}
+.boot-status {
+    font: var(--aegis-type-caption);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--aegis-text-muted);
+}
+.boot-logo {
+    font: var(--aegis-type-display);
+    letter-spacing: 0.18em;
+    filter: none;
+}
+.boot-scanline { display: none; }
+.boot-grid { display: none; }
+
+/* ========== RESPONSIVE SHELL ========== */
+@media (max-width: 900px) {
+    .taskbar-center { flex: 1; min-width: 0; }
+    .search-hint { display: none; }
+    .taskbar-icon-label { display: none; }
+    .quick-launch { display: none; }
+}
+@media (max-width: 680px) {
+    .taskbar-pinned-apps { display: none; }
+    .taskbar-window span { display: none; }
+    .notification-container {
+        left: 12px;
+        right: 12px;
+        max-width: none;
+    }
+}
+
+body.performance-mode .window,
+body.performance-mode .apps-menu,
+body.performance-mode .global-search-overlay,
+body.performance-mode .desktop-widget,
+body.performance-mode .notification {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .window.aegis-window-enter,
+    .window.window-closing,
+    .window.minimizing,
+    .window.aegis-window-restore,
+    .desktop-icon-carousel,
+    .title-letter,
+    .desktop-title {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+    }
+    .apps-menu.visible {
+        animation: none !important;
+    }
+    .taskbar-icon:hover,
+    .app-tile:hover,
+    .desktop-icon-item:hover {
+        transform: none;
+    }
+    .boot-overlay .aegis-mark-reveal .aegis-mark-ring,
+    .boot-overlay .aegis-mark-reveal .aegis-mark-leg,
+    .boot-overlay .aegis-mark-reveal .aegis-mark-slit,
+    .boot-overlay .aegis-wordmark-reveal {
+        animation: none !important;
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@media (max-width: 768px) {
+    html body .apps-menu.visible {
+        left: 12px !important;
+        right: 12px !important;
+        width: auto !important;
+        transform: none !important;
+    }
+}

@@ -47,7 +47,6 @@ class GlobalSearch {
         }
         
         this.initialized = true;
-        console.log('[GlobalSearch] Initialized');
     }
 
     createUI() {
@@ -58,9 +57,9 @@ class GlobalSearch {
         overlay.setAttribute('aria-hidden', 'true');
         
         overlay.innerHTML = `
-            <div class="global-search-panel">
+            <div class="global-search-panel" role="dialog" aria-modal="true" aria-label="Global search">
                 <div class="global-search-input-container">
-                    <svg class="global-search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg class="global-search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <circle cx="11" cy="11" r="8"></circle>
                         <path d="m21 21-4.35-4.35"></path>
                     </svg>
@@ -68,19 +67,23 @@ class GlobalSearch {
                         type="text" 
                         id="global-search-input" 
                         class="global-search-input" 
-                        placeholder="Search apps, notes, tasks..."
+                        placeholder="Search apps, notes, tasks, mail, music..."
                         autocomplete="off"
                         aria-label="Global search"
+                        aria-controls="global-search-results"
+                        role="combobox"
+                        aria-autocomplete="list"
+                        aria-expanded="true"
                     >
-                    <button class="global-search-close" id="global-search-close" aria-label="Close search">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <button type="button" class="global-search-close" id="global-search-close" aria-label="Close search">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
                             <line x1="6" y1="6" x2="18" y2="18"></line>
                         </svg>
                     </button>
                 </div>
-                <div class="global-search-results" id="global-search-results">
-                    <div class="global-search-empty">Start typing to search...</div>
+                <div class="global-search-results" id="global-search-results" role="listbox">
+                    <div class="aegis-empty global-search-empty"><strong>Search AegisDesk</strong><span>Apps, notes, tasks, mail, and music stay local and instant.</span></div>
                 </div>
             </div>
         `;
@@ -193,6 +196,7 @@ class GlobalSearch {
             { id: 'new-task', title: 'New Task', command: 'new task', type: 'command' },
             { id: 'open-mail', title: 'Open Mail', command: 'open mail', type: 'command' },
             { id: 'open-email', title: 'Open Email', command: 'open email', type: 'command' },
+            { id: 'open-music', title: 'Open Music', command: 'open music', type: 'command' },
             { id: 'open-settings', title: 'Open Settings', command: 'open settings', type: 'command' },
             { id: 'open-dashboard', title: 'Open Dashboard', command: 'open dashboard', type: 'command' },
             { id: 'open-insights', title: 'Open Insights', command: 'open insights', type: 'command' }
@@ -202,18 +206,21 @@ class GlobalSearch {
     performSearch(query) {
         if (!query || query.trim().length === 0) {
             this.results = [];
+            this.selectedIndex = -1;
             this.renderResults();
             return;
         }
-        
-        const lowerQuery = query.toLowerCase().trim();
-        this.results = [];
+
+        try {
+            const lowerQuery = query.toLowerCase().trim();
+            this.results = [];
         
         // Search apps
         this.searchIndex.apps.forEach(app => {
             if (app.title.toLowerCase().includes(lowerQuery) || 
                 app.id.toLowerCase().includes(lowerQuery) ||
-                (app.id === 'mail' && (lowerQuery === 'email' || lowerQuery === 'e-mail' || lowerQuery === 'e mail'))) {
+                (app.id === 'mail' && (lowerQuery === 'email' || lowerQuery === 'e-mail' || lowerQuery === 'e mail')) ||
+                (app.id === 'music' && (lowerQuery === 'youtube' || lowerQuery === 'songs' || lowerQuery === 'player'))) {
                 this.results.push(app);
             }
         });
@@ -251,17 +258,27 @@ class GlobalSearch {
         
         // Group results by type
         this.results = this.groupResultsByType(this.results);
-        
-        // Render
+        this.selectedIndex = this.selectableResults().length ? 0 : -1;
         this.renderResults();
-        
-        // Record search in user profile
+
         if (typeof userProfile !== 'undefined') {
             userProfile.recordEvent('search_performed', {
                 query,
-                resultCount: this.results.length
+                resultCount: this.selectableResults().length
             });
         }
+        } catch (err) {
+            this.results = [];
+            this.selectedIndex = -1;
+            const container = document.getElementById('global-search-results');
+            if (container) {
+                container.innerHTML = '<div class="aegis-error"><strong>Search failed</strong><span>Try again. Local app search is still available.</span></div>';
+            }
+        }
+    }
+
+    selectableResults() {
+        return this.results.filter(r => r.type !== 'header');
     }
 
     groupResultsByType(results) {
@@ -307,20 +324,26 @@ class GlobalSearch {
         if (!container) return;
         
         if (this.results.length === 0) {
-            container.innerHTML = '<div class="global-search-empty">No results found</div>';
+            const q = this.searchInput?.value?.trim();
+            container.innerHTML = q
+                ? '<div class="aegis-empty global-search-empty"><strong>No results</strong><span>Try an app name such as Mail or Music.</span></div>'
+                : '<div class="aegis-empty global-search-empty"><strong>Search AegisDesk</strong><span>Apps, notes, tasks, mail, and music stay local and instant.</span></div>';
             return;
         }
         
-        container.innerHTML = this.results.map((result, index) => {
+        let selectableIndex = 0;
+        container.innerHTML = this.results.map((result) => {
             if (result.type === 'header') {
                 return `<div class="global-search-header">${result.title}</div>`;
             }
             
-            const selected = index === this.selectedIndex ? 'selected' : '';
+            const selected = selectableIndex === this.selectedIndex ? 'selected' : '';
             const icon = this.getResultIcon(result);
+            const currentSelectable = selectableIndex;
+            selectableIndex += 1;
             
             return `
-                <div class="global-search-result ${selected}" data-index="${index}" data-type="${result.type}">
+                <div class="global-search-result ${selected}" data-index="${currentSelectable}" data-type="${result.type}" role="option" aria-selected="${selected ? 'true' : 'false'}">
                     <div class="global-search-result-icon">${icon}</div>
                     <div class="global-search-result-content">
                         <div class="global-search-result-title">${this.escapeHtml(result.title)}</div>
@@ -351,13 +374,14 @@ class GlobalSearch {
     }
 
     handleKeyNavigation(e) {
+        const selectable = this.selectableResults();
         if (e.key === 'ArrowDown') {
             e.preventDefault();
-            this.selectedIndex = Math.min(this.selectedIndex + 1, this.results.filter(r => r.type !== 'header').length - 1);
+            this.selectedIndex = Math.min(this.selectedIndex + 1, selectable.length - 1);
             this.updateSelection();
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
-            this.selectedIndex = Math.max(this.selectedIndex - 1, -1);
+            this.selectedIndex = Math.max(this.selectedIndex - 1, 0);
             this.updateSelection();
         } else if (e.key === 'Enter') {
             e.preventDefault();
@@ -368,22 +392,19 @@ class GlobalSearch {
     }
 
     updateSelection() {
-        const results = this.results.filter(r => r.type !== 'header');
         const container = document.getElementById('global-search-results');
         if (!container) return;
         
         container.querySelectorAll('.global-search-result').forEach((item, index) => {
-            if (index === this.selectedIndex) {
-                item.classList.add('selected');
-                item.scrollIntoView({ block: 'nearest' });
-            } else {
-                item.classList.remove('selected');
-            }
+            const on = index === this.selectedIndex;
+            item.classList.toggle('selected', on);
+            item.setAttribute('aria-selected', on ? 'true' : 'false');
+            if (on) item.scrollIntoView({ block: 'nearest' });
         });
     }
 
     selectResult(index) {
-        const results = this.results.filter(r => r.type !== 'header');
+        const results = this.selectableResults();
         if (index < 0 || index >= results.length) return;
         
         const result = results[index];
@@ -462,6 +483,10 @@ class GlobalSearch {
             if (typeof APP_REGISTRY !== 'undefined' && APP_REGISTRY.mail) {
                 APP_REGISTRY.mail.open();
             }
+        } else if (cmd.includes('open music')) {
+            if (typeof APP_REGISTRY !== 'undefined' && APP_REGISTRY.music) {
+                APP_REGISTRY.music.open();
+            }
         } else if (cmd.includes('open settings')) {
             if (typeof settingsApp !== 'undefined') settingsApp.open();
         } else if (cmd.includes('open dashboard')) {
@@ -479,10 +504,11 @@ class GlobalSearch {
 
     show() {
         if (!this.panel) return;
+        this._prevFocus = document.activeElement;
         this.panel.setAttribute('aria-hidden', 'false');
         this.panel.classList.add('visible');
         this.searchInput.focus();
-        this.buildIndex(); // Refresh index
+        this.buildIndex();
     }
 
     hide() {
@@ -493,6 +519,9 @@ class GlobalSearch {
         this.results = [];
         this.selectedIndex = -1;
         this.renderResults();
+        if (this._prevFocus && typeof this._prevFocus.focus === 'function') {
+            try { this._prevFocus.focus(); } catch (e) { /* ignore */ }
+        }
     }
 
     toggle() {

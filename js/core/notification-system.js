@@ -28,10 +28,17 @@ class NotificationSystem {
             message,
             type: options.type || 'info',
             duration: options.duration || 5000,
+            timestamp: Date.now(),
             icon: options.icon || this.getDefaultIcon(options.type),
             action: options.action || null,
-            persistent: options.persistent || false
+            persistent: options.persistent || false,
+            group: options.group || null
         };
+
+        if (notification.group) {
+            const previous = this.notifications.filter(n => n.group === notification.group);
+            previous.forEach(n => this.remove(n.id));
+        }
 
         this.notifications.push(notification);
         this.renderNotification(notification);
@@ -69,6 +76,7 @@ class NotificationSystem {
                 <div class="notification-text">
                     <div class="notification-title">${this.escapeHtml(notification.title)}</div>
                     <div class="notification-message">${this.escapeHtml(notification.message)}</div>
+                    <div class="notification-meta">${new Date(notification.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                 </div>
                 ${notification.action ? `<button class="notification-action">${notification.action.label}</button>` : ''}
                 <button class="notification-close" aria-label="Close notification">&times;</button>

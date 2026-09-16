@@ -667,6 +667,20 @@ const APP_REGISTRY = {
             window.open(serverUrl, '_blank');
         }
     },
+    'news-reader': {
+        title: 'News',
+        iconSVG: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2z" fill="#ef4444" opacity="0.9"/>
+            <rect x="6" y="6" width="8" height="3" rx="0.3" fill="white" opacity="0.9"/>
+            <line x1="6" y1="11" x2="14" y2="11" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+            <line x1="6" y1="13.5" x2="12" y2="13.5" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+        </svg>`,
+        open: function() {
+            if (APP_REGISTRY['news-hub'] && APP_REGISTRY['news-hub'].open) {
+                APP_REGISTRY['news-hub'].open();
+            }
+        }
+    },
     'user': {
         title: 'User Profile',
         iconSVG: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

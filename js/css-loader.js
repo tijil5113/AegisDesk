@@ -4,10 +4,13 @@ class CSSLoader {
         this.loaded = new Set();
         this.loading = new Set();
         this.criticalCSS = [
+            'styles/aegis-design-system.css',
             'styles/main.css',
             'styles/motion-system.css',
             'styles/modern-system.css',
-            'styles/performance-optimized.css'
+            'styles/performance-optimized.css',
+            'styles/aegis-os-shell.css',
+            'styles/boot-sequence.css'
         ];
     }
 

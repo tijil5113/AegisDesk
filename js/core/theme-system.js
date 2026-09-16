@@ -416,7 +416,7 @@
     function ThemeSystem() {
         this.themes = buildThemeRegistry();
         this.currentTheme = 'dark';
-        this.autoCycleEnabled = typeof storage !== 'undefined' ? storage.get('theme_auto_cycle', false) : false;
+        this.autoCycleEnabled = typeof storage !== 'undefined' ? storage.get('theme_auto_cycle', false) === true : false;
         this.autoCycleInterval = null;
         this._panelEl = null;
         this._styleEl = null;
@@ -579,6 +579,20 @@
             var cssVar = '--' + key.replace(/([A-Z])/g, '-$1').toLowerCase();
             root.style.setProperty(cssVar, theme[key]);
         });
+        root.style.setProperty('--aegis-bg-base', theme.bgDarker || theme.bgDark);
+        root.style.setProperty('--aegis-bg-surface', theme.bgDark);
+        root.style.setProperty('--aegis-bg-elevated', theme.bgCard);
+        root.style.setProperty('--aegis-text-primary', theme.textPrimary);
+        root.style.setProperty('--aegis-text-secondary', theme.textSecondary);
+        root.style.setProperty('--aegis-text-muted', theme.textMuted);
+        root.style.setProperty('--aegis-accent', theme.primary);
+        root.style.setProperty('--aegis-accent-hover', theme.primaryLight);
+        root.style.setProperty('--aegis-accent-active', theme.primaryDark);
+        root.style.setProperty('--aegis-accent-soft', (theme.primary || '#6366f1') + '29');
+        root.style.setProperty('--aegis-text-inverse', themeName === 'light' ? '#f8fafc' : '#020617');
+        root.setAttribute('data-aegis-theme', themeName);
+        if (themeName === 'light') root.classList.add('theme-light');
+        else root.classList.remove('theme-light');
 
         if (typeof storage !== 'undefined') storage.set('theme', themeName);
         document.body.className = document.body.className.replace(/\s*theme-\S+/g, '');

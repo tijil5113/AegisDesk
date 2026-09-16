@@ -18,9 +18,10 @@ class TooltipSystem {
 
     init() {
         this.tooltip = document.createElement('div');
-        this.tooltip.className = 'tooltip';
+        this.tooltip.className = 'tooltip aegis-tooltip';
         this.tooltip.setAttribute('role', 'tooltip');
         this.tooltip.setAttribute('aria-hidden', 'true');
+        this.showTimeout = null;
         document.body.appendChild(this.tooltip);
 
         // Single delegated handlers (capture so we see phase before app handlers)
@@ -70,7 +71,9 @@ class TooltipSystem {
         if (!target) return;
         this.clearHideTimeout();
         const text = this.getTooltipText(target);
-        if (text) this.showTooltip(target, text);
+        if (!text) return;
+        this.currentTarget = target;
+        this.showTimeout = setTimeout(() => this.showTooltip(target, text), 280);
     }
 
     onPointerLeave(e) {
@@ -99,6 +102,10 @@ class TooltipSystem {
         if (this.hideTimeout) {
             clearTimeout(this.hideTimeout);
             this.hideTimeout = null;
+        }
+        if (this.showTimeout) {
+            clearTimeout(this.showTimeout);
+            this.showTimeout = null;
         }
     }
 

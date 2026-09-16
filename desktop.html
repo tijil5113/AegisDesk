@@ -3,31 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AegisDesk - AI-Powered Desktop OS</title>
-    <meta name="description" content="AI-Powered Unified Desktop Operating System">
-    <meta name="theme-color" content="#6366f1">
+    <title>AegisDesk</title>
+    <meta name="description" content="AegisDesk — a next-generation web operating environment.">
+    <meta name="theme-color" content="#020617">
+    <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="assets/brand/aegis-mark-app.svg">
     <!-- Performance optimizations -->
     <meta http-equiv="x-dns-prefetch-control" content="on">
+    <style id="aegis-boot-critical">
+        html, body { background: #020617; color: #f1f5f9; }
+        html.theme-light, html.theme-light body { background: #f8fafc; color: #0f172a; }
+        .boot-overlay { background: #020617; }
+    </style>
+    <script>
+        (function () {
+            try {
+                var raw = localStorage.getItem('aegisdesk_theme');
+                if (raw) {
+                    var theme = JSON.parse(raw);
+                    if (typeof theme === 'string') {
+                        document.documentElement.setAttribute('data-aegis-theme', theme);
+                        if (theme === 'light') document.documentElement.classList.add('theme-light');
+                    }
+                }
+            } catch (e) {}
+            if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.documentElement.classList.add('aegis-reduced-motion');
+            }
+        })();
+    </script>
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     <link rel="manifest" href="manifest.json">
-    <!-- Critical CSS order: glass tokens → main → motion → perf → polish. Lazy-load app-specific CSS after. -->
+    <!-- Critical CSS order: tokens → glass → main → motion → perf → polish → shell. -->
+    <link rel="stylesheet" href="styles/aegis-design-system.css">
     <link rel="stylesheet" href="styles/glass-system.css">
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/motion-system.css">
     <link rel="stylesheet" href="styles/modern-system.css">
     <link rel="stylesheet" href="styles/performance-optimized.css">
     <link rel="stylesheet" href="styles/desktop-icons.css">
-    <!-- Perf: 60fps layer — transform/opacity only, containment, light glass -->
     <link rel="stylesheet" href="styles/perf-desktop.css">
-    <!-- Launcher: fixed grid, scroll isolation -->
     <link rel="stylesheet" href="styles/launcher-grid.css">
     <link rel="stylesheet" href="styles/window.css">
-    <!-- App icons: 3-layer OS design (base / glyph / aura), GPU-only animation, perf mode -->
     <link rel="stylesheet" href="styles/app-icon-system.css">
     <link rel="stylesheet" href="styles/performance-guardrails.css">
     <link rel="stylesheet" href="styles/desktop-polish.css">
+    <link rel="stylesheet" href="styles/aegis-os-shell.css">
     <!-- CSS loader must run before lazy-CSS script so critical path works -->
     <script src="js/css-loader.js"></script>
     <script>
@@ -108,63 +131,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>
-    <!-- Horizontal icon launcher: smooth scroll, no vertical scroll, transform-only motion, minimal scrollbar -->
+    <!-- Launcher grid is defined in launcher-grid.css + aegis-os-shell.css -->
     <style>
-        /* Single horizontal scroll container: no vertical scroll for icons */
         #apps-menu-scroll {
-            overflow-x: auto;
-            overflow-y: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
             contain: layout paint;
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
-            padding-left: 0;
-            padding-right: 0;
-        }
-        /* Single row of icons: fixed-size cells so no layout reflow during scroll */
-        #apps-grid {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: nowrap;
-            gap: 16px;
-            padding: 16px 20px;
-            width: max-content;
-            min-width: 100%;
-            max-height: none;
-            align-items: center;
-            justify-content: flex-start;
-            box-sizing: border-box;
-        }
-        /* Fixed width/height per tile: icons move via scroll (translate3d on container), not layout */
-        #apps-grid .app-tile {
-            flex: 0 0 auto;
-            width: 132px;
-            height: 140px;
-            min-width: 132px;
-            min-height: 140px;
-            max-width: 132px;
-            max-height: 140px;
-        }
-        /* Minimal scrollbar: thin, auto-hide feel (overlay style where supported) */
-        #apps-menu-scroll::-webkit-scrollbar {
-            height: 6px;
-        }
-        #apps-menu-scroll::-webkit-scrollbar-track {
-            background: transparent;
-            border-radius: 3px;
-        }
-        #apps-menu-scroll::-webkit-scrollbar-thumb {
-            background: rgba(99, 102, 241, 0.35);
-            border-radius: 3px;
-        }
-        #apps-menu-scroll::-webkit-scrollbar-thumb:hover {
-            background: rgba(99, 102, 241, 0.55);
-        }
-        #apps-menu-scroll {
-            scrollbar-width: thin;
-            scrollbar-color: rgba(99, 102, 241, 0.4) transparent;
         }
     </style>
 </head>
@@ -172,17 +146,19 @@
     <!-- PERF: Structure = static layers (background) + dynamic layers (taskbar, launcher, windows). Animations use transform/opacity only. -->
 
     <!-- Boot Sequence Overlay (PERF: one-time animation, then removed) -->
-    <div class="boot-overlay" id="boot-overlay">
-        <div class="boot-grid"></div>
-        <div class="boot-scanline"></div>
-        <div class="boot-logo">AEGIS DESK</div>
-        <div class="boot-text">
-            <span class="boot-text-line">Initializing Window Manager...</span>
-            <span class="boot-text-line">Restoring workspace...</span>
-            <span class="boot-text-line">AI Copilot online.</span>
-        </div>
-        <div class="boot-loader">
-            <div class="boot-loader-bar"></div>
+    <div class="boot-overlay" id="boot-overlay" role="status" aria-live="polite" aria-label="AegisDesk starting" tabindex="0">
+        <div class="boot-stage">
+            <div class="aegis-mark aegis-mark-reveal" aria-hidden="true">
+                <svg viewBox="0 0 64 64" fill="none">
+                    <circle class="aegis-mark-ring" cx="32" cy="32" r="27" stroke="#818CF8" stroke-width="2.6" stroke-linecap="round" pathLength="100" stroke-dasharray="88 12" stroke-dashoffset="6"/>
+                    <path class="aegis-mark-leg" d="M32 14 L18.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
+                    <path class="aegis-mark-leg" d="M32 14 L45.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
+                    <path class="aegis-mark-slit" d="M23.5 36.8 H40.5" stroke="#38BDF8" stroke-width="2.8" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div class="aegis-wordmark aegis-wordmark-reveal">Aegis<span>Desk</span></div>
+            <div class="boot-status">Initializing</div>
+            <div class="boot-loader" aria-hidden="true"><div class="boot-loader-bar"></div></div>
         </div>
     </div>
 
@@ -258,26 +234,20 @@
     <div class="desktop-icon-carousel" id="desktop-icon-carousel" aria-label="Pinned desktop apps carousel">
         <!-- AEGIS DESK Title -->
         <div class="desktop-title-container">
-            <div class="desktop-title-wrapper">
-                <h1 class="desktop-title" id="desktop-title">
-                    <span class="title-letter" data-letter="A">A</span>
-                    <span class="title-letter" data-letter="E">E</span>
-                    <span class="title-letter" data-letter="G">G</span>
-                    <span class="title-letter" data-letter="I">I</span>
-                    <span class="title-letter" data-letter="S">S</span>
-                    <span class="title-space"></span>
-                    <span class="title-letter" data-letter="D">D</span>
-                    <span class="title-letter" data-letter="E">E</span>
-                    <span class="title-letter" data-letter="S">S</span>
-                    <span class="title-letter" data-letter="K">K</span>
-                </h1>
+            <div class="desktop-brand-lockup">
+                <div class="aegis-mark aegis-mark-64" aria-hidden="true">
+                    <svg viewBox="0 0 64 64" fill="none">
+                        <circle class="aegis-mark-ring" cx="32" cy="32" r="27" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" pathLength="100" stroke-dasharray="88 12" stroke-dashoffset="6"/>
+                        <path class="aegis-mark-leg" d="M32 14 L18.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
+                        <path class="aegis-mark-leg" d="M32 14 L45.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
+                        <path class="aegis-mark-slit" d="M23.5 36.8 H40.5" stroke="#38BDF8" stroke-width="2.8" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <h1 class="aegis-wordmark desktop-title">Aegis<span>Desk</span></h1>
                 <div class="desktop-subtitle">
-                    <span class="subtitle-text">AI-Powered Desktop OS</span>
-                    <div class="subtitle-underline"></div>
+                    <span class="subtitle-text">Protected computing environment</span>
                 </div>
             </div>
-            <div class="title-glow-effect"></div>
-            <div class="title-particles"></div>
         </div>
         
         <div class="carousel-container">
@@ -553,13 +523,20 @@
     </div>
 
     <!-- Apps Menu -->
-    <div class="apps-menu glass-effect" id="apps-menu" role="dialog" aria-label="Applications menu">
+    <div class="apps-menu glass-effect" id="apps-menu" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Applications">
         <div class="apps-menu-header">
             <div>
                 <h2>Applications</h2>
                 <p class="apps-menu-subtitle">Press Alt+Space to open, then start typing an app name or action.</p>
             </div>
-            <button class="close-menu" data-action="hide-apps-menu">&times;</button>
+            <button type="button" class="close-menu" data-action="hide-apps-menu" aria-label="Close applications menu">&times;</button>
+        </div>
+        <div class="launcher-search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input id="launcher-search-input" type="search" placeholder="Filter apps" aria-label="Filter applications" autocomplete="off">
         </div>
         <div class="icon-size-controls" aria-label="Icon size controls">
             <label>Icon Size:</label>
@@ -815,6 +792,8 @@
     <script src="js/core/boot-sequence.js" defer></script>
     <script src="js/core/parallax-controller.js" defer></script>
     <script src="js/core/window-manager.js" defer></script>
+    <script src="js/core/aegis-sound.js" defer></script>
+    <script src="js/core/aegis-shell.js" defer></script>
     <script src="js/core/ai-system.js" defer></script>
     <script src="js/core/notification-center.js" defer></script>
     <script src="js/core/mode-manager.js" defer></script>
@@ -898,12 +877,30 @@
                             notificationSystem.info('Lock', 'OS locked (demo mode)');
                         }
                     } else if (action === 'restart') {
-                        if (confirm('Restart AegisDesk?')) {
-                            window.location.reload();
+                        const run = () => window.location.reload();
+                        if (window.aegisShell && aegisShell.dialog) {
+                            aegisShell.dialog({
+                                title: 'Restart AegisDesk',
+                                body: 'The workspace will reload. Unsaved in-app work may be lost.',
+                                confirmLabel: 'Restart',
+                                danger: true,
+                                onConfirm: run
+                            });
+                        } else if (confirm('Restart AegisDesk?')) {
+                            run();
                         }
                     } else if (action === 'shutdown') {
-                        if (confirm('Shutdown AegisDesk? This will reload the page.')) {
-                            window.location.reload();
+                        const run = () => window.location.reload();
+                        if (window.aegisShell && aegisShell.dialog) {
+                            aegisShell.dialog({
+                                title: 'Shut down AegisDesk',
+                                body: 'This reloads the page. It does not power off your computer.',
+                                confirmLabel: 'Shut down',
+                                danger: true,
+                                onConfirm: run
+                            });
+                        } else if (confirm('Shutdown AegisDesk? This will reload the page.')) {
+                            run();
                         }
                     }
                     powerMenu.classList.remove('visible');
@@ -923,20 +920,7 @@
             });
         });
 
-        /* Horizontal launcher: wheel + trackpad — vertical wheel → horizontal scroll; horizontal swipe → horizontal scroll. No inertia, predictable. */
-        (function () {
-            var el = document.getElementById('apps-menu-scroll');
-            if (!el) return;
-            el.addEventListener('wheel', function (e) {
-                var maxScroll = el.scrollWidth - el.clientWidth;
-                if (maxScroll <= 0) return;
-                var delta = e.deltaX + e.deltaY;
-                if (delta === 0) return;
-                e.preventDefault();
-                var next = el.scrollLeft + delta;
-                el.scrollLeft = Math.max(0, Math.min(next, maxScroll));
-            }, { passive: false });
-        })();
+        /* Apps grid uses vertical layout in aegis-os-shell.css */
         
         // Add modern-icon class to all icons
         setTimeout(() => {
@@ -951,16 +935,7 @@
         // Auth is optional - allow access to desktop.html without auth
         // Users can access all features, login is optional for cloud sync
         function checkAuth() {
-            if (typeof authSystem !== 'undefined' && authSystem) {
-                if (authSystem.isAuthenticated()) {
-                    console.log('[Desktop] ✅ Auth: User authenticated - cloud sync enabled');
-                } else {
-                    console.log('[Desktop] ℹ️ Auth: Guest mode - local features available');
-                }
-                return true; // Always allow access
-            }
-            console.log('[Desktop] ℹ️ Auth: Auth system not loaded - guest mode');
-            return true; // Always allow access
+            return true;
         }
         
         // Check immediately - always allow access (auth is optional)

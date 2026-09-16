@@ -129,6 +129,8 @@ class UserProfile {
     // Update habits from events
     updateHabitsFromEvent(event) {
         const { type, metadata } = event;
+        if (!this.profile.habits) this.profile.habits = { appUsage: {} };
+        if (!this.profile.habits.appUsage) this.profile.habits.appUsage = {};
         
         switch (type) {
             case 'app_opened':

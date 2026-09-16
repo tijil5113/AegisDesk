@@ -113,7 +113,7 @@ function build() {
     });
 
     // Copy directories
-    const dirsToCopy = ['styles', 'js', 'vendor', 'api'];
+    const dirsToCopy = ['styles', 'js', 'vendor', 'api', 'assets'];
     dirsToCopy.forEach(dir => {
         const srcDir = path.join(SOURCE_DIR, dir);
         if (fs.existsSync(srcDir)) {

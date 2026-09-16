@@ -10,21 +10,8 @@ class Desktop {
     }
 
     init() {
-        console.log('Desktop initializing...');
-        
-        // Initialize apps menu
         this.appsMenu = document.getElementById('apps-menu');
-        if (!this.appsMenu) {
-            console.error('Apps menu not found!');
-        }
-        
-        // Initialize search
         this.searchInput = document.getElementById('global-search');
-        if (!this.searchInput) {
-            console.error('Search input not found!');
-        } else {
-            console.log('Search input found:', this.searchInput);
-        }
         
         // Setup event listeners
         this.setupAppsMenu();
@@ -39,9 +26,6 @@ class Desktop {
         // Load saved window states
         this.restoreWindows();
         
-        console.log('Desktop initialized successfully');
-        
-        // Use requestAnimationFrame for better performance instead of setTimeout
         requestAnimationFrame(() => {
             // Re-setup taskbar after apps are loaded (deferred scripts)
             // Use a single delayed setup instead of multiple timeouts
@@ -68,17 +52,25 @@ class Desktop {
 
         showBtn?.addEventListener('click', (e) => {
             e.stopPropagation();
-            menu.classList.add('visible');
+            const open = !menu.classList.contains('visible');
+            menu.classList.toggle('visible', open);
+            menu.setAttribute('aria-hidden', open ? 'false' : 'true');
+            if (open) {
+                const input = document.getElementById('launcher-search-input');
+                if (input) input.focus();
+            }
         });
 
         hideBtn?.addEventListener('click', () => {
             menu.classList.remove('visible');
+            menu.setAttribute('aria-hidden', 'true');
         });
 
         // Single global click: close launcher and power menu when clicking outside (OS-like)
         document.addEventListener('click', (e) => {
             if (!menu.contains(e.target) && !showBtn?.contains(e.target)) {
                 menu.classList.remove('visible');
+                menu.setAttribute('aria-hidden', 'true');
             }
             const powerMenu = document.getElementById('power-menu');
             const powerMenuBtn = document.getElementById('power-menu-btn');
@@ -99,10 +91,8 @@ class Desktop {
                 const url = tile.dataset.url;
                 
                 menu.classList.remove('visible');
-                
-                setTimeout(() => {
-                    this.openApp(appId, url);
-                }, 100);
+                menu.setAttribute('aria-hidden', 'true');
+                this.openApp(appId, url);
             }
         });
 
@@ -131,7 +121,12 @@ class Desktop {
                 if (icon) {
                     e.preventDefault();
                     e.stopPropagation();
-                    this.openApp(icon.dataset.app);
+                    const appId = icon.dataset.app;
+                    if (typeof windowManager !== 'undefined' && windowManager.windows.has(appId)) {
+                        windowManager.focusWindow(windowManager.windows.get(appId));
+                        return;
+                    }
+                    this.openApp(appId);
                 }
             };
             taskbar.addEventListener('click', this.taskbarClickHandler, true);
@@ -139,16 +134,8 @@ class Desktop {
         
         // Removed unnecessary test timeout - icons are already set up
 
-        // Theme switcher button
-        const themeSwitcherBtn = document.getElementById('theme-switcher-btn');
-        if (themeSwitcherBtn && typeof themeSystem !== 'undefined') {
-            themeSwitcherBtn.addEventListener('click', () => {
-                const newTheme = themeSystem.cycleTheme();
-                if (typeof notificationSystem !== 'undefined') {
-                    notificationSystem.info('Theme Changed', `Switched to ${themeSystem.themes[newTheme].name} theme`);
-                }
-            });
-        }
+        // Theme switcher is owned by ThemeSystem (opens the selector panel).
+        // Do not also cycle themes here — that fights panel selection and persist.
 
         // Quick actions button
         // Notification Center button
@@ -187,7 +174,6 @@ class Desktop {
 
     setupSearch() {
         if (!this.searchInput) {
-            console.error('Search input not found!');
             return;
         }
 
@@ -237,9 +223,6 @@ class Desktop {
             });
 
             searchBar.appendChild(searchBtn);
-            console.log('Search button added');
-        } else {
-            console.error('Search bar not found!');
         }
     }
 
@@ -267,12 +250,10 @@ class Desktop {
         };
 
         updateClock();
-        setInterval(updateClock, 30000);
-
         const msUntilNextMinute = 60000 - (Date.now() % 60000);
-        setTimeout(() => {
+        this._clockTimeout = setTimeout(() => {
             updateClock();
-            setInterval(updateClock, 60000);
+            this._clockInterval = setInterval(updateClock, 60000);
         }, msUntilNextMinute);
     }
 
@@ -285,13 +266,36 @@ class Desktop {
         target.addEventListener('keydown', (e) => {
             if (e.altKey && e.key === ' ') {
                 e.preventDefault();
-                this.appsMenu.classList.toggle('visible');
+                const open = !this.appsMenu.classList.contains('visible');
+                this.appsMenu.classList.toggle('visible', open);
+                this.appsMenu.setAttribute('aria-hidden', open ? 'false' : 'true');
+                if (open) {
+                    const input = document.getElementById('launcher-search-input');
+                    if (input) input.focus();
+                }
             }
 
             if (e.key === 'Escape') {
-                this.appsMenu.classList.remove('visible');
+                const searchOverlay = document.getElementById('global-search-overlay');
+                const powerMenu = document.getElementById('power-menu');
+                const desktopMenu = document.getElementById('aegis-desktop-menu');
+                if (this.appsMenu?.classList.contains('visible')) {
+                    this.appsMenu.classList.remove('visible');
+                    this.appsMenu.setAttribute('aria-hidden', 'true');
+                    return;
+                }
+                if (searchOverlay?.classList.contains('visible')) {
+                    return;
+                }
+                if (powerMenu?.classList.contains('visible')) {
+                    powerMenu.classList.remove('visible');
+                    return;
+                }
+                if (desktopMenu?.classList.contains('visible')) {
+                    return;
+                }
                 const activeWindow = document.querySelector('.window.active');
-                if (activeWindow && !e.target.closest('.window-content input, .window-content textarea')) {
+                if (activeWindow && !e.target.closest('.window-content input, .window-content textarea, .window-content [contenteditable]')) {
                     windowManager.closeWindow(activeWindow);
                 }
             }
@@ -389,7 +393,7 @@ class Desktop {
         // For now we render all tiles; grid has contain: paint so scroll is cheap.
 
         // Get app order (preserve existing order from HTML if possible)
-        const appOrder = ['tasks', 'notes', 'weather', 'ai-chat', 'code-editor', 'terminal', 'drawing', 'system-monitor', 'gallery', 'music', 'browser', 'bookmarks', 'calculator', 'calendar', 'mail', 'files', 'settings', 'system-intelligence', 'news-reader', 'user', 'help'];
+        const appOrder = ['tasks', 'notes', 'weather', 'ai-chat', 'code-editor', 'terminal', 'drawing', 'system-monitor', 'gallery', 'music', 'browser', 'bookmarks', 'calculator', 'calendar', 'mail', 'files', 'settings', 'system-intelligence', 'news-hub', 'user', 'help'];
         
         // Render apps from registry (full render; switch to virtualized when appOrder.length > threshold)
         appsGrid.innerHTML = appOrder.map(appId => {
@@ -473,20 +477,21 @@ class Desktop {
     }
     
     setupAppTileKeyboard(container) {
-        const tiles = Array.from(container.querySelectorAll('.app-tile[tabindex="0"]'));
-        
-        tiles.forEach((tile, index) => {
+        const visibleTiles = () => Array.from(container.querySelectorAll('.app-tile[tabindex="0"]'))
+            .filter(tile => !tile.hidden);
+
+        container.querySelectorAll('.app-tile[tabindex="0"]').forEach((tile) => {
             // Enter/Space to activate
             tile.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
+                    if (tile.hidden) return;
                     e.preventDefault();
                     e.stopPropagation();
                     const appId = tile.dataset.app;
                     const url = tile.dataset.url;
                     this.appsMenu.classList.remove('visible');
-                    setTimeout(() => {
-                        this.openApp(appId, url);
-                    }, 100);
+                    this.appsMenu.setAttribute('aria-hidden', 'true');
+                    this.openApp(appId, url);
                 }
             });
             
@@ -495,9 +500,11 @@ class Desktop {
                 if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return;
                 
                 e.preventDefault();
+                const tiles = visibleTiles();
+                if (!tiles.length) return;
                 
-                const cols = Math.floor(container.clientWidth / 148); // Match launcher grid (--launcher-cell-w + gap)
-                const currentIndex = tiles.indexOf(tile);
+                const cols = Math.max(1, Math.floor(container.clientWidth / 140));
+                const currentIndex = Math.max(0, tiles.indexOf(tile));
                 let nextIndex = currentIndex;
                 
                 switch(e.key) {
@@ -517,7 +524,6 @@ class Desktop {
                 
                 if (nextIndex !== currentIndex) {
                     tiles[nextIndex].focus();
-                    // Scroll into view
                     tiles[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 }
             });
@@ -525,57 +531,52 @@ class Desktop {
     }
 
     openApp(appId, url = null) {
-        console.log('🚀 openApp called:', appId, 'with URL:', url);
-        
         if (!appId) {
-            console.error('❌ No appId provided to openApp');
+            return;
+        }
+
+        if (typeof windowManager !== 'undefined' && windowManager.windows.has(appId) && !url) {
+            windowManager.focusWindow(windowManager.windows.get(appId));
             return;
         }
         
         // Use APP_REGISTRY if available
         if (typeof APP_REGISTRY !== 'undefined' && APP_REGISTRY[appId]) {
             const app = APP_REGISTRY[appId];
+            const beforeCount = (typeof windowManager !== 'undefined') ? windowManager.windows.size : 0;
             try {
-                console.log('✅ Opening from APP_REGISTRY:', appId);
-                // Pass URL if provided (for browser, youtube, etc.)
                 if (url) {
                     app.open(url);
                 } else {
                     app.open();
                 }
-                
-                // Track in user profile
-                if (typeof userProfile !== 'undefined' && userProfile.initialized) {
-                    userProfile.recordEvent('app_opened', { appId });
+                try {
+                    if (typeof userProfile !== 'undefined' && userProfile.initialized) {
+                        userProfile.recordEvent('app_opened', { appId });
+                    }
+                } catch (profileError) {
+                    console.error('Could not record app open:', appId);
                 }
-                
                 return;
             } catch (error) {
-                console.error('❌ Error opening app from registry:', appId, error);
-                console.error('Error details:', error.stack);
-                // Fallback to legacy method
+                console.error('Error opening app from registry:', appId, error);
+                if (typeof windowManager !== 'undefined' && windowManager.windows.size > beforeCount) {
+                    return;
+                }
             }
-        } else {
-            console.warn('⚠️ APP_REGISTRY not available or app not found:', appId);
         }
-        
-        // Fallback to legacy method
-        console.log('🔄 Using legacy method for:', appId);
+
         this.openAppLegacy(appId, url);
     }
 
     openAppLegacy(appId, url = null) {
-        console.log('🔄 openAppLegacy called for:', appId);
         switch (appId) {
             case 'tasks':
-                console.log('📋 Opening Tasks app, tasksApp available:', typeof tasksApp !== 'undefined');
                 if (typeof tasksApp !== 'undefined') {
                     try {
                         tasksApp.open();
-                        console.log('✅ Tasks app opened successfully');
                     } catch (error) {
-                        console.error('❌ Error opening Tasks app:', error);
-                        console.error('Error stack:', error.stack);
+                        console.error('Error opening Tasks app:', error);
                         if (typeof notificationSystem !== 'undefined') {
                             notificationSystem.error('Error', 'Failed to open Tasks app: ' + error.message);
                         } else {
@@ -613,14 +614,11 @@ class Desktop {
                 }
                 break;
             case 'notes':
-                console.log('📝 Opening Notes app, notesApp available:', typeof notesApp !== 'undefined');
                 if (typeof notesApp !== 'undefined') {
                     try {
                         notesApp.open();
-                        console.log('✅ Notes app opened successfully');
                     } catch (error) {
-                        console.error('❌ Error opening Notes app:', error);
-                        console.error('Error stack:', error.stack);
+                        console.error('Error opening Notes app:', error);
                         if (typeof notificationSystem !== 'undefined') {
                             notificationSystem.error('Error', 'Failed to open Notes app: ' + error.message);
                         } else {
@@ -704,32 +702,24 @@ class Desktop {
                 }
                 break;
             default:
-                // Try to find bookmark
-                if (typeof bookmarksApp !== 'undefined') {
+                if (typeof bookmarksApp !== 'undefined' && typeof bookmarksApp.findBookmark === 'function') {
                     const bookmark = bookmarksApp.findBookmark(appId);
                     if (bookmark && typeof browserApp !== 'undefined') {
                         browserApp.open(bookmark.url, bookmark.name);
                         return;
                     }
                 }
-                console.warn('Unknown app:', appId);
+                break;
         }
     }
 
     handleSearch(query) {
         if (!query || !query.trim()) {
-            console.log('Empty query, ignoring');
             return;
         }
         
         const lowerQuery = query.toLowerCase().trim();
         const originalQuery = query.trim();
-        
-        console.log('=== HANDLING SEARCH ===');
-        console.log('Original query:', originalQuery);
-        console.log('Lower query:', lowerQuery);
-        console.log('browserApp available:', typeof browserApp !== 'undefined');
-        console.log('APP_REGISTRY available:', typeof APP_REGISTRY !== 'undefined');
         
         try {
             // Check if it's a URL (has dots and looks like a domain)

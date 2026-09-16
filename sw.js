@@ -1,13 +1,19 @@
 // Service Worker for AegisDesk PWA
 // Bump CACHE_VERSION on each production release so old shells are dropped.
-const CACHE_VERSION = 'aegisdesk-v6';
+const CACHE_VERSION = 'aegisdesk-v8';
 const PRECACHE_URLS = [
   '/desktop.html',
   '/welcome.html',
   '/login.html',
+  '/styles/aegis-design-system.css',
+  '/styles/aegis-os-shell.css',
   '/styles/main.css',
   '/styles/window.css',
-  '/js/main.js'
+  '/js/main.js',
+  '/js/core/aegis-shell.js',
+  '/assets/brand/favicon.svg',
+  '/assets/brand/aegis-mark.svg',
+  '/assets/brand/aegis-mark-app.svg'
 ];
 
 function isApiRequest(url) {

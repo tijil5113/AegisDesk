@@ -1,25 +1,25 @@
 {
   "name": "AegisDesk",
   "short_name": "AegisDesk",
-  "description": "AI-Powered Unified Desktop Operating System",
+  "description": "AegisDesk — a next-generation web operating environment.",
   "start_url": "/desktop.html",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#6366f1",
+  "background_color": "#020617",
+  "theme_color": "#020617",
   "orientation": "any",
   "scope": "/",
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2'%3E%3Cpath d='M12 2L2 7l10 5 10-5-10-5z'%3E%3C/path%3E%3Cpath d='M2 17l10 5 10-5'%3E%3C/path%3E%3Cpath d='M2 12l10 5 10-5'%3E%3C/path%3E%3C/svg%3E",
-      "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2'%3E%3Cpath d='M12 2L2 7l10 5 10-5-10-5z'%3E%3C/path%3E%3Cpath d='M2 17l10 5 10-5'%3E%3C/path%3E%3Cpath d='M2 12l10 5 10-5'%3E%3C/path%3E%3C/svg%3E",
+      "src": "assets/brand/aegis-mark-app.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "assets/brand/aegis-mark-app.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
     }
   ],
   "categories": ["productivity", "utilities"],
@@ -40,10 +40,10 @@
       "icons": []
     },
     {
-      "name": "Browser",
-      "short_name": "Browser",
-      "description": "Open Browser app",
-      "url": "/desktop.html?app=browser",
+      "name": "Mail",
+      "short_name": "Mail",
+      "description": "Open Mail",
+      "url": "/desktop.html?app=mail",
       "icons": []
     }
   ]

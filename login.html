@@ -2,43 +2,46 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Secure Login - AegisDesk</title>
+    <title>AegisDesk — Secure Access</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+    <meta name="description" content="Sign in to AegisDesk.">
+    <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="assets/brand/aegis-mark-app.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#020617">
     <style>
         :root {
             color-scheme: dark;
-            --bg-deep: #030712;
-            --bg-mid: #0f172a;
-            --bg-card: rgba(15, 23, 42, 0.88);
-            --accent: #6366f1;
-            --accent-bright: #a78bfa;
+            --aegis-bg-base: #030712;
+            --aegis-bg-surface: #0f172a;
+            --aegis-bg-elevated: rgba(15, 23, 42, 0.88);
+            --aegis-text-primary: #f8fafc;
+            --aegis-text-muted: rgba(226, 232, 240, 0.6);
+            --aegis-accent: #6366f1;
+            --aegis-accent-hover: #a78bfa;
+            --aegis-success: #10b981;
+            --aegis-danger: #ef4444;
+            --aegis-border-default: rgba(148, 163, 184, 0.12);
+            --bg-deep: var(--aegis-bg-base);
+            --bg-mid: var(--aegis-bg-surface);
+            --bg-card: var(--aegis-bg-elevated);
+            --accent: var(--aegis-accent);
+            --accent-bright: var(--aegis-accent-hover);
             --accent-soft: rgba(99, 102, 241, 0.12);
-            --text-primary: #f8fafc;
-            --text-muted: rgba(226, 232, 240, 0.6);
-            --success: #10b981;
-            --border: rgba(148, 163, 184, 0.12);
+            --text-primary: var(--aegis-text-primary);
+            --text-muted: var(--aegis-text-muted);
+            --success: var(--aegis-success);
+            --border: var(--aegis-border-default);
         }
 
         * {
             box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.4; }
-            33% { transform: translate(30px, -20px) scale(1.05); opacity: 0.6; }
-            66% { transform: translate(-20px, 20px) scale(0.95); opacity: 0.5; }
-        }
-
-        @keyframes pulse-glow {
-            0%, 100% { opacity: 0.15; filter: blur(80px); }
-            50% { opacity: 0.25; filter: blur(100px); }
+            font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
         }
 
         @keyframes fade-up {
-            from { opacity: 0; transform: translateY(24px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: translate3d(0, 16px, 0); }
+            to { opacity: 1; transform: translate3d(0, 0, 0); }
         }
 
         @keyframes fade-in {
@@ -46,22 +49,14 @@
             to { opacity: 1; }
         }
 
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
-
-        @keyframes gradient-shift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        body {
+        html, body {
             margin: 0;
             min-height: 100vh;
             background: var(--bg-deep);
             color: var(--text-primary);
+        }
+
+        body {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -73,12 +68,10 @@
             content: '';
             position: fixed;
             inset: 0;
-            background: 
+            background:
                 radial-gradient(ellipse 80% 50% at 20% 40%, rgba(99, 102, 241, 0.18), transparent 50%),
                 radial-gradient(ellipse 60% 40% at 80% 20%, rgba(139, 92, 246, 0.12), transparent 45%),
                 radial-gradient(ellipse 50% 30% at 50% 80%, rgba(14, 165, 233, 0.08), transparent 40%);
-            background-size: 200% 200%;
-            animation: gradient-shift 15s ease infinite;
             pointer-events: none;
             z-index: 0;
         }
@@ -86,20 +79,20 @@
         .orb {
             position: fixed;
             border-radius: 50%;
-            filter: blur(60px);
             pointer-events: none;
             z-index: 0;
+            opacity: 0.28;
         }
-        .orb-1 { width: 320px; height: 320px; background: rgba(99, 102, 241, 0.2); top: 10%; left: 5%; animation: float 12s ease-in-out infinite; }
-        .orb-2 { width: 240px; height: 240px; background: rgba(139, 92, 246, 0.15); top: 60%; right: 10%; animation: float 14s ease-in-out infinite 2s; }
-        .orb-3 { width: 200px; height: 200px; background: rgba(14, 165, 233, 0.1); bottom: 20%; left: 20%; animation: float 10s ease-in-out infinite 4s; }
+        .orb-1 { width: 320px; height: 320px; background: radial-gradient(circle, rgba(99, 102, 241, 0.35), transparent 70%); top: 8%; left: 4%; }
+        .orb-2 { width: 240px; height: 240px; background: radial-gradient(circle, rgba(139, 92, 246, 0.28), transparent 70%); top: 62%; right: 8%; }
+        .orb-3 { width: 200px; height: 200px; background: radial-gradient(circle, rgba(14, 165, 233, 0.22), transparent 70%); bottom: 16%; left: 18%; }
 
         .layout {
             position: relative;
             z-index: 1;
             width: 100%;
             max-width: 520px;
-            animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: fade-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         .brand-block {
@@ -108,8 +101,31 @@
             animation: fade-in 0.6s ease-out 0.2s both;
         }
 
+        .brand-logo-mark {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 16px;
+            color: #818cf8;
+        }
+        .brand-logo-mark svg { width: 100%; height: 100%; display: block; }
+        .brand-logo-mark .aegis-mark-ring {
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
+            animation: aegisRingDraw 420ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .brand-logo-mark .aegis-mark-leg {
+            opacity: 0;
+            animation: fade-in 240ms ease 160ms forwards;
+        }
+        .brand-logo-mark .aegis-mark-slit {
+            opacity: 0;
+            animation: fade-in 260ms ease 280ms forwards;
+        }
+        @keyframes aegisRingDraw {
+            to { stroke-dasharray: 88 12; stroke-dashoffset: 6; }
+        }
         .brand-logo {
-            font-family: 'Syne', sans-serif;
+            font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             font-size: clamp(36px, 8vw, 52px);
             font-weight: 800;
             letter-spacing: -0.03em;
@@ -135,15 +151,10 @@
             border-radius: 24px;
             padding: 36px;
             border: 1px solid var(--border);
-            box-shadow: 
-                0 0 0 1px rgba(255,255,255,0.03),
-                0 32px 64px -24px rgba(0, 0, 0, 0.5),
-                0 0 120px -40px rgba(99, 102, 241, 0.15);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
+            box-shadow: 0 32px 64px -24px rgba(0, 0, 0, 0.5);
             display: grid;
             gap: 28px;
-            animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+            animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
         }
 
         .card-title {
@@ -216,7 +227,7 @@
             color: var(--text-primary);
             font-size: 14px;
             outline: none;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         input::placeholder {
@@ -227,10 +238,29 @@
             border-color: rgba(148, 163, 184, 0.3);
         }
 
-        input:focus {
+        input:focus-visible {
             border-color: rgba(99, 102, 241, 0.6);
             box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
             background: rgba(15, 23, 42, 0.8);
+        }
+
+        .field-wrap { position: relative; }
+        .toggle-secret {
+            position: absolute;
+            right: 10px;
+            top: 32px;
+            width: auto;
+            padding: 6px 8px;
+            border: 0;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .toggle-secret:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
         }
 
         .split {
@@ -257,7 +287,16 @@
             font-size: 14px;
             font-weight: 600;
             letter-spacing: 0.02em;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+            transform: none;
+        }
+        button:focus-visible {
+            outline: 2px solid var(--accent-bright);
+            outline-offset: 2px;
         }
 
         .primary-btn {
@@ -289,6 +328,24 @@
         .primary-btn:active {
             transform: translateY(0);
         }
+
+        .primary-btn.is-loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+        .primary-btn .btn-spinner {
+            display: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.35);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin: 0 auto;
+        }
+        .primary-btn.is-loading .btn-label { display: none; }
+        .primary-btn.is-loading .btn-spinner { display: block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         .ghost-btn {
             background: rgba(148, 163, 184, 0.1);
@@ -364,6 +421,21 @@
             font-weight: 600;
             width: fit-content;
         }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation: none !important;
+                transition-duration: 0.01ms !important;
+            }
+            .layout, .card, .brand-block { opacity: 1; transform: none; }
+            .brand-logo-mark .aegis-mark-ring {
+                stroke-dasharray: 88 12;
+                stroke-dashoffset: 6;
+            }
+            .brand-logo-mark .aegis-mark-leg,
+            .brand-logo-mark .aegis-mark-slit { opacity: 1; }
+            .orb { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -373,8 +445,16 @@
 
     <div class="layout">
         <div class="brand-block">
+            <div class="brand-logo-mark" aria-hidden="true">
+                <svg viewBox="0 0 64 64" fill="none">
+                    <circle class="aegis-mark-ring" cx="32" cy="32" r="27" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" pathLength="100" stroke-dasharray="88 12" stroke-dashoffset="6"/>
+                    <path class="aegis-mark-leg" d="M32 14 L18.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
+                    <path class="aegis-mark-leg" d="M32 14 L45.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
+                    <path class="aegis-mark-slit" d="M23.5 36.8 H40.5" stroke="#38BDF8" stroke-width="2.8" stroke-linecap="round"/>
+                </svg>
+            </div>
             <h1 class="brand-logo">AegisDesk</h1>
-            <div class="brand-tag">Secure Access</div>
+            <div class="brand-tag">Protected Access</div>
         </div>
 
         <main class="card">
@@ -391,15 +471,19 @@
                         <label for="email">Email ID</label>
                         <input id="email" type="email" autocomplete="username" placeholder="name@citchennai.net" required>
                     </div>
-                    <div>
+                    <div class="field-wrap">
                         <label for="secret">Secret Code</label>
                         <input id="secret" type="password" autocomplete="current-password" placeholder="Enter 6-digit code" required>
+                        <button class="toggle-secret" id="toggle-secret" type="button" aria-pressed="false" aria-controls="secret">Show</button>
                     </div>
                 </div>
                 <div class="actions">
-                    <button class="primary-btn" type="submit">Login & Generate Session ID</button>
+                    <button class="primary-btn" type="submit" id="login-submit">
+                        <span class="btn-label">Login & Generate Session ID</span>
+                        <span class="btn-spinner" aria-hidden="true"></span>
+                    </button>
                 </div>
-                <div id="login-status" class="status"></div>
+                <div id="login-status" class="status" role="status" aria-live="polite"></div>
             </form>
 
             <div class="session-box" id="session-box">
@@ -426,7 +510,7 @@
                 <div class="actions">
                     <button class="ghost-btn" type="submit">Resume Session</button>
                 </div>
-                <div id="resume-status" class="status"></div>
+                <div id="resume-status" class="status" role="status" aria-live="polite"></div>
             </form>
         </main>
     </div>
@@ -446,6 +530,18 @@
         const copyBtn = document.getElementById('copy-session');
         const continueActions = document.getElementById('continue-actions');
         const continueBtn = document.getElementById('continue-btn');
+        const loginSubmit = document.getElementById('login-submit');
+        const toggleSecret = document.getElementById('toggle-secret');
+        const secretInput = document.getElementById('secret');
+
+        if (toggleSecret && secretInput) {
+            toggleSecret.addEventListener('click', () => {
+                const show = secretInput.type === 'password';
+                secretInput.type = show ? 'text' : 'password';
+                toggleSecret.textContent = show ? 'Hide' : 'Show';
+                toggleSecret.setAttribute('aria-pressed', show ? 'true' : 'false');
+            });
+        }
 
         function loadSessions() {
             try {
@@ -506,6 +602,11 @@
         loginForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             clearStatus(loginStatus);
+            if (loginSubmit) {
+                loginSubmit.disabled = true;
+                loginSubmit.classList.add('is-loading');
+                loginSubmit.setAttribute('aria-busy', 'true');
+            }
 
             const email = document.getElementById('email').value.trim().toLowerCase();
             const secret = document.getElementById('secret').value.trim();
@@ -539,6 +640,12 @@
                 showSession(sessionId);
             } catch (error) {
                 setStatus(loginStatus, 'Could not reach the login service. Start the AegisDesk server and try again.', 'error');
+            } finally {
+                if (loginSubmit) {
+                    loginSubmit.disabled = false;
+                    loginSubmit.classList.remove('is-loading');
+                    loginSubmit.removeAttribute('aria-busy');
+                }
             }
         });
 
