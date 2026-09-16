@@ -37,7 +37,7 @@
             title: 'Windows',
             group: 'Basics',
             body: `
-                <p>Each application opens in an AegisDesk window. Some apps (Mail, Music, Calendar, News, Code Editor, AI Assistant, and Profile) render their full page inside the window.</p>
+                <p>Each application opens in an AegisDesk window. Some apps (Mail, Music, Calendar, News, Aegis Code Studio, AI Assistant, and Profile) render their full page inside the window.</p>
                 <ul>
                     <li><kbd>Ctrl</kbd> + <kbd>W</kbd> closes the active window when the shortcut is available.</li>
                     <li><kbd>Esc</kbd> dismisses menus, overlays, and dialogs.</li>
@@ -72,6 +72,7 @@
                     <li><strong>AI Assistant</strong> — conversation with the server OpenAI integration. System-wide actions use Aegis Intelligence, not this chat thread.</li>
                     <li><strong>Tasks / Notes / Files / Calendar / Bookmarks</strong> — local productivity, stored in this browser.</li>
                     <li><strong>Files</strong> is a virtual workspace, not unrestricted disk access.</li>
+                    <li><strong>Aegis Code Studio</strong> — an in-browser development workspace. The Agent can inspect and edit the current project through a validated tool registry. It does not have a host shell or unrestricted disk access.</li>
                     <li><strong>Terminal</strong> is a simulated AegisDesk shell.</li>
                     <li><strong>System Monitor</strong> reports browser runtime metrics, not host hardware telemetry.</li>
                     <li><strong>Weather</strong> uses Open-Meteo when the network is available.</li>
@@ -99,6 +100,10 @@
                         <tr><td><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>←/→</kbd></td><td>Switch Spaces</td></tr>
                         <tr><td><kbd>Ctrl</kbd> + <kbd>Z</kbd></td><td>Undo last reversible local action when available</td></tr>
                         <tr><td><kbd>Esc</kbd></td><td>Close menus and overlays</td></tr>
+                        <tr><td><kbd>Ctrl</kbd> + <kbd>S</kbd></td><td>Code Studio: Save</td></tr>
+                        <tr><td><kbd>Ctrl</kbd> + <kbd>Enter</kbd></td><td>Code Studio: Run</td></tr>
+                        <tr><td><kbd>Ctrl</kbd> + <kbd>P</kbd></td><td>Code Studio: Quick Open</td></tr>
+                        <tr><td><kbd>Ctrl</kbd> + <kbd>I</kbd></td><td>Code Studio: Ask Aegis</td></tr>
                     </tbody>
                 </table>`
         },

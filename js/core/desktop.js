@@ -775,6 +775,8 @@ class Desktop {
                 'code-editor': 'code-editor',
                 'codeeditor': 'code-editor',
                 'editor': 'code-editor',
+                'studio': 'code-editor',
+                'code studio': 'code-editor',
                 'terminal': 'terminal',
                 'music': 'music',
                 'musicplayer': 'music',

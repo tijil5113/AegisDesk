@@ -86,7 +86,7 @@
         { id: 'bookmarks', name: 'Bookmarks', description: 'Save, search, and open links. Integrates with Browser when available.' },
         { id: 'calculator', name: 'Calculator', description: 'A keyboard-ready calculator with clear, backspace, and honest error handling.' },
         { id: 'terminal', name: 'Terminal', description: 'A simulated AegisDesk shell with safe commands. Not a host operating-system prompt.' },
-        { id: 'code-editor', name: 'Code Editor', description: 'A lightweight editor for writing and saving code in the browser.' },
+        { id: 'code-editor', name: 'Aegis Code Studio', description: 'An AI-assisted browser workspace for building, previewing, and repairing frontend projects. Not unrestricted disk or shell access.' },
         { id: 'gallery', name: 'Gallery', description: 'View images you import. Nothing is fabricated or pulled from stock libraries.' },
         { id: 'drawing', name: 'Drawing', description: 'Brush, eraser, color, and export on a local canvas.' },
         { id: 'system-monitor', name: 'System Monitor', description: 'Browser runtime metrics such as JS heap and battery. Not host CPU or RAM.' },

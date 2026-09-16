@@ -190,6 +190,7 @@
         profile: 'user', user: 'user',
         news: 'news-hub', 'news-hub': 'news-hub',
         code: 'code-editor', editor: 'code-editor', 'code-editor': 'code-editor',
+        studio: 'code-editor', 'code studio': 'code-editor', 'aegis code studio': 'code-editor',
         chat: 'ai-chat', ai: 'ai-chat', assistant: 'ai-chat', 'ai-chat': 'ai-chat',
         clock: 'world-clock', 'world-clock': 'world-clock', timezone: 'world-clock', timezones: 'world-clock'
     };
@@ -223,6 +224,98 @@
             risk: RISK.NAV,
             handler: function () { return openApp(id); }
         });
+    });
+
+    function studioFrame() {
+        try {
+            var win = global.windowManager && windowManager.windows.get('code-editor');
+            return win && win.querySelector && win.querySelector('iframe');
+        } catch (e) { return null; }
+    }
+
+    function studioCommand(command) {
+        var opened = openApp('code-editor');
+        setTimeout(function () {
+            var frame = studioFrame();
+            if (frame && frame.contentWindow) {
+                frame.contentWindow.postMessage({ source: 'aegis-desktop', command: command }, window.location.origin);
+            }
+        }, 400);
+        return opened.success
+            ? { success: true, message: 'Aegis Code Studio: ' + command }
+            : opened;
+    }
+
+    define({
+        id: 'codestudio.newProject',
+        title: 'Code Studio: New Project',
+        description: 'Open Aegis Code Studio at the new-project screen',
+        application: 'code-editor',
+        category: 'Create',
+        keywords: ['code', 'studio', 'new project'],
+        aliases: ['new project', 'code studio new'],
+        risk: RISK.NAV,
+        handler: function () { return studioCommand('newProject'); }
+    });
+    define({
+        id: 'codestudio.openFile',
+        title: 'Code Studio: Open File',
+        description: 'Open files into the Code Studio workspace',
+        application: 'code-editor',
+        category: 'Open',
+        keywords: ['code', 'open file'],
+        risk: RISK.NAV,
+        handler: function () { return studioCommand('openFile'); }
+    });
+    define({
+        id: 'codestudio.run',
+        title: 'Code Studio: Run',
+        description: 'Run the current Code Studio project in the sandboxed preview',
+        application: 'code-editor',
+        category: 'Workspace',
+        keywords: ['run', 'preview', 'code'],
+        risk: RISK.LOCAL,
+        handler: function () { return studioCommand('run'); }
+    });
+    define({
+        id: 'codestudio.format',
+        title: 'Code Studio: Format',
+        description: 'Format the current Code Studio file',
+        application: 'code-editor',
+        category: 'Workspace',
+        keywords: ['format', 'code'],
+        risk: RISK.LOCAL,
+        handler: function () { return studioCommand('format'); }
+    });
+    define({
+        id: 'codestudio.togglePreview',
+        title: 'Code Studio: Toggle Preview',
+        description: 'Show or hide the Code Studio live preview',
+        application: 'code-editor',
+        category: 'Workspace',
+        keywords: ['preview', 'code studio'],
+        risk: RISK.NAV,
+        handler: function () { return studioCommand('togglePreview'); }
+    });
+    define({
+        id: 'codestudio.askAegis',
+        title: 'Code Studio: Ask Aegis',
+        description: 'Focus the Aegis Agent composer in Code Studio',
+        application: 'code-editor',
+        category: 'Workspace',
+        keywords: ['ask aegis', 'agent', 'code'],
+        risk: RISK.NAV,
+        handler: function () { return studioCommand('askAegis'); }
+    });
+    define({
+        id: 'codestudio.reviewChanges',
+        title: 'Code Studio: Review Changes',
+        description: 'Open the Code Studio changeset review surface',
+        application: 'code-editor',
+        category: 'Workspace',
+        keywords: ['review', 'diff', 'changeset'],
+        risk: RISK.NAV,
+        handler: function () { return studioCommand('reviewChanges'); }
     });
 
     define({

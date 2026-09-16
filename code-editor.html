@@ -3,235 +3,318 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code Editor | Aegis Desk</title>
+    <title>Aegis Code Studio</title>
     <link rel="stylesheet" href="styles/code-editor-ide.css">
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 </head>
-<body data-theme="dark-pro">
-    <!-- Intro / Instructions page -->
-    <div id="ide-onboarding" class="intro-page">
-        <div class="intro-background">
-            <div class="intro-gradient"></div>
-            <div class="intro-grid"></div>
-            <div class="intro-glow intro-glow-1"></div>
-            <div class="intro-glow intro-glow-2"></div>
+<body class="studio-body" data-theme="aegis-dark" data-surface="welcome">
+    <div id="studio-live" class="studio-live" aria-live="polite" aria-atomic="true"></div>
+
+    <section id="studio-welcome" class="studio-welcome" aria-labelledby="welcome-title">
+        <div class="welcome-bg" aria-hidden="true">
+            <div class="welcome-grid"></div>
+            <div class="welcome-glow"></div>
         </div>
-        <div class="intro-content">
-            <header class="intro-header">
-                <a href="desktop.html" class="intro-back-btn" title="Back to Desktop">← Desktop</a>
-            </header>
-            <section class="intro-hero">
-                <div class="intro-logo">
-                    <span class="intro-logo-icon">{ }</span>
-                </div>
-                <h1 class="intro-title">Code Editor</h1>
-                <p class="intro-tagline">A lightweight in-browser editor. JavaScript and Python run in the browser when those engines are available. This is not a full desktop IDE.</p>
+        <header class="welcome-top">
+            <a href="desktop.html" class="studio-link">← Desktop</a>
+        </header>
+        <div class="welcome-inner">
+            <div class="welcome-mark" aria-hidden="true">
+                <svg viewBox="0 0 48 48" width="48" height="48">
+                    <rect x="2" y="2" width="44" height="44" rx="12" fill="#0f766e"/>
+                    <path d="M16 16l-8 8 8 8M32 16l8 8-8 8M27 14l-6 20" fill="none" stroke="#f8fafc" stroke-width="2.6" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <p class="welcome-kicker">AegisDesk</p>
+            <h1 id="welcome-title">Aegis Code Studio</h1>
+            <p class="welcome-lede">Describe what you want. Aegis inspects the project, plans, edits real files, previews the result, and repairs problems — without copy-paste.</p>
+            <div class="welcome-actions">
+                <button type="button" class="studio-btn primary" id="welcome-new">New project</button>
+                <button type="button" class="studio-btn" id="welcome-import">Import files</button>
+                <button type="button" class="studio-btn" id="welcome-continue" hidden>Continue project</button>
+            </div>
+            <div class="welcome-build">
+                <label for="welcome-prompt">Build with Aegis</label>
+                <textarea id="welcome-prompt" rows="3" placeholder="Create a premium personal portfolio with Home, About, Projects, and Contact."></textarea>
+                <button type="button" class="studio-btn primary" id="welcome-build">Build with Aegis</button>
+            </div>
+            <section class="welcome-templates" aria-label="Start from a template">
+                <h2>Start from a template</h2>
+                <div class="template-grid" id="welcome-templates"></div>
             </section>
-            <section class="intro-steps">
-                <h2 class="intro-section-title">Get started in 3 steps</h2>
-                <div class="intro-step-cards">
-                    <div class="intro-step-card">
-                        <span class="intro-step-num">1</span>
-                        <h3>Create or open files</h3>
-                        <p>Use the Explorer sidebar to create files, folders, or upload from your computer.</p>
-                    </div>
-                    <div class="intro-step-card">
-                        <span class="intro-step-num">2</span>
-                        <h3>Write & run code</h3>
-                        <p>JavaScript, Python, HTML, CSS, and more. Press <kbd>Ctrl+Enter</kbd> to run instantly.</p>
-                    </div>
-                    <div class="intro-step-card">
-                        <span class="intro-step-num">3</span>
-                        <h3>Use AI & preview</h3>
-                        <p>AI sidebar for help. Live preview for HTML/CSS. Output in the panel below.</p>
-                    </div>
-                </div>
-            </section>
-            <section class="intro-features">
-                <div class="intro-feature">
-                    <span class="intro-feature-icon">◇</span>
-                    <span>Monaco editor · IntelliSense · Multi-cursor</span>
-                </div>
-                <div class="intro-feature">
-                    <span class="intro-feature-icon">◇</span>
-                    <span>14 themes · Command palette <kbd>Ctrl+Shift+P</kbd></span>
-                </div>
-                <div class="intro-feature">
-                    <span class="intro-feature-icon">◇</span>
-                    <span>Terminal · Format · Find & Replace</span>
-                </div>
-            </section>
-            <section class="intro-actions">
-                <button type="button" id="onboarding-start" class="intro-cta">
-                    <span class="intro-cta-text">Enter IDE</span>
-                    <span class="intro-cta-arrow">→</span>
-                </button>
-                <p class="intro-hint">You can revisit this intro from the command palette</p>
-            </section>
+            <p class="welcome-note">Projects stay in this browser. Aegis cannot see your computer disk, environment variables, or server secrets.</p>
         </div>
-        <div class="intro-scroll-hint" aria-hidden="true">Scroll for more</div>
+        <input type="file" id="welcome-file-input" multiple hidden>
+        <input type="file" id="welcome-zip-input" accept=".zip,application/zip" hidden>
+    </section>
+
+    <div id="studio-root" class="studio-root" hidden>
+        <header class="studio-commandbar">
+            <div class="commandbar-left">
+                <a href="desktop.html" class="studio-icon-btn" title="Back to Desktop" aria-label="Back to Desktop">
+                    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </a>
+                <div class="studio-brand">
+                    <span class="studio-brand-mark" aria-hidden="true"></span>
+                    <strong>Aegis Code Studio</strong>
+                </div>
+                <span class="studio-project-name" id="studio-project-name">Untitled project</span>
+                <button type="button" class="studio-icon-btn" id="btn-toggle-explorer" title="Toggle explorer">Files</button>
+                <button type="button" class="studio-icon-btn" id="btn-toggle-agent" title="Toggle Aegis Agent">Agent</button>
+            </div>
+            <div class="commandbar-center" role="toolbar" aria-label="Project commands">
+                <button type="button" class="studio-btn" id="btn-new" title="New file">New</button>
+                <button type="button" class="studio-btn" id="btn-open" title="Open files">Open</button>
+                <button type="button" class="studio-btn" id="btn-save" title="Save (Ctrl+S)">Save</button>
+                <button type="button" class="studio-btn" id="btn-saveas">Save As</button>
+                <button type="button" class="studio-btn" id="btn-download">Download</button>
+                <span class="bar-sep"></span>
+                <button type="button" class="studio-btn primary" id="btn-run" title="Run (Ctrl+Enter)">Run</button>
+                <button type="button" class="studio-btn" id="btn-format">Format</button>
+                <button type="button" class="studio-btn" id="btn-preview" aria-pressed="false">Preview</button>
+                <button type="button" class="studio-btn" id="btn-export">Export ZIP</button>
+            </div>
+            <div class="commandbar-right">
+                <label class="studio-select">
+                    <span class="sr-only">Autonomy</span>
+                    <select id="studio-autonomy" title="Agent autonomy">
+                        <option value="review">Review edits</option>
+                        <option value="auto">Auto edit</option>
+                    </select>
+                </label>
+                <button type="button" class="studio-btn ghost" id="btn-permissions" title="What Aegis can do">Permissions</button>
+                <button type="button" class="studio-btn ghost" id="btn-home" title="New project screen">Projects</button>
+            </div>
+        </header>
+
+        <div class="studio-workspace" id="studio-workspace">
+            <aside class="studio-explorer" id="studio-explorer" aria-label="Project explorer">
+                <div class="panel-tabs">
+                    <button type="button" class="panel-tab active" data-explorer="files">Files</button>
+                    <button type="button" class="panel-tab" data-explorer="search">Search</button>
+                    <button type="button" class="panel-tab" data-explorer="changes">Changes</button>
+                </div>
+                <div class="explorer-pane active" id="explorer-files">
+                    <div class="pane-toolbar">
+                        <button type="button" class="studio-icon-btn" id="btn-new-file" title="New file">+</button>
+                        <button type="button" class="studio-icon-btn" id="btn-new-folder" title="New folder">▣</button>
+                        <button type="button" class="studio-icon-btn" id="btn-upload" title="Upload">↑</button>
+                        <button type="button" class="studio-icon-btn" id="btn-import-zip" title="Import ZIP">ZIP</button>
+                    </div>
+                    <div class="file-tree" id="file-tree" tabindex="0"></div>
+                    <p class="fs-note">Browser workspace only. Not your computer disk.</p>
+                </div>
+                <div class="explorer-pane" id="explorer-search">
+                    <div class="search-box">
+                        <input id="project-search" type="search" placeholder="Search text or file names">
+                        <label class="check"><input type="checkbox" id="search-names"> Names only</label>
+                        <button type="button" class="studio-btn" id="btn-search">Search</button>
+                    </div>
+                    <div id="search-results" class="search-results"></div>
+                    <div class="replace-box" id="replace-box">
+                        <input id="project-replace" type="text" placeholder="Replace (preview first)">
+                        <button type="button" class="studio-btn" id="btn-replace-preview">Preview replace</button>
+                    </div>
+                </div>
+                <div class="explorer-pane" id="explorer-changes">
+                    <div id="changes-list" class="changes-list"></div>
+                    <div class="pane-toolbar wrap">
+                        <button type="button" class="studio-btn" id="btn-accept-all" hidden>Accept all</button>
+                        <button type="button" class="studio-btn" id="btn-review-changes">Review</button>
+                        <button type="button" class="studio-btn danger" id="btn-revert-task">Revert task</button>
+                    </div>
+                </div>
+            </aside>
+            <div class="resizer col" id="resizer-explorer" role="separator" aria-orientation="vertical" aria-label="Resize explorer"></div>
+
+            <main class="studio-main">
+                <div class="editor-tabs" id="editor-tabs" role="tablist" aria-label="Open files"></div>
+                <div class="editor-stage" id="editor-stage">
+                    <div class="editor-column" id="editor-column">
+                        <div id="monaco-container" class="monaco-container" role="region" aria-label="Editor"></div>
+                        <div id="inline-ai" class="inline-ai" hidden>
+                            <button type="button" data-inline="explain">Explain</button>
+                            <button type="button" data-inline="fix">Fix</button>
+                            <button type="button" data-inline="refactor">Refactor</button>
+                            <button type="button" data-inline="optimize">Optimize</button>
+                            <button type="button" data-inline="document">Document</button>
+                            <button type="button" data-inline="tests">Generate tests</button>
+                        </div>
+                    </div>
+                    <div class="resizer col" id="resizer-preview" role="separator" aria-orientation="vertical" aria-label="Resize preview" hidden></div>
+                    <section class="preview-dock" id="preview-dock" hidden>
+                        <div class="preview-toolbar">
+                            <strong>Live Preview</strong>
+                            <span class="preview-state" id="preview-state">Stopped</span>
+                            <div class="preview-devices" role="group" aria-label="Preview width">
+                                <button type="button" class="studio-icon-btn active" data-device="desktop" title="Desktop">Desk</button>
+                                <button type="button" class="studio-icon-btn" data-device="tablet" title="Tablet">Tab</button>
+                                <button type="button" class="studio-icon-btn" data-device="mobile" title="Mobile">Mob</button>
+                            </div>
+                            <button type="button" class="studio-icon-btn" id="preview-refresh" title="Refresh">↻</button>
+                            <button type="button" class="studio-icon-btn" id="preview-larger" title="Open larger">⤢</button>
+                            <button type="button" class="studio-icon-btn" id="preview-hide" title="Hide preview">✕</button>
+                        </div>
+                        <div class="preview-frame-wrap" id="preview-frame-wrap">
+                            <iframe id="preview-frame" title="Live Preview" sandbox="allow-scripts"></iframe>
+                        </div>
+                    </section>
+                </div>
+            </main>
+
+            <div class="resizer col" id="resizer-agent" role="separator" aria-orientation="vertical" aria-label="Resize Aegis Agent"></div>
+            <aside class="studio-agent" id="studio-agent" aria-label="Aegis Agent">
+                <div class="agent-header">
+                    <div>
+                        <p class="agent-kicker">Aegis Agent</p>
+                        <p class="agent-state" id="agent-state">Idle</p>
+                    </div>
+                    <div class="mode-switch" role="tablist" aria-label="Agent mode">
+                        <button type="button" class="mode-btn active" data-mode="ask">Ask</button>
+                        <button type="button" class="mode-btn" data-mode="edit">Edit</button>
+                        <button type="button" class="mode-btn" data-mode="agent">Agent</button>
+                    </div>
+                </div>
+                <div class="context-chips" id="context-chips" aria-label="Context Aegis is using"></div>
+                <ol class="agent-plan" id="agent-plan" hidden></ol>
+                <div class="agent-activity" id="agent-activity" hidden></div>
+                <div class="agent-thread" id="agent-thread"></div>
+                <div class="agent-composer">
+                    <p class="composer-hint">/ commands · @ files · Shift+Enter newline</p>
+                    <textarea id="agent-input" rows="3" placeholder="Describe the change you want in the project…"></textarea>
+                    <div class="composer-row">
+                        <button type="button" class="studio-btn danger" id="btn-stop" hidden>Stop</button>
+                        <button type="button" class="studio-btn primary" id="btn-send">Send</button>
+                    </div>
+                    <div id="mention-menu" class="mention-menu" hidden></div>
+                </div>
+            </aside>
+        </div>
+
+        <div class="resizer row" id="resizer-bottom" role="separator" aria-orientation="horizontal" aria-label="Resize bottom panel"></div>
+        <section class="studio-bottom" id="studio-bottom" aria-label="Tool panels">
+            <div class="panel-tabs">
+                <button type="button" class="panel-tab active" data-bottom="output">Output</button>
+                <button type="button" class="panel-tab" data-bottom="console">Console</button>
+                <button type="button" class="panel-tab" data-bottom="terminal">Terminal</button>
+                <button type="button" class="panel-tab" data-bottom="problems">Problems</button>
+                <button type="button" class="panel-tab" data-bottom="tests">Tests</button>
+                <button type="button" class="panel-tab" data-bottom="agentlog">Agent log</button>
+                <button type="button" class="studio-icon-btn" id="btn-toggle-bottom" title="Collapse panel">▾</button>
+            </div>
+            <div class="bottom-pane active" id="pane-output"><pre id="output-pre"></pre></div>
+            <div class="bottom-pane" id="pane-console">
+                <div class="pane-toolbar">
+                    <button type="button" class="studio-btn" id="console-clear">Clear</button>
+                    <label class="check"><input type="checkbox" id="console-errors"> Errors only</label>
+                </div>
+                <div id="console-list" class="log-list"></div>
+            </div>
+            <div class="bottom-pane" id="pane-terminal">
+                <p class="fs-note">Simulated project terminal. Not a host shell. Commands: help, ls, pwd, clear, run.</p>
+                <div id="terminal-output" class="terminal-output"></div>
+                <div class="terminal-line">
+                    <label class="sr-only" for="terminal-input">Terminal command</label>
+                    <span aria-hidden="true">project $</span>
+                    <input id="terminal-input" type="text" spellcheck="false" autocomplete="off">
+                </div>
+            </div>
+            <div class="bottom-pane" id="pane-problems">
+                <div id="problems-list" class="problems-list"></div>
+            </div>
+            <div class="bottom-pane" id="pane-tests">
+                <div class="pane-toolbar">
+                    <button type="button" class="studio-btn" id="btn-run-tests">Run validation</button>
+                </div>
+                <div id="tests-list" class="tests-list"></div>
+            </div>
+            <div class="bottom-pane" id="pane-agentlog">
+                <div id="agent-log" class="log-list"></div>
+            </div>
+        </section>
+
+        <footer class="studio-status">
+            <span id="status-cursor">Ln 1, Col 1</span>
+            <span id="status-language">Plain text</span>
+            <span>UTF-8</span>
+            <span id="status-dirty">Saved</span>
+            <span id="status-agent">Agent idle</span>
+            <span id="status-preview">Preview stopped</span>
+            <span id="status-autosave" title="Workspace is stored in this browser">Local workspace</span>
+            <button type="button" class="status-btn" id="btn-theme">Theme</button>
+        </footer>
     </div>
 
-    <!-- Main IDE -->
-    <div id="ide-root" class="ide-root" style="display: none;">
-        <aside class="ide-sidebar" id="ide-sidebar">
-            <div class="ide-sidebar-views">
-                <button type="button" class="ide-sidebar-view active" data-view="explorer" title="Explorer">📁</button>
-                <button type="button" class="ide-sidebar-view" data-view="search" title="Search">🔍</button>
-                <button type="button" class="ide-sidebar-view" data-view="ai" title="AI Chat">🤖</button>
-            </div>
-            <div class="ide-sidebar-content">
-                <!-- Explorer -->
-                <div id="ide-view-explorer" class="ide-view active">
-                    <div class="ide-sidebar-header">
-                        <span class="ide-sidebar-title">EXPLORER</span>
-                        <div class="ide-sidebar-actions">
-                            <button type="button" class="ide-btn icon-btn" id="ide-new-file" title="New file (Ctrl+N)">+</button>
-                            <button type="button" class="ide-btn icon-btn" id="ide-new-folder" title="New folder">📁</button>
-                            <input type="file" id="ide-upload-input" multiple style="display:none">
-                            <button type="button" class="ide-btn icon-btn" id="ide-upload-btn" title="Upload files">↑</button>
-                        </div>
-                    </div>
-                    <div class="ide-tree" id="ide-file-tree"></div>
+    <div id="find-wrap" class="find-wrap" hidden>
+        <input id="find-input" type="text" placeholder="Find in file">
+        <input id="replace-input" type="text" placeholder="Replace">
+        <button type="button" id="find-prev">↑</button>
+        <button type="button" id="find-next">↓</button>
+        <button type="button" id="find-replace">Replace</button>
+        <button type="button" id="find-close">Close</button>
+    </div>
+
+    <div id="command-palette" class="overlay-card" hidden>
+        <input id="command-input" type="text" placeholder="Type a command…" aria-label="Command palette">
+        <div id="command-list" class="overlay-list"></div>
+    </div>
+
+    <div id="quick-open" class="overlay-card" hidden>
+        <input id="quick-open-input" type="text" placeholder="Open file…" aria-label="Quick open">
+        <div id="quick-open-list" class="overlay-list"></div>
+    </div>
+
+    <div id="diff-modal" class="modal" hidden>
+        <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="diff-title">
+            <header>
+                <h2 id="diff-title">Review changes</h2>
+                <div class="diff-view-toggle">
+                    <button type="button" id="diff-unified" class="studio-btn">Inline</button>
+                    <button type="button" id="diff-split" class="studio-btn">Side by side</button>
                 </div>
-                <!-- Search -->
-                <div id="ide-view-search" class="ide-view">
-                    <div class="ide-sidebar-header">
-                        <span class="ide-sidebar-title">SEARCH</span>
-                    </div>
-                    <div class="ide-search-box">
-                        <input type="text" id="ide-search-input" placeholder="Search in files...">
-                        <button type="button" class="ide-btn" id="ide-search-btn">Search</button>
-                    </div>
-                    <div class="ide-search-results" id="ide-search-results"></div>
-                </div>
-                <!-- AI Chat -->
-                <div id="ide-view-ai" class="ide-view">
-                    <div class="ide-sidebar-header">
-                        <span class="ide-sidebar-title">AI ASSISTANT</span>
-                    </div>
-                    <div class="ide-ai-panel">
-                        <div class="ide-ai-welcome" id="ide-ai-welcome">
-                            <p class="ide-ai-welcome-text">Hi! I'm your coding assistant. I can explain code, fix bugs, improve performance, refactor, generate projects, and answer technical questions. How can I help?</p>
-                            <div class="ide-ai-suggestions" id="ide-ai-suggestions">
-                                <button type="button" class="ide-ai-suggestion-btn" data-suggestion="Explain my code">Explain my code</button>
-                                <button type="button" class="ide-ai-suggestion-btn" data-suggestion="Fix errors in my code">Fix errors</button>
-                                <button type="button" class="ide-ai-suggestion-btn" data-suggestion="Improve performance of my code">Improve performance</button>
-                                <button type="button" class="ide-ai-suggestion-btn" data-suggestion="Generate a small project from scratch">Generate project</button>
-                            </div>
-                        </div>
-                        <div class="ide-ai-messages" id="ide-ai-messages"></div>
-                        <div class="ide-ai-typing" id="ide-ai-typing" style="display:none">
-                            <span class="ide-ai-typing-dot"></span>
-                            <span class="ide-ai-typing-dot"></span>
-                            <span class="ide-ai-typing-dot"></span>
-                            <span class="ide-ai-typing-label">Thinking...</span>
-                        </div>
-                        <div class="ide-ai-input-wrap">
-                            <textarea id="ide-ai-input" placeholder="Ask anything: explain, fix, optimize, generate..." rows="2"></textarea>
-                            <button type="button" class="ide-btn ide-ai-send-btn" id="ide-ai-send">Send</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </aside>
-        <div class="ide-main">
-            <div class="ide-toolbar">
-                <a href="desktop.html" class="ide-btn ide-back-btn" title="Back to Desktop">← Desktop</a>
-                <button type="button" class="ide-btn ide-intro-btn" id="ide-intro-btn" title="View Intro & Instructions">Intro</button>
-                <span class="ide-toolbar-sep"></span>
-                <button type="button" class="ide-btn" id="ide-new-btn">New</button>
-                <button type="button" class="ide-btn" id="ide-open-btn">Open</button>
-                <input type="file" id="ide-open-input" multiple style="display:none">
-                <button type="button" class="ide-btn" id="ide-save-btn">Save</button>
-                <button type="button" class="ide-btn" id="ide-saveas-btn">Save As</button>
-                <button type="button" class="ide-btn" id="ide-download-btn">Download</button>
-                <span class="ide-toolbar-sep"></span>
-                <button type="button" class="ide-btn" id="ide-run-btn" title="Run (Ctrl+Enter)">▶ Run</button>
-                <button type="button" class="ide-btn" id="ide-format-btn">Format</button>
-                <span class="ide-toolbar-sep"></span>
-                <button type="button" class="ide-btn ide-preview-toggle" id="ide-preview-show-btn" title="Show Live Preview">Show Preview</button>
-                <button type="button" class="ide-btn ide-preview-toggle" id="ide-preview-hide-btn" title="Hide Live Preview" style="display:none">Hide Preview</button>
-                <button type="button" class="ide-btn" id="ide-preview-refresh-btn" title="Refresh Preview" style="display:none">Refresh</button>
-                <span class="ide-toolbar-sep"></span>
-                <div class="ide-ai-wrap">
-                    <button type="button" class="ide-btn" id="ide-ai-btn" title="AI actions">AI ▾</button>
-                    <div id="ide-ai-menu" class="ide-ai-menu" style="display: none;">
-                        <button type="button" data-ai="explain">Explain code</button>
-                        <button type="button" data-ai="fix">Fix bugs</button>
-                        <button type="button" data-ai="optimize">Optimize</button>
-                        <button type="button" data-ai="comment">Add comments</button>
-                        <button type="button" data-ai="generate">Generate from prompt</button>
-                        <button type="button" data-ai="convert">English → Code</button>
-                    </div>
-                </div>
-                <button type="button" class="ide-btn" id="ide-export-zip-btn">Export ZIP</button>
-            </div>
-            <div class="ide-tabs" id="ide-tabs"></div>
-            <div class="ide-editor-row" id="ide-editor-row">
-                <div class="ide-editor-area" id="ide-editor-area">
-                    <div id="monaco-container" class="ide-monaco-container"></div>
-                </div>
-                <div class="ide-resizer ide-resizer-preview" id="ide-resizer-preview" title="Drag to resize" style="display:none"></div>
-                <div class="ide-preview-wrap" id="ide-preview-wrap" style="display:none">
-                    <div class="ide-preview-header">
-                        <span class="ide-preview-title">Live Preview</span>
-                        <span class="ide-preview-status" id="ide-preview-status"></span>
-                    </div>
-                    <iframe id="ide-live-preview-frame" class="ide-live-preview-frame" title="Live Preview" sandbox="allow-scripts allow-same-origin"></iframe>
-                </div>
-            </div>
-            <div class="ide-panel ide-panel-bottom" id="ide-bottom-panel">
-                <div class="ide-resizer ide-resizer-panel" id="ide-resizer-panel" title="Drag to resize panel"></div>
-                <div class="ide-panel-tabs">
-                    <button type="button" class="ide-panel-tab active" data-panel="output">Output</button>
-                    <button type="button" class="ide-panel-tab" data-panel="console">Console</button>
-                    <button type="button" class="ide-panel-tab" data-panel="terminal">Terminal</button>
-                    <button type="button" class="ide-panel-tab" data-panel="problems">Problems</button>
-                </div>
-                <div class="ide-panel-content" id="ide-output">
-                    <pre id="ide-output-pre"></pre>
-                </div>
-                <div class="ide-panel-content" id="ide-console" style="display: none;">
-                    <pre id="ide-console-pre"></pre>
-                </div>
-                <div class="ide-panel-content" id="ide-terminal" style="display: none;">
-                    <div class="ide-terminal-output" id="ide-terminal-output"></div>
-                    <div class="ide-terminal-line">
-                        <span class="ide-terminal-prompt" id="ide-terminal-prompt">$ </span>
-                        <input type="text" class="ide-terminal-input" id="ide-terminal-input" spellcheck="false">
-                    </div>
-                </div>
-                <div class="ide-panel-content" id="ide-problems" style="display: none;">
-                    <div class="ide-problems-list" id="ide-problems-list"></div>
-                </div>
-            </div>
-        </div>
-        <div class="ide-statusbar">
-            <span id="ide-status-position">Ln 1, Col 1</span>
-            <span id="ide-status-language">JavaScript</span>
-            <span id="ide-status-eol">LF</span>
-            <span id="ide-status-encoding">UTF-8</span>
-            <button type="button" class="ide-status-btn" id="ide-theme-btn" title="Change theme">Theme</button>
-        </div>
-        <!-- Find & Replace -->
-        <div id="ide-find-wrap" class="ide-find-wrap" style="display: none;">
-            <input type="text" id="ide-find-input" placeholder="Find">
-            <input type="text" id="ide-replace-input" placeholder="Replace">
-            <button type="button" id="ide-find-prev" title="Previous">↑</button>
-            <button type="button" id="ide-find-next" title="Next">↓</button>
-            <button type="button" id="ide-find-replace-one" title="Replace">Replace</button>
-            <button type="button" id="ide-find-close">×</button>
-        </div>
-        <!-- Command palette -->
-        <div id="ide-command-palette" class="ide-command-palette" style="display: none;">
-            <input type="text" id="ide-command-input" placeholder="Type a command...">
-            <div class="ide-command-list" id="ide-command-list"></div>
+                <button type="button" class="studio-icon-btn" id="diff-close" aria-label="Close">✕</button>
+            </header>
+            <div id="diff-body" class="diff-body"></div>
+            <footer>
+                <button type="button" class="studio-btn" id="diff-reject">Reject</button>
+                <button type="button" class="studio-btn primary" id="diff-accept">Accept</button>
+            </footer>
         </div>
     </div>
+
+    <div id="studio-dialog" class="modal" hidden>
+        <div class="modal-panel compact" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+            <h2 id="dialog-title">Confirm</h2>
+            <p id="dialog-body"></p>
+            <label id="dialog-field-wrap" hidden>Name <input id="dialog-field" type="text"></label>
+            <footer>
+                <button type="button" class="studio-btn" id="dialog-cancel">Cancel</button>
+                <button type="button" class="studio-btn primary" id="dialog-ok">Continue</button>
+            </footer>
+        </div>
+    </div>
+
+    <div id="preview-large" class="modal" hidden>
+        <div class="modal-panel preview-large" role="dialog" aria-modal="true" aria-label="Large preview">
+            <header>
+                <h2>Preview</h2>
+                <button type="button" class="studio-icon-btn" id="preview-large-close">✕</button>
+            </header>
+            <iframe id="preview-large-frame" title="Large live preview" sandbox="allow-scripts"></iframe>
+        </div>
+    </div>
+
+    <input type="file" id="open-input" multiple hidden>
+    <input type="file" id="upload-input" multiple hidden>
+    <input type="file" id="zip-input" accept=".zip,application/zip" hidden>
 
     <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/loader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="js/code-studio/security.js"></script>
+    <script src="js/code-studio/diff.js"></script>
+    <script src="js/code-studio/workspace.js"></script>
+    <script src="js/code-studio/templates.js"></script>
+    <script src="js/code-studio/agent.js"></script>
     <script src="js/code-editor-ide.js"></script>
 </body>
 </html>

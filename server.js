@@ -5,6 +5,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import chatHandler from './api/chat.js';
 import intentHandler from './api/intent.js';
+import codeStudioHandler from './api/code-studio.js';
 import newsHandler from './api/news.js';
 import gnewsHandler from './api/gnews.js';
 import musicHandler from './api/music.js';
@@ -89,6 +90,9 @@ app.post('/api/chat', corsFor('POST, OPTIONS'), requireAccountOrGate, limitChat,
 
 app.options('/api/intent', (req, res) => handlePreflight(req, res, 'POST, OPTIONS'));
 app.post('/api/intent', corsFor('POST, OPTIONS'), requireAccountOrGate, limitChat, wrap(intentHandler));
+
+app.options('/api/code-studio', (req, res) => handlePreflight(req, res, 'POST, OPTIONS'));
+app.post('/api/code-studio', corsFor('POST, OPTIONS'), requireSameOrigin, requireAccountOrGate, limitChat, wrap(codeStudioHandler));
 
 app.options('/api/news', (req, res) => handlePreflight(req, res, 'POST, OPTIONS'));
 app.post('/api/news', corsFor('POST, OPTIONS'), requireAccountOrGate, limitProvider, wrap(newsHandler));

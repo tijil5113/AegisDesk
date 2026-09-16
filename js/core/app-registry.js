@@ -185,33 +185,19 @@ const APP_REGISTRY = {
         }
     },
     'code-editor': {
-        title: 'Code Editor',
+        title: 'Aegis Code Studio',
         iconSVG: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <linearGradient id="codeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#1e293b;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
-                </linearGradient>
-            </defs>
-            <!-- Code brackets -->
-            <path d="M8 6 L4 12 L8 18" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-            <path d="M16 6 L20 12 L16 18" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-            <!-- Syntax highlighting -->
-            <rect x="6" y="9" width="12" height="6" rx="1" fill="url(#codeGradient)" opacity="0.3"/>
-            <line x1="8" y1="11" x2="10" y2="11" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="8" y1="13" x2="14" y2="13" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round"/>
-            <!-- Glow -->
-            <path d="M8 6 L4 12 L8 18" stroke="#34d399" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.3"/>
-            <path d="M16 6 L20 12 L16 18" stroke="#34d399" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.3"/>
+            <rect x="2" y="2" width="20" height="20" rx="6" fill="#0F766E"/>
+            <path d="M8.2 8.2L5.4 12l2.8 3.8M15.8 8.2L18.6 12l-2.8 3.8M13.4 7.8l-2.8 8.4" stroke="#F8FAFC" stroke-width="1.7" stroke-linecap="round" fill="none"/>
         </svg>`,
         open: function() {
             if (window.AegisAppKit && typeof AegisAppKit.openIframeApp === 'function') {
                 AegisAppKit.openIframeApp('code-editor', {
-                    title: 'Code Editor',
+                    title: 'Aegis Code Studio',
                     src: 'code-editor.html',
                     iconId: 'code-editor',
-                    width: 1200,
-                    height: 800,
+                    width: 1280,
+                    height: 840,
                     className: 'app-code-editor'
                 });
                 return;

@@ -75,7 +75,7 @@ class I18n {
             'app.music': 'Music Player',
             'app.gallery': 'Gallery',
             'app.email': 'Email',
-            'app.codeEditor': 'Code Editor',
+            'app.codeEditor': 'Aegis Code Studio',
             'app.terminal': 'Terminal',
             'app.drawing': 'Drawing',
             'app.bookmarks': 'Bookmarks',

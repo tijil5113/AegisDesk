@@ -46,12 +46,22 @@ const EXCLUDE_PATTERNS = [
 
 function shouldExclude(filePath) {
     const relativePath = path.relative(SOURCE_DIR, filePath);
+    const base = path.basename(filePath);
     return EXCLUDE_PATTERNS.some(pattern => {
+        if (pattern.startsWith('*.') && !pattern.includes('/')) {
+            return base.toLowerCase().endsWith(pattern.slice(1).toLowerCase());
+        }
+        if (pattern.endsWith('.*') && !pattern.includes('/')) {
+            const prefix = pattern.slice(0, -2);
+            return base === prefix || base.startsWith(prefix + '.');
+        }
         if (pattern.includes('**')) {
             const regex = new RegExp(pattern.replace(/\*\*/g, '.*'));
             return regex.test(relativePath);
         }
-        return relativePath.includes(pattern) || path.basename(filePath).match(pattern.replace('*', '.*'));
+        return relativePath === pattern
+            || base === pattern
+            || relativePath.split(path.sep)[0] === pattern;
     });
 }
 
