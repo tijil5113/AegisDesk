@@ -21,11 +21,11 @@
             <p class="site-kicker">Security / Privacy</p>
             <h1>What AegisDesk actually does with data</h1>
             <h2>Server-side credentials</h2>
-            <p>Mail, Music, AI, and News integrations read provider keys from the server environment. The browser talks to AegisDesk API routes such as <code>/api/mail/send</code>, <code>/api/music</code>, <code>/api/chat</code>, <code>/api/gnews</code>, and <code>/api/news</code>. Client bundles are not supposed to contain provider secrets.</p>
+            '<p>The browser talks to AegisDesk API routes such as <code>/api/mail/send</code>, <code>/api/music</code>, <code>/api/chat</code>, <code>/api/intent</code>, <code>/api/gnews</code>, and <code>/api/news</code>. Client bundles are not supposed to contain provider secrets. <code>/api/intent</code> accepts a query and a catalog of allowed action ids; it cannot run arbitrary tools.</p>
             <h2>Authentication</h2>
             <p>When the login gate is configured, access uses an allowed-email list and an access code, with a server session. The desktop also keeps a local session record so the shell can send you back to sign-in if that record is missing.</p>
             <h2>Browser limitations</h2>
-            <p>AegisDesk cannot read your computer’s full filesystem, host CPU, or unrestricted shell. Files is a virtual workspace. Terminal is simulated. System Monitor reports browser runtime metrics. Browser embedding is blocked by many sites; AegisDesk does not attempt to bypass that.</p>
+            <p>AegisDesk cannot read your computer’s full filesystem, host CPU, unrestricted shell, or full OS clipboard history. Clipboard History only stores text copied through AegisDesk. Files is a virtual workspace. Terminal is simulated. System Monitor reports browser runtime metrics. Browser embedding is blocked by many sites; AegisDesk does not attempt to bypass that.</p>
             <h2>Local persistence</h2>
             <p>Tasks, notes, bookmarks, settings, themes, mail sent history, and similar workspace data are stored in this browser (localStorage or IndexedDB). Clearing site data removes them. Redesigns keep existing storage keys so upgrades do not silently erase that data.</p>
             <p>This page does not claim military-grade encryption, zero knowledge, or that the product is unhackable.</p>

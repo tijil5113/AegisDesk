@@ -38,6 +38,28 @@ class CalendarEngine {
         this.loadSettings();
         this.setupIntervals();
         this.checkReminders();
+        this.consumeCreateIntent();
+    }
+
+    consumeCreateIntent() {
+        try {
+            const raw = (typeof storage !== 'undefined' && storage.get)
+                ? storage.get('calendar_create_intent', null)
+                : null;
+            if (!raw || !raw.title) return;
+            if (Date.now() - (raw.ts || 0) > 120000) return;
+            storage.remove('calendar_create_intent');
+            const start = raw.date ? new Date(raw.date) : new Date();
+            if (Number.isNaN(start.getTime())) {
+                start.setTime(Date.now());
+            }
+            this.addEvent({
+                title: String(raw.title).slice(0, 200),
+                notes: String(raw.notes || '').slice(0, 1000),
+                start: start,
+                end: new Date(start.getTime() + 60 * 60 * 1000)
+            });
+        } catch (e) { /* ignore */ }
     }
 
     async initIndexedDB() {

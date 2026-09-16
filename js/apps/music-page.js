@@ -36,6 +36,54 @@ class MusicPage {
         this.renderRecentSearches();
         
         console.log('✅ Music Page initialized');
+        this.consumeSearchIntent();
+        this.broadcastMedia();
+    }
+
+    consumeSearchIntent() {
+        try {
+            const intent = (typeof storage !== 'undefined' && storage.get)
+                ? storage.get('music_search_intent', null)
+                : null;
+            if (!intent || !intent.query) return;
+            if (Date.now() - (intent.ts || 0) > 120000) return;
+            storage.remove('music_search_intent');
+            const input = document.getElementById('music-search-input') || document.querySelector('input[type="search"], .music-search-input');
+            if (input) {
+                input.value = intent.query;
+                if (typeof this.performSearch === 'function') this.performSearch(intent.query);
+            }
+        } catch (e) { /* ignore */ }
+    }
+
+    broadcastMedia() {
+        const self = this;
+        const send = () => {
+            try {
+                const state = window.musicStore && window.musicStore.getState();
+                if (!state || !state.currentTrack) {
+                    if (window.parent !== window) window.parent.postMessage({ type: 'aegis-media-state' }, window.location.origin);
+                    return;
+                }
+                if (window.parent !== window) {
+                    window.parent.postMessage({
+                        type: 'aegis-media-state',
+                        title: state.currentTrack.title,
+                        artist: state.currentTrack.artist || '',
+                        playing: !!state.isPlaying
+                    }, window.location.origin);
+                }
+            } catch (e) { /* ignore */ }
+        };
+        send();
+        window.addEventListener('message', (e) => {
+            if (e.origin !== window.location.origin) return;
+            if (e.data && e.data.type === 'aegis-media-toggle' && typeof self.togglePlayPause === 'function') {
+                self.togglePlayPause();
+                send();
+            }
+        });
+        if (window.musicStore && musicStore.subscribe) musicStore.subscribe(send);
     }
     
     connectToStore() {

@@ -374,6 +374,72 @@
 
         if (!list || !contentInput || !titleInput) return;
 
+        if (!content.querySelector('#aegis-ask-bar')) {
+            var ask = document.createElement('div');
+            ask.id = 'aegis-ask-bar';
+            ask.className = 'aegis-ask-bar';
+            ask.innerHTML = '<span class="aegis-intel-kicker">Ask Aegis</span>' +
+                '<button type="button" class="aegis-btn" data-ask="summarize">Summarize</button>' +
+                '<button type="button" class="aegis-btn" data-ask="rewrite">Rewrite</button>' +
+                '<button type="button" class="aegis-btn" data-ask="tasks">Extract tasks</button>' +
+                '<button type="button" class="aegis-btn" data-ask="email">Draft email</button>' +
+                '<button type="button" class="aegis-btn" data-ask="task">Create task</button>';
+            contentInput.parentNode.insertBefore(ask, contentInput);
+            ask.addEventListener('click', function (e) {
+                var btn = e.target.closest('[data-ask]');
+                if (!btn) return;
+                var mode = btn.getAttribute('data-ask');
+                var selected = (contentInput.value || '').slice(contentInput.selectionStart, contentInput.selectionEnd);
+                var text = selected || contentInput.value || titleInput.value || '';
+                if (!text.trim()) return;
+                if (mode === 'task' && typeof AegisActions !== 'undefined') {
+                    AegisActions.run('tasks.create', { text: text.slice(0, 200), description: text.slice(0, 1000) });
+                    return;
+                }
+                if (typeof AegisAsk === 'undefined') return;
+                AegisAsk.transform(mode === 'email' ? 'email' : (mode === 'tasks' ? 'tasks' : mode), text).then(function (res) {
+                    if (!res.ok) {
+                        AegisAsk.preview('Unavailable', res.error || 'Aegis Intelligence is currently unavailable.');
+                        return;
+                    }
+                    if (mode === 'tasks') {
+                        var parsed = null;
+                        try { parsed = JSON.parse(res.content.match(/\{[\s\S]*\}/)[0]); } catch (err) { parsed = null; }
+                        var tasks = (parsed && parsed.tasks) || [];
+                        var html = tasks.map(function (t, i) {
+                            return '<label><input type="checkbox" checked data-task-title="' + self.escapeHtml(t) + '"> ' + self.escapeHtml(t) + '</label>';
+                        }).join('<br>');
+                        AegisAsk.preview('Extracted tasks — confirm to create', res.content, html + '<p><button type="button" class="aegis-btn aegis-btn-primary" id="aegis-confirm-tasks">Create selected</button></p>');
+                        setTimeout(function () {
+                            var go = document.getElementById('aegis-confirm-tasks');
+                            if (!go) return;
+                            go.addEventListener('click', function () {
+                                document.querySelectorAll('#aegis-intel-results [data-task-title]:checked').forEach(function (cb) {
+                                    AegisActions.run('tasks.create', { text: cb.getAttribute('data-task-title') });
+                                });
+                            });
+                        }, 50);
+                        return;
+                    }
+                    if (mode === 'email') {
+                        var mail = { subject: '', body: res.content };
+                        try { mail = JSON.parse(res.content.match(/\{[\s\S]*\}/)[0]); } catch (err) { /* keep */ }
+                        AegisAsk.preview('Email draft — Mail will not send until you do', (mail.subject || '') + '\n\n' + (mail.body || res.content),
+                            '<button type="button" class="aegis-btn aegis-btn-primary" id="aegis-confirm-mail">Open Mail compose</button>');
+                        setTimeout(function () {
+                            var go = document.getElementById('aegis-confirm-mail');
+                            if (go) go.addEventListener('click', function () {
+                                AegisActions.run('mail.compose', { subject: mail.subject || '', body: mail.body || res.content });
+                            });
+                        }, 50);
+                        return;
+                    }
+                    AegisAsk.preview(mode === 'rewrite' ? 'Rewrite preview' : 'Summary', res.content,
+                        '<p>Source note was not changed.</p>');
+                });
+            });
+        }
+
         function showEditor(show) {
             if (show) {
                 if (editorWrap) editorWrap.style.display = 'flex';

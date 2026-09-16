@@ -25,6 +25,7 @@ class MailApp {
             console.warn('[Mail] MailEngine not loaded (mail-engine.js missing or failed). Mail app will open but engine features disabled.');
             this.engine = null;
             this.setupEventListeners();
+            this.consumeComposeIntent();
             return;
         }
         this.engine = new MailEngine();
@@ -44,6 +45,32 @@ class MailApp {
         
         // Apply theme
         this.applyTheme(localStorage.getItem('aegis_mail_theme') || 'default');
+        this.consumeComposeIntent();
+    }
+
+    consumeComposeIntent() {
+        try {
+            const raw = (typeof storage !== 'undefined' && storage.get)
+                ? storage.get('mail_compose_intent', null)
+                : JSON.parse(localStorage.getItem('aegisdesk_mail_compose_intent') || 'null');
+            if (!raw || !raw.ts) return;
+            if (Date.now() - raw.ts > 120000) return;
+            if (typeof storage !== 'undefined') storage.remove('mail_compose_intent');
+            else localStorage.removeItem('aegisdesk_mail_compose_intent');
+            this.showComposeModal();
+            setTimeout(() => {
+                const to = document.getElementById('compose-to');
+                const subject = document.getElementById('compose-subject');
+                const body = document.getElementById('compose-body');
+                if (to && raw.to) to.value = raw.to;
+                if (subject && raw.subject) subject.value = raw.subject;
+                if (body && raw.body) {
+                    body.innerText = raw.body;
+                    const html = document.getElementById('compose-html-body');
+                    if (html) html.value = raw.body;
+                }
+            }, 80);
+        } catch (e) { /* ignore */ }
     }
 
     getApiBaseUrl() {

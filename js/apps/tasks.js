@@ -431,7 +431,8 @@
         return '<div class="tasks-empty">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg>' +
             '<p>No tasks match this view.</p>' +
-            '<p class="tasks-empty-hint">Try another filter or add a task. You can also ask AI to create tasks.</p></div>';
+            '<p class="tasks-empty-hint">Create a task to get started.</p>' +
+            '<button type="button" class="aegis-btn aegis-btn-primary" id="tasks-empty-create">Create Task</button></div>';
     };
 
     TasksApp.prototype.render = function () {
@@ -525,6 +526,10 @@
             if (e.target && e.target.closest && e.target.closest('#task-add-btn')) {
                 e.preventDefault();
                 addTask();
+            }
+            if (e.target && e.target.closest && e.target.closest('#tasks-empty-create')) {
+                e.preventDefault();
+                if (input) input.focus();
             }
         });
 

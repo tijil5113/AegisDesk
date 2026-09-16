@@ -52,6 +52,15 @@ class HelpApp {
             input.addEventListener('input', paint);
         }
         this.renderSections(win);
+        try {
+            const intent = (typeof storage !== 'undefined' && storage.get) ? storage.get('help_open_intent', null) : null;
+            if (intent && intent.query) {
+                storage.remove('help_open_intent');
+                this.query = intent.query;
+                if (input) input.value = intent.query;
+                this.renderSections(win);
+            }
+        } catch (e) { /* ignore */ }
     }
 
     renderSections(win) {

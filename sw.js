@@ -1,6 +1,6 @@
 // Service Worker for AegisDesk PWA
 // Bump CACHE_VERSION on each production release so old shells are dropped.
-const CACHE_VERSION = 'aegisdesk-v9';
+const CACHE_VERSION = 'aegisdesk-v10';
 const PRECACHE_URLS = [
   '/index.html',
   '/desktop.html',
@@ -15,6 +15,7 @@ const PRECACHE_URLS = [
   '/styles/aegis-design-system.css',
   '/styles/aegis-os-shell.css',
   '/styles/aegis-apps.css',
+  '/styles/aegis-intelligence.css',
   '/styles/aegis-site.css',
   '/styles/main.css',
   '/styles/window.css',
@@ -23,6 +24,9 @@ const PRECACHE_URLS = [
   '/js/core/aegis-app-icons.js',
   '/js/core/aegis-app-kit.js',
   '/js/core/aegis-docs.js',
+  '/js/core/aegis-actions.js',
+  '/js/core/aegis-intelligence.js',
+  '/js/core/aegis-os.js',
   '/js/site/aegis-site.js',
   '/assets/brand/favicon.svg',
   '/assets/brand/aegis-mark.svg',

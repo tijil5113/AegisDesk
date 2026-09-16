@@ -68,7 +68,7 @@ class SystemInsightsApp {
                     </div>
                 </div>
                 <div class="aegis-app-notice" style="margin:12px 16px 0;">
-                    <div><strong>Local session dashboard.</strong> System Intelligence summarizes activity in this browser. It is not the upcoming OS-wide Aegis Intelligence layer, and it is not a second copy of AI Assistant.</div>
+                    <div><strong>Local session dashboard.</strong> System Intelligence summarizes activity in this browser. It is not Aegis Intelligence (the command layer), and it is not a second copy of AI Assistant.</div>
                 </div>
                 
                 <!-- Main Content -->

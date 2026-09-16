@@ -66,6 +66,10 @@
         menu.innerHTML =
             '<button class="aegis-menu-item" role="menuitem" data-aegis-action="open-launcher">Open Applications</button>' +
             '<button class="aegis-menu-item" role="menuitem" data-aegis-action="open-search">Search</button>' +
+            '<button class="aegis-menu-item" role="menuitem" data-aegis-action="open-intel">Aegis Intelligence</button>' +
+            '<button class="aegis-menu-item" role="menuitem" data-aegis-action="open-spaces">Spaces</button>' +
+            '<button class="aegis-menu-item" role="menuitem" data-aegis-action="open-layout">Window layouts</button>' +
+            '<button class="aegis-menu-item" role="menuitem" data-aegis-action="layout-columns">Two-column layout</button>' +
             '<div class="aegis-menu-sep"></div>' +
             '<button class="aegis-menu-item" role="menuitem" data-aegis-action="open-notes">New Note</button>' +
             '<button class="aegis-menu-item" role="menuitem" data-aegis-action="open-tasks">New Task</button>' +
@@ -89,6 +93,14 @@
                 }
             } else if (action === 'open-search' && global.globalSearch) {
                 global.globalSearch.show();
+            } else if (action === 'open-intel' && global.AegisIntelligence) {
+                global.AegisIntelligence.show();
+            } else if (action === 'open-spaces' && global.virtualDesktops && virtualDesktops.showOverview) {
+                virtualDesktops.showOverview();
+            } else if (action === 'open-focus' && global.AegisFocus) {
+                AegisFocus.toggle();
+            } else if (action === 'open-layout' && global.AegisLayouts) {
+                AegisLayouts.showPicker();
             } else if (action === 'open-notes' && global.desktop) {
                 global.desktop.openApp('notes');
             } else if (action === 'open-tasks' && global.desktop) {

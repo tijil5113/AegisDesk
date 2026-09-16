@@ -910,10 +910,23 @@ class NextGenFilesApp {
             e.preventDefault();
             this.createFolder(window);
         }
-        // Ctrl+U: Upload
-        if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
-            e.preventDefault();
-            this.uploadFiles(window);
+        // Space: Quick Look selected file
+        if (e.key === ' ' && !e.metaKey && !e.ctrlKey && this.selectedFiles.size > 0) {
+            const tag = (e.target && e.target.tagName || '').toLowerCase();
+            if (tag !== 'input' && tag !== 'textarea') {
+                e.preventDefault();
+                const path = Array.from(this.selectedFiles)[0];
+                const file = this.previewFile && this.previewFile.path === path ? this.previewFile : { name: path, path: path };
+                if (typeof AegisQuickLook !== 'undefined') {
+                    AegisQuickLook.show({
+                        kind: 'Virtual file',
+                        title: file.name || path,
+                        meta: 'Virtual Files workspace — not the host disk',
+                        body: path,
+                        open: () => this.openFile(file)
+                    }, { fromSpace: true });
+                }
+            }
         }
     }
     
@@ -986,3 +999,4 @@ class NextGenFilesApp {
 // Create instance
 const filesAppV2 = new NextGenFilesApp();
 window.filesAppV2 = filesAppV2;
+window.filesApp = filesAppV2;

@@ -36,16 +36,18 @@
                     <button class="power-overlay-close" aria-label="Close">&times;</button>
                 </div>
                 <div class="shortcuts-grid">
-                    <div class="shortcut-row"><kbd>?</kbd><span>Show this shortcuts panel</span></div>
+                    <div class="shortcut-row"><kbd>Ctrl</kbd>+<kbd>K</kbd><span>Command Palette / Search</span></div>
+                    <div class="shortcut-row"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd><span>Aegis Intelligence</span></div>
                     <div class="shortcut-row"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd><span>Command Palette</span></div>
                     <div class="shortcut-row"><kbd>Ctrl</kbd>+<kbd>Space</kbd><span>Focus search</span></div>
                     <div class="shortcut-row"><kbd>Alt</kbd>+<kbd>Space</kbd><span>Open apps menu</span></div>
+                    <div class="shortcut-row"><kbd>Space</kbd><span>Quick Look when an item is selected</span></div>
+                    <div class="shortcut-row"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd><span>Clipboard History</span></div>
+                    <div class="shortcut-row"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>←/→</kbd><span>Switch Spaces</span></div>
                     <div class="shortcut-row"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd><span>Quick Actions</span></div>
                     <div class="shortcut-row"><kbd>Ctrl</kbd>+<kbd>N</kbd><span>New Task</span></div>
                     <div class="shortcut-row"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd><span>New Note</span></div>
-                    <div class="shortcut-row"><kbd>Ctrl</kbd>+<kbd>K</kbd><span>AI Assistant</span></div>
-                    <div class="shortcut-row"><kbd>Ctrl</kbd>+<kbd>Z</kbd><span>Undo (in supported apps)</span></div>
-                    <div class="shortcut-row"><kbd>Esc</kbd><span>Close modals / blur</span></div>
+                    <div class="shortcut-row"><kbd>Esc</kbd><span>Close menus and overlays</span></div>
                 </div>
             </div>
         `;
@@ -253,9 +255,10 @@
                     shortcutsOverlay.classList.add('visible');
                 }
             }
-            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'KeyP') {
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'P' || e.code === 'KeyP')) {
                 e.preventDefault();
-                palette.open();
+                if (typeof globalSearch !== 'undefined') globalSearch.show();
+                else palette.open();
             }
             if ((e.ctrlKey || e.metaKey) && e.code === 'Space') {
                 const search = document.getElementById('global-search');

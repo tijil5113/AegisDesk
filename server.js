@@ -3,6 +3,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import chatHandler from './api/chat.js';
+import intentHandler from './api/intent.js';
 import newsHandler from './api/news.js';
 import gnewsHandler from './api/gnews.js';
 import musicHandler from './api/music.js';
@@ -74,6 +75,9 @@ app.post('/api/login', corsFor('POST, OPTIONS'), wrap(loginHandler));
 
 app.options('/api/chat', (req, res) => handlePreflight(req, res, 'POST, OPTIONS'));
 app.post('/api/chat', corsFor('POST, OPTIONS'), requireGateIfConfigured, rateLimitChat, wrap(chatHandler));
+
+app.options('/api/intent', (req, res) => handlePreflight(req, res, 'POST, OPTIONS'));
+app.post('/api/intent', corsFor('POST, OPTIONS'), requireGateIfConfigured, rateLimitChat, wrap(intentHandler));
 
 app.options('/api/news', (req, res) => handlePreflight(req, res, 'POST, OPTIONS'));
 app.post('/api/news', corsFor('POST, OPTIONS'), requireGateIfConfigured, wrap(newsHandler));

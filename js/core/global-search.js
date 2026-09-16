@@ -6,12 +6,15 @@ class GlobalSearch {
         this.results = [];
         this.selectedIndex = -1;
         this.initialized = false;
+        this.category = 'all';
         this.searchIndex = {
             apps: [],
             notes: [],
             tasks: [],
-            news: [],
-            commands: []
+            files: [],
+            help: [],
+            commands: [],
+            bookmarks: []
         };
     }
 
@@ -83,7 +86,16 @@ class GlobalSearch {
                     </button>
                 </div>
                 <div class="global-search-results" id="global-search-results" role="listbox">
-                    <div class="aegis-empty global-search-empty"><strong>Search AegisDesk</strong><span>Apps, notes, tasks, mail, and music stay local and instant.</span></div>
+                    <div class="aegis-empty global-search-empty"><strong>Search AegisDesk</strong><span>Apps, commands, notes, tasks, files, and help stay local. Ask Aegis only when you choose it.</span></div>
+                </div>
+                <div class="aegis-search-tabs" role="tablist" aria-label="Search category">
+                    <button type="button" class="aegis-search-tab" role="tab" data-cat="all" aria-selected="true">All</button>
+                    <button type="button" class="aegis-search-tab" role="tab" data-cat="apps">Apps</button>
+                    <button type="button" class="aegis-search-tab" role="tab" data-cat="commands">Commands</button>
+                    <button type="button" class="aegis-search-tab" role="tab" data-cat="notes">Notes</button>
+                    <button type="button" class="aegis-search-tab" role="tab" data-cat="tasks">Tasks</button>
+                    <button type="button" class="aegis-search-tab" role="tab" data-cat="files">Files</button>
+                    <button type="button" class="aegis-search-tab" role="tab" data-cat="help">Help</button>
                 </div>
             </div>
         `;
@@ -123,6 +135,12 @@ class GlobalSearch {
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) {
                 this.hide();
+            }
+            const tab = e.target.closest('[data-cat]');
+            if (tab) {
+                this.category = tab.getAttribute('data-cat');
+                overlay.querySelectorAll('[data-cat]').forEach((t) => t.setAttribute('aria-selected', t === tab ? 'true' : 'false'));
+                this.performSearch(this.searchInput.value);
             }
         });
     }
@@ -187,20 +205,56 @@ class GlobalSearch {
             data: article
         }));
         
-        // Index commands
         this.searchIndex.commands = [
-            { id: 'open-news', title: 'Open News', command: 'open news', type: 'command' },
-            { id: 'open-tasks', title: 'Open Tasks', command: 'open tasks', type: 'command' },
-            { id: 'open-notes', title: 'Open Notes', command: 'open notes', type: 'command' },
-            { id: 'new-note', title: 'New Note', command: 'new note', type: 'command' },
-            { id: 'new-task', title: 'New Task', command: 'new task', type: 'command' },
-            { id: 'open-mail', title: 'Open Mail', command: 'open mail', type: 'command' },
-            { id: 'open-email', title: 'Open Email', command: 'open email', type: 'command' },
-            { id: 'open-music', title: 'Open Music', command: 'open music', type: 'command' },
-            { id: 'open-settings', title: 'Open Settings', command: 'open settings', type: 'command' },
-            { id: 'open-dashboard', title: 'Open Dashboard', command: 'open dashboard', type: 'command' },
-            { id: 'open-insights', title: 'Open Insights', command: 'open insights', type: 'command' }
+            { id: 'open-mail', title: 'Open Mail', command: 'open mail', type: 'command', category: 'Open' },
+            { id: 'open-music', title: 'Open Music', command: 'open music', type: 'command', category: 'Open' },
+            { id: 'open-notes', title: 'Open Notes', command: 'open notes', type: 'command', category: 'Open' },
+            { id: 'open-tasks', title: 'Open Tasks', command: 'open tasks', type: 'command', category: 'Open' },
+            { id: 'new-note', title: 'New Note', command: 'new note', type: 'command', category: 'Create' },
+            { id: 'new-task', title: 'New Task', command: 'new task', type: 'command', category: 'Create' },
+            { id: 'open-settings', title: 'Open Settings', command: 'open settings', type: 'command', category: 'Appearance' },
+            { id: 'dark-theme', title: 'Switch to dark theme', command: 'dark theme', type: 'command', category: 'Appearance' },
+            { id: 'light-theme', title: 'Switch to light theme', command: 'light theme', type: 'command', category: 'Appearance' },
+            { id: 'focus-on', title: 'Enter Focus Mode', command: 'focus mode', type: 'command', category: 'Workspace' },
+            { id: 'layouts', title: 'Two column layout', command: 'two columns', type: 'command', category: 'Window' },
+            { id: 'help-keys', title: 'Keyboard shortcuts', command: 'help keyboard', type: 'command', category: 'Help' },
+            { id: 'clipboard', title: 'Clipboard History', command: 'clipboard', type: 'command', category: 'Open' },
+            { id: 'activity', title: 'Activity Center', command: 'activity', type: 'command', category: 'Open' },
+            { id: 'intel', title: 'Aegis Intelligence', command: 'aegis intelligence', type: 'command', category: 'Open' }
         ];
+        if (typeof AegisActions !== 'undefined') {
+            AegisActions.catalog().forEach((a) => {
+                this.searchIndex.commands.push({
+                    id: a.id,
+                    title: a.title,
+                    command: a.title.toLowerCase(),
+                    type: 'command',
+                    category: a.category,
+                    actionId: a.id
+                });
+            });
+        }
+        if (typeof AEGIS_DOCS !== 'undefined') {
+            this.searchIndex.help = AEGIS_DOCS.map((s) => ({
+                id: s.id,
+                title: s.title,
+                content: (s.body || '').replace(/<[^>]+>/g, ' '),
+                type: 'help',
+                data: s
+            }));
+        }
+        this.searchIndex.files = [];
+        if (typeof vfs !== 'undefined' && vfs.index) {
+            try {
+                const files = vfs.index || [];
+                this.searchIndex.files = (Array.isArray(files) ? files : []).slice(0, 200).map((f) => ({
+                    id: f.path || f.id,
+                    title: f.name || f.path || 'File',
+                    type: 'file',
+                    data: f
+                }));
+            } catch (e) { /* ignore */ }
+        }
     }
 
     performSearch(query) {
@@ -214,8 +268,10 @@ class GlobalSearch {
         try {
             const lowerQuery = query.toLowerCase().trim();
             this.results = [];
-        
-        // Search apps
+            const cat = this.category || 'all';
+            const allow = (type) => cat === 'all' || cat === type || (cat === 'commands' && type === 'command');
+
+        if (allow('app') || cat === 'apps') {
         this.searchIndex.apps.forEach(app => {
             if (app.title.toLowerCase().includes(lowerQuery) || 
                 app.id.toLowerCase().includes(lowerQuery) ||
@@ -224,39 +280,57 @@ class GlobalSearch {
                 this.results.push(app);
             }
         });
+        }
         
-        // Search notes
+        if (allow('note') || cat === 'notes') {
         this.searchIndex.notes.forEach(note => {
             if (note.title.toLowerCase().includes(lowerQuery) ||
                 note.content.toLowerCase().includes(lowerQuery)) {
                 this.results.push(note);
             }
         });
+        }
         
-        // Search tasks
+        if (allow('task') || cat === 'tasks') {
         this.searchIndex.tasks.forEach(task => {
             if (task.title.toLowerCase().includes(lowerQuery)) {
                 this.results.push(task);
             }
         });
+        }
+
+        if (allow('file') || cat === 'files') {
+            (this.searchIndex.files || []).forEach(file => {
+                if ((file.title || '').toLowerCase().includes(lowerQuery)) this.results.push(file);
+            });
+        }
+
+        if (allow('help') || cat === 'help') {
+            (this.searchIndex.help || []).forEach(doc => {
+                if ((doc.title || '').toLowerCase().includes(lowerQuery) || (doc.content || '').toLowerCase().includes(lowerQuery)) {
+                    this.results.push(doc);
+                }
+            });
+        }
         
-        // Search news
-        this.searchIndex.news.forEach(article => {
-            if (article.title.toLowerCase().includes(lowerQuery) ||
-                (article.description && article.description.toLowerCase().includes(lowerQuery))) {
-                this.results.push(article);
-            }
-        });
-        
-        // Search commands
+        if (allow('command') || cat === 'commands') {
         this.searchIndex.commands.forEach(cmd => {
             if (cmd.title.toLowerCase().includes(lowerQuery) ||
                 cmd.command.toLowerCase().includes(lowerQuery)) {
                 this.results.push(cmd);
             }
         });
+        }
+
+        if (cat === 'all' && lowerQuery.length > 2) {
+            this.results.push({
+                type: 'ask',
+                title: 'Ask Aegis: ' + query,
+                description: 'AI-assisted interpretation — sends this query only, not your local library.',
+                query
+            });
+        }
         
-        // Group results by type
         this.results = this.groupResultsByType(this.results);
         this.selectedIndex = this.selectableResults().length ? 0 : -1;
         this.renderResults();
@@ -286,14 +360,17 @@ class GlobalSearch {
             apps: [],
             notes: [],
             tasks: [],
-            news: [],
-            commands: []
+            files: [],
+            help: [],
+            commands: [],
+            ask: []
         };
         
         results.forEach(result => {
-            if (grouped[result.type + 's']) {
-                grouped[result.type + 's'].push(result);
-            }
+            if (result.type === 'ask') grouped.ask.push(result);
+            else if (grouped[result.type + 's']) grouped[result.type + 's'].push(result);
+            else if (result.type === 'help') grouped.help.push(result);
+            else if (result.type === 'file') grouped.files.push(result);
         });
         
         // Flatten with type headers
@@ -313,8 +390,10 @@ class GlobalSearch {
             apps: 'Apps',
             notes: 'Notes',
             tasks: 'Tasks',
-            news: 'Saved News',
-            commands: 'Commands'
+            files: 'Files',
+            help: 'Help',
+            commands: 'Commands',
+            ask: 'Ask Aegis'
         };
         return titles[type] || type;
     }
@@ -367,8 +446,10 @@ class GlobalSearch {
             app: '📱',
             note: '📝',
             task: '✓',
-            news: '📰',
-            command: '⚡'
+            file: '📄',
+            help: '❓',
+            command: '⚡',
+            ask: '✦'
         };
         return icons[result.type] || '📄';
     }
@@ -438,14 +519,21 @@ class GlobalSearch {
                 }
                 break;
                 
-            case 'news':
-                if (typeof window !== 'undefined') {
-                    window.open(result.data.url || '#', '_blank');
-                }
+            case 'help':
+                if (typeof AegisActions !== 'undefined') AegisActions.run('help.open', { query: result.id || result.title });
                 break;
-                
+            case 'file':
+                if (typeof AegisActions !== 'undefined') AegisActions.run('files.open', { path: result.data && result.data.path });
+                break;
+            case 'ask':
+                if (typeof AegisIntelligence !== 'undefined') AegisIntelligence.show(result.query);
+                break;
             case 'command':
-                this.executeCommand(result.command);
+                if (result.actionId && typeof AegisActions !== 'undefined') {
+                    AegisActions.run(result.actionId, {});
+                } else {
+                    this.executeCommand(result.command);
+                }
                 break;
         }
         
@@ -491,8 +579,20 @@ class GlobalSearch {
             if (typeof settingsApp !== 'undefined') settingsApp.open();
         } else if (cmd.includes('open dashboard')) {
             if (typeof window !== 'undefined') window.open('dashboard.html', '_blank');
-        } else if (cmd.includes('open insights')) {
-            if (typeof window !== 'undefined') window.open('insights.html', '_blank');
+        } else if (cmd.includes('dark theme')) {
+            if (typeof AegisActions !== 'undefined') AegisActions.run('settings.setTheme', { theme: 'dark' });
+        } else if (cmd.includes('light theme')) {
+            if (typeof AegisActions !== 'undefined') AegisActions.run('settings.setTheme', { theme: 'light' });
+        } else if (cmd.includes('focus')) {
+            if (typeof AegisActions !== 'undefined') AegisActions.run('focus.enter', { minutes: 25 });
+        } else if (cmd.includes('two columns')) {
+            if (typeof AegisActions !== 'undefined') AegisActions.run('layout.apply', { layout: 'columns' });
+        } else if (cmd.includes('clipboard')) {
+            if (typeof AegisActions !== 'undefined') AegisActions.run('clipboard.show', {});
+        } else if (cmd.includes('activity')) {
+            if (typeof AegisActions !== 'undefined') AegisActions.run('activity.show', {});
+        } else if (cmd.includes('aegis intelligence') || cmd.includes('help keyboard')) {
+            if (typeof AegisActions !== 'undefined') AegisActions.run(cmd.includes('help') ? 'help.open' : 'intelligence.open', { query: 'keyboard' });
         }
     }
 

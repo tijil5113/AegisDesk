@@ -11,6 +11,7 @@ class CSSLoader {
             'styles/performance-optimized.css',
             'styles/aegis-os-shell.css',
             'styles/aegis-apps.css',
+            'styles/aegis-intelligence.css',
             'styles/boot-sequence.css'
         ];
     }

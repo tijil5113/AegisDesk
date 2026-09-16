@@ -121,7 +121,7 @@ class NotificationCenter {
             return notification.id;
         }
         
-        if (this.focusMode && notification.priority === 'low') {
+        if (this.focusMode && notification.priority !== 'critical' && notification.type !== 'error' && notification.type !== 'critical') {
             this.addToHistory(notification);
             return notification.id;
         }

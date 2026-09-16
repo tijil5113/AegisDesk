@@ -2,60 +2,51 @@
 class ClipboardManager {
     constructor() {
         this.history = [];
-        this.maxHistory = 50;
+        this.maxHistory = 30;
         this.currentClipboard = '';
         this.init();
     }
 
     async init() {
-        // Load history from storage
         const saved = storage.get('clipboardHistory', []);
-        this.history = saved.slice(0, this.maxHistory);
-
-        // Monitor clipboard changes
-        this.setupClipboardMonitoring();
-
-        // Setup keyboard shortcuts
+        this.history = Array.isArray(saved) ? saved.slice(0, this.maxHistory) : [];
+        this.maxChars = 2000;
+        this.enabled = storage.get('aegis_os_prefs', { clipboardEnabled: true }).clipboardEnabled !== false;
         this.setupShortcuts();
     }
 
-    async setupClipboardMonitoring() {
-        // Monitor paste events
-        document.addEventListener('paste', async (e) => {
-            try {
-                const text = await navigator.clipboard.readText();
-                if (text && text !== this.currentClipboard) {
-                    this.addToHistory(text);
-                }
-            } catch (err) {
-                // Clipboard API might not be available
-                console.log('Clipboard monitoring not available');
-            }
-        });
+    isEnabled() {
+        if (typeof AegisOS !== 'undefined' && AegisOS.prefs) {
+            return AegisOS.prefs.get().clipboardEnabled !== false;
+        }
+        return this.enabled !== false;
+    }
+
+    captureAegisCopy(text) {
+        if (!this.isEnabled()) return;
+        this.addToHistory(text);
     }
 
     addToHistory(text) {
-        if (!text || text.trim() === '') return;
-
-        // Remove duplicates
-        this.history = this.history.filter(item => item !== text);
-        
-        // Add to beginning
-        this.history.unshift(text);
-        
-        // Limit history
+        if (!this.isEnabled()) return;
+        if (!text || String(text).trim() === '') return;
+        const clipped = String(text).slice(0, this.maxChars);
+        this.history = this.history.filter(item => item !== clipped);
+        this.history.unshift(clipped);
         if (this.history.length > this.maxHistory) {
             this.history = this.history.slice(0, this.maxHistory);
         }
-
-        // Save to storage
         storage.set('clipboardHistory', this.history);
-        this.currentClipboard = text;
-
-        // Dispatch event
-        document.dispatchEvent(new CustomEvent('clipboardchange', { 
-            detail: { text, history: this.history } 
+        this.currentClipboard = clipped;
+        document.dispatchEvent(new CustomEvent('clipboardchange', {
+            detail: { text: clipped, history: this.history }
         }));
+    }
+
+    removeAt(index) {
+        if (index < 0 || index >= this.history.length) return;
+        this.history.splice(index, 1);
+        storage.set('clipboardHistory', this.history);
     }
 
     async copy(text) {
@@ -116,7 +107,10 @@ class ClipboardManager {
     }
 
     showHistory() {
-        // This will be integrated with a UI component
+        if (typeof AegisClipboard !== 'undefined') {
+            AegisClipboard.show();
+            return;
+        }
         if (typeof windowManager !== 'undefined') {
             windowManager.createWindow('clipboard-history', {
                 title: 'Clipboard History',

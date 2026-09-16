@@ -88,7 +88,7 @@
         { id: 'drawing', name: 'Drawing', description: 'Brush, eraser, color, and export on a local canvas.' },
         { id: 'system-monitor', name: 'System Monitor', description: 'Browser runtime metrics such as JS heap and battery. Not host CPU or RAM.' },
         { id: 'settings', name: 'Settings', description: 'Appearance, motion, notifications, and other AegisDesk preferences.' },
-        { id: 'system-intelligence', name: 'System Intelligence', description: 'A local activity dashboard for this session. Distinct from upcoming OS-wide Aegis Intelligence.' },
+        { id: 'system-intelligence', name: 'System Intelligence', description: 'A local activity dashboard for this session. Distinct from Aegis Intelligence commands.' },
         { id: 'user', name: 'User Profile', description: 'Identity and preferences stored for the signed-in AegisDesk session.' },
         { id: 'help', name: 'Help', description: 'Documentation for desktop, windows, search, applications, and shortcuts.' },
         { id: 'weather', name: 'Weather', description: 'Live conditions from Open-Meteo when the network is available.' }

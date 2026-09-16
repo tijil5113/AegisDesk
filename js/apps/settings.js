@@ -13,6 +13,13 @@ class SettingsApp {
         // We don't set a default key for security reasons
     }
 
+    prefOn(key) {
+        if (typeof AegisOS !== 'undefined' && AegisOS.prefs) {
+            return AegisOS.prefs.get()[key] !== false;
+        }
+        return true;
+    }
+
     open() {
         const content = this.render();
         const window = windowManager.createWindow(this.windowId, {
@@ -172,7 +179,7 @@ class SettingsApp {
                                 Open Desktop Switcher
                             </button>
                             <small style="color: var(--text-muted); font-size: 11px; margin-top: 4px; display: block;">
-                                Use Ctrl+Alt+Left/Right to switch desktops
+                                Use Ctrl+Alt+Left/Right to switch Spaces
                             </small>
                         </div>
                     </div>
@@ -200,8 +207,36 @@ class SettingsApp {
                                 Open Privacy Panel
                             </button>
                             <small style="color: var(--text-muted); font-size: 11px; margin-top: 4px; display: block;">
-                                🔒 All data is stored locally on your device. Nothing is sent to external servers.
+                                Local notes, tasks, and preferences stay in this browser. Mail, Music, News, and Aegis Intelligence use server providers when you invoke them. Clipboard history is only text copied through AegisDesk.
                             </small>
+                        </div>
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-item-label" style="flex: 1;">
+                            <div class="settings-item-title">Session restore</div>
+                            <div class="settings-item-desc">Reopen apps and window positions after reload. Geometry is clamped to the viewport. Corrupt data is ignored.</div>
+                            <button type="button" class="settings-toggle ${this.prefOn('sessionRestore') ? 'active' : ''}" data-os-pref="sessionRestore" aria-pressed="${this.prefOn('sessionRestore')}">Session restore</button>
+                        </div>
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-item-label" style="flex: 1;">
+                            <div class="settings-item-title">Clipboard history</div>
+                            <div class="settings-item-desc">Store text copied through AegisDesk. This is not your computer clipboard.</div>
+                            <button type="button" class="settings-toggle ${this.prefOn('clipboardEnabled') ? 'active' : ''}" data-os-pref="clipboardEnabled" aria-pressed="${this.prefOn('clipboardEnabled')}">Clipboard history</button>
+                        </div>
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-item-label" style="flex: 1;">
+                            <div class="settings-item-title">Activity history</div>
+                            <div class="settings-item-desc">Keep a bounded log of recent apps and actions. Secrets are not recorded.</div>
+                            <button type="button" class="settings-toggle ${this.prefOn('activityEnabled') ? 'active' : ''}" data-os-pref="activityEnabled" aria-pressed="${this.prefOn('activityEnabled')}">Activity history</button>
+                        </div>
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-item-label" style="flex: 1;">
+                            <div class="settings-item-title">AI-assisted interpretation</div>
+                            <div class="settings-item-desc">When on, Aegis Intelligence may send a request plus the action catalog to the configured server AI. Local commands still work when this is off.</div>
+                            <button type="button" class="settings-toggle ${this.prefOn('aiEnabled') ? 'active' : ''}" data-os-pref="aiEnabled" aria-pressed="${this.prefOn('aiEnabled')}">AI interpretation</button>
                         </div>
                     </div>
                 </div>
@@ -361,6 +396,20 @@ class SettingsApp {
             }
         });
 
+        content.querySelectorAll('[data-os-pref]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const key = btn.getAttribute('data-os-pref');
+                const next = !btn.classList.contains('active');
+                btn.classList.toggle('active', next);
+                btn.setAttribute('aria-pressed', next ? 'true' : 'false');
+                if (typeof AegisOS !== 'undefined' && AegisOS.prefs) {
+                    const patch = {};
+                    patch[key] = next;
+                    AegisOS.prefs.set(patch);
+                }
+            });
+        });
+
         // Language selector
         const languageSelect = content.querySelector('#language-select');
         if (languageSelect && typeof i18n !== 'undefined') {
@@ -469,7 +518,7 @@ class SettingsApp {
             <div style="margin-bottom: 1rem;">
                 <strong>What the OS knows about you:</strong>
                 <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.5rem;">
-                    All data is stored locally on your device. Nothing is sent to external servers.
+                    All notes, tasks, and similar workspace data are stored in this browser. Mail send, Music search, News, and Aegis Intelligence use server providers only when you invoke those features. Clipboard history is AegisDesk copies, not the full OS clipboard.
                 </p>
             </div>
             <div style="margin-bottom: 1rem;">

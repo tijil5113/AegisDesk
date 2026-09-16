@@ -1,0 +1,402 @@
+/* Aegis Intelligence + Spec 3 OS surfaces */
+
+.aegis-intel-overlay,
+.aegis-quicklook {
+    position: fixed;
+    inset: 0;
+    z-index: 11000;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 8vh 16px 24px;
+    background: var(--aegis-bg-overlay, rgba(2, 6, 23, 0.62));
+    backdrop-filter: var(--aegis-blur-md);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease;
+}
+
+.aegis-intel-overlay.visible,
+.aegis-quicklook.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.aegis-intel-panel,
+.aegis-quicklook-panel {
+    width: min(640px, 100%);
+    max-height: min(78vh, 720px);
+    overflow: auto;
+    background: var(--aegis-bg-elevated, rgba(30, 41, 59, 0.92));
+    border: 1px solid var(--aegis-border-default);
+    border-radius: var(--aegis-radius-dialog);
+    box-shadow: var(--aegis-elevation-dialog);
+    color: var(--aegis-text-primary);
+    transform: translateY(-12px);
+    transition: transform 200ms ease;
+}
+
+.aegis-intel-overlay.visible .aegis-intel-panel,
+.aegis-quicklook.visible .aegis-quicklook-panel {
+    transform: none;
+}
+
+.aegis-intel-header,
+.aegis-quicklook-panel header,
+.aegis-side-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 18px 20px 8px;
+}
+
+.aegis-intel-kicker {
+    margin: 0;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--aegis-text-muted);
+}
+
+.aegis-intel-header h2,
+.aegis-quicklook-panel h2,
+.aegis-side-header h2 {
+    margin: 4px 0 0;
+    font-size: 20px;
+    font-weight: 650;
+}
+
+.aegis-intel-form {
+    display: flex;
+    gap: 8px;
+    padding: 8px 20px 4px;
+}
+
+.aegis-intel-input,
+.global-search-input {
+    flex: 1;
+    min-width: 0;
+    background: var(--aegis-bg-surface);
+    border: 1px solid var(--aegis-border-default);
+    border-radius: var(--aegis-radius-input);
+    color: var(--aegis-text-primary);
+    padding: 12px 14px;
+    font: inherit;
+}
+
+.aegis-intel-input:focus,
+.global-search-input:focus {
+    outline: none;
+    box-shadow: var(--aegis-shadow-focus);
+    border-color: var(--aegis-accent);
+}
+
+.aegis-intel-fineprint,
+.aegis-side-note {
+    margin: 0;
+    padding: 4px 20px 12px;
+    color: var(--aegis-text-muted);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.aegis-intel-results,
+.aegis-quicklook-body,
+.aegis-side-body {
+    padding: 0 20px 20px;
+}
+
+.aegis-intel-status {
+    padding: 14px;
+    border-radius: var(--aegis-radius-card);
+    background: var(--aegis-accent-soft);
+    border: 1px solid var(--aegis-border-subtle);
+}
+
+.aegis-intel-status.is-error {
+    background: rgba(239, 68, 68, 0.12);
+}
+
+.aegis-intel-status strong,
+.aegis-intel-status span {
+    display: block;
+}
+
+.aegis-intel-suggestions,
+.aegis-search-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px 0 12px;
+}
+
+.aegis-intel-chip,
+.aegis-search-tab {
+    border: 1px solid var(--aegis-border-default);
+    background: transparent;
+    color: var(--aegis-text-secondary);
+    border-radius: var(--aegis-radius-pill);
+    padding: 6px 12px;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.aegis-search-tab[aria-selected="true"],
+.aegis-intel-chip:hover {
+    background: var(--aegis-accent-soft);
+    color: var(--aegis-text-primary);
+    border-color: var(--aegis-accent);
+}
+
+.aegis-intel-history,
+.aegis-activity-row,
+.aegis-clip-row {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--aegis-bg-surface);
+    border: 1px solid var(--aegis-border-subtle);
+    border-radius: var(--aegis-radius-card);
+    padding: 12px;
+    margin: 8px 0;
+    color: inherit;
+    cursor: pointer;
+}
+
+.aegis-intel-history strong,
+.aegis-activity-row strong {
+    display: block;
+}
+
+.aegis-intel-history span,
+.aegis-activity-row span {
+    color: var(--aegis-text-muted);
+    font-size: 12px;
+}
+
+.aegis-intel-preview pre,
+.aegis-quicklook-body pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: var(--aegis-bg-base);
+    border-radius: var(--aegis-radius-card);
+    padding: 12px;
+    max-height: 320px;
+    overflow: auto;
+}
+
+.aegis-quicklook-body img {
+    max-width: 100%;
+    border-radius: var(--aegis-radius-card);
+}
+
+.aegis-quicklook-panel footer {
+    padding: 0 20px 18px;
+}
+
+.aegis-side-panel {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    bottom: 68px;
+    width: min(380px, calc(100vw - 24px));
+    z-index: 9800;
+    background: var(--aegis-bg-elevated);
+    border: 1px solid var(--aegis-border-default);
+    border-radius: var(--aegis-radius-panel);
+    box-shadow: var(--aegis-elevation-large);
+    color: var(--aegis-text-primary);
+    transform: translateX(110%);
+    transition: transform 220ms ease;
+    overflow: auto;
+}
+
+.aegis-side-panel.visible {
+    transform: none;
+}
+
+.aegis-activity-row.is-failed {
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+.aegis-clip-row p {
+    margin: 0 0 8px;
+    font-size: 13px;
+}
+
+.aegis-spaces-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10500;
+    background: var(--aegis-bg-overlay);
+    backdrop-filter: var(--aegis-blur-md);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.aegis-spaces-overlay.visible {
+    display: flex;
+}
+
+.aegis-spaces-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    width: min(880px, 100%);
+}
+
+.aegis-space-card {
+    min-height: 140px;
+    border-radius: var(--aegis-radius-card);
+    border: 1px solid var(--aegis-border-default);
+    background: var(--aegis-bg-elevated);
+    color: inherit;
+    padding: 16px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.aegis-space-card.is-active {
+    border-color: var(--aegis-accent);
+    box-shadow: var(--aegis-shadow-focus);
+}
+
+.aegis-layout-picker {
+    display: flex;
+    gap: 8px;
+    padding: 12px 20px 16px;
+}
+
+.aegis-layout-picker button {
+    flex: 1;
+    min-height: 64px;
+    border-radius: var(--aegis-radius-card);
+    border: 1px solid var(--aegis-border-default);
+    background: var(--aegis-bg-surface);
+    color: inherit;
+    cursor: pointer;
+}
+
+.aegis-media-tray {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 6px;
+    max-width: 180px;
+}
+
+.aegis-media-tray button {
+    background: var(--aegis-accent-soft);
+    border: 0;
+    color: var(--aegis-text-primary);
+    border-radius: var(--aegis-radius-pill);
+    padding: 4px 8px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.aegis-connection {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--aegis-success);
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.aegis-connection.is-offline {
+    background: var(--aegis-warning);
+}
+
+html.aegis-focus .parallax-layer,
+html.aegis-focus .quote-widget,
+html.aegis-focus .desktop-widgets {
+    opacity: 0.25;
+}
+
+html.aegis-focus .taskbar {
+    box-shadow: inset 0 0 0 1px var(--aegis-accent-soft);
+}
+
+.aegis-tray-btn.is-active {
+    box-shadow: var(--aegis-shadow-focus);
+}
+
+.aegis-drop-ready {
+    outline: 2px dashed var(--aegis-accent);
+    outline-offset: -4px;
+}
+
+.aegis-drop-reject {
+    outline: 2px solid var(--aegis-danger);
+}
+
+.global-search-overlay {
+    z-index: 10900;
+}
+
+.global-search-panel {
+    max-width: 680px;
+    background: var(--aegis-bg-elevated);
+    border-color: var(--aegis-border-default);
+    border-radius: var(--aegis-radius-dialog);
+}
+
+.global-search-result.selected {
+    background: var(--aegis-accent-soft);
+}
+
+.aegis-ask-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 0;
+}
+
+.visually-hidden {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+@media (max-width: 768px) {
+    .aegis-intel-panel,
+    .aegis-quicklook-panel {
+        max-height: 86vh;
+    }
+    .aegis-side-panel {
+        left: 8px;
+        right: 8px;
+        width: auto;
+    }
+    .aegis-media-tray {
+        display: none;
+    }
+}
+
+.aegis-reduced-motion .aegis-intel-overlay,
+.aegis-reduced-motion .aegis-side-panel,
+.aegis-reduced-motion .aegis-intel-panel,
+html.aegis-reduced-motion .aegis-intel-overlay,
+html.aegis-reduced-motion .aegis-side-panel,
+html.aegis-reduced-motion .aegis-intel-panel {
+    transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aegis-intel-overlay,
+    .aegis-side-panel,
+    .aegis-intel-panel,
+    .aegis-quicklook {
+        transition: none;
+    }
+}

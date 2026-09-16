@@ -10,19 +10,26 @@ class VirtualDesktops {
     init() {
         // Create default desktops
         for (let i = 0; i < this.maxDesktops; i++) {
-            this.desktops.push({
+                this.desktops.push({
                 id: i,
-                name: `Desktop ${i + 1}`,
-                windows: new Map(),
+                name: `Space ${i + 1}`,
+                windows: [],
                 wallpaper: null
             });
         }
 
-        // Load saved state
         const saved = storage.get('virtualDesktops', null);
-        if (saved) {
-            this.desktops = saved.desktops;
-            this.currentDesktop = saved.currentDesktop || 0;
+        if (saved && Array.isArray(saved.desktops)) {
+            this.desktops = saved.desktops.slice(0, this.maxDesktops).map((d, i) => ({
+                id: i,
+                name: (d && d.name) || `Space ${i + 1}`,
+                windows: Array.isArray(d.windows) ? d.windows : (d.windows && typeof d.windows === 'object' ? Object.keys(d.windows) : []),
+                wallpaper: null
+            }));
+            while (this.desktops.length < this.maxDesktops) {
+                this.desktops.push({ id: this.desktops.length, name: `Space ${this.desktops.length + 1}`, windows: [], wallpaper: null });
+            }
+            this.currentDesktop = Math.max(0, Math.min(saved.currentDesktop || 0, this.maxDesktops - 1));
         }
 
         // Setup keyboard shortcuts
@@ -49,42 +56,35 @@ class VirtualDesktops {
     }
 
     hideDesktop(desktopId) {
-        const desktop = this.desktops[desktopId];
-        if (!desktop) return;
-
-        desktop.windows.forEach((windowId) => {
-            const window = document.querySelector(`[data-window-id="${windowId}"]`);
-            if (window) {
-                window.style.display = 'none';
-            }
+        if (typeof windowManager === 'undefined') return;
+        windowManager.windows.forEach((el) => {
+            const space = Number(el.dataset.aegisSpace || 0);
+            if (space === desktopId) el.style.visibility = 'hidden';
         });
     }
 
     showDesktop(desktopId) {
-        const desktop = this.desktops[desktopId];
-        if (!desktop) return;
-
-        desktop.windows.forEach((windowId) => {
-            const window = document.querySelector(`[data-window-id="${windowId}"]`);
-            if (window) {
-                window.style.display = 'block';
-            }
+        if (typeof windowManager === 'undefined') return;
+        windowManager.windows.forEach((el) => {
+            const space = Number(el.dataset.aegisSpace || 0);
+            el.style.visibility = space === desktopId ? 'visible' : 'hidden';
         });
     }
 
     addWindowToDesktop(windowId, desktopId = null) {
         const targetDesktop = desktopId !== null ? desktopId : this.currentDesktop;
         const desktop = this.desktops[targetDesktop];
-        
-        if (desktop && !desktop.windows.has(windowId)) {
-            desktop.windows.set(windowId, windowId);
-            this.saveState();
-        }
+        if (!desktop) return;
+        if (!Array.isArray(desktop.windows)) desktop.windows = [];
+        if (desktop.windows.indexOf(windowId) === -1) desktop.windows.push(windowId);
+        const el = document.querySelector(`[data-window-id="${windowId}"]`);
+        if (el) el.dataset.aegisSpace = String(targetDesktop);
+        this.saveState();
     }
 
     removeWindowFromDesktop(windowId) {
         this.desktops.forEach(desktop => {
-            desktop.windows.delete(windowId);
+            desktop.windows = (desktop.windows || []).filter(id => id !== windowId);
         });
         this.saveState();
     }
@@ -140,21 +140,50 @@ class VirtualDesktops {
 
     saveState() {
         storage.set('virtualDesktops', {
-            desktops: this.desktops,
+            desktops: this.desktops.map((d, i) => ({
+                id: i,
+                name: d.name || `Space ${i + 1}`,
+                windows: Array.isArray(d.windows) ? d.windows : []
+            })),
             currentDesktop: this.currentDesktop
         });
     }
 
-    showDesktopSwitcher() {
-        if (typeof windowManager !== 'undefined') {
-            const content = this.buildSwitcherUI();
-            windowManager.createWindow('desktop-switcher', {
-                title: 'Virtual Desktops',
-                width: 600,
-                height: 400,
-                content
+    showOverview() {
+        let overlay = document.getElementById('aegis-spaces-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'aegis-spaces-overlay';
+            overlay.className = 'aegis-spaces-overlay';
+            overlay.setAttribute('role', 'dialog');
+            overlay.setAttribute('aria-label', 'Spaces overview');
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.classList.remove('visible');
+                const card = e.target.closest('[data-space]');
+                if (card) {
+                    this.switchTo(Number(card.getAttribute('data-space')));
+                    overlay.classList.remove('visible');
+                }
+            });
+            overlay.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') overlay.classList.remove('visible');
             });
         }
+        overlay.innerHTML = `<div class="aegis-spaces-grid">${this.desktops.map((d, i) => {
+            const count = (typeof windowManager !== 'undefined')
+                ? Array.from(windowManager.windows.values()).filter(el => Number(el.dataset.aegisSpace || 0) === i).length
+                : (d.windows || []).length;
+            return `<button type="button" class="aegis-space-card ${i === this.currentDesktop ? 'is-active' : ''}" data-space="${i}">
+                <h3>${d.name || ('Space ' + (i + 1))}</h3>
+                <p>${count} window${count === 1 ? '' : 's'}</p>
+            </button>`;
+        }).join('')}</div>`;
+        overlay.classList.add('visible');
+    }
+
+    showDesktopSwitcher() {
+        this.showOverview();
     }
 
     buildSwitcherUI() {
@@ -172,7 +201,7 @@ class VirtualDesktops {
                  ">
                 <h3 style="margin: 0 0 8px 0;">${desktop.name}</h3>
                 <div style="font-size: 12px; color: var(--text-muted);">
-                    ${desktop.windows.size} windows
+                    ${desktop.windows.length || 0} windows
                 </div>
             </div>
         `).join('');
