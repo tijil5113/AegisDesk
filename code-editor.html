@@ -59,20 +59,25 @@
                     <strong>Aegis Code Studio</strong>
                 </div>
                 <span class="studio-project-name" id="studio-project-name">Untitled project</span>
-                <button type="button" class="studio-icon-btn" id="btn-toggle-explorer" title="Toggle explorer">Files</button>
-                <button type="button" class="studio-icon-btn" id="btn-toggle-agent" title="Toggle Aegis Agent">Agent</button>
             </div>
             <div class="commandbar-center" role="toolbar" aria-label="Project commands">
-                <button type="button" class="studio-btn" id="btn-new" title="New file">New</button>
-                <button type="button" class="studio-btn" id="btn-open" title="Open files">Open</button>
-                <button type="button" class="studio-btn" id="btn-save" title="Save (Ctrl+S)">Save</button>
-                <button type="button" class="studio-btn" id="btn-saveas">Save As</button>
-                <button type="button" class="studio-btn" id="btn-download">Download</button>
+                <button type="button" class="studio-btn ghost" id="btn-toggle-explorer" title="Toggle explorer" aria-pressed="true">Files</button>
+                <button type="button" class="studio-btn ghost" id="btn-toggle-agent" title="Toggle Aegis Agent" aria-pressed="true">Agent</button>
                 <span class="bar-sep"></span>
+                <button type="button" class="studio-btn" id="btn-save" title="Save (Ctrl+S)">Save</button>
                 <button type="button" class="studio-btn primary" id="btn-run" title="Run (Ctrl+Enter)">Run</button>
-                <button type="button" class="studio-btn" id="btn-format">Format</button>
                 <button type="button" class="studio-btn" id="btn-preview" aria-pressed="false">Preview</button>
-                <button type="button" class="studio-btn" id="btn-export">Export ZIP</button>
+                <div class="bar-more">
+                    <button type="button" class="studio-btn" id="btn-more" aria-expanded="false" aria-controls="more-menu">More</button>
+                    <div id="more-menu" class="more-menu" hidden>
+                        <button type="button" id="btn-new">New file</button>
+                        <button type="button" id="btn-open">Open files</button>
+                        <button type="button" id="btn-saveas">Save as</button>
+                        <button type="button" id="btn-download">Download file</button>
+                        <button type="button" id="btn-format">Format</button>
+                        <button type="button" id="btn-export">Export ZIP</button>
+                    </div>
+                </div>
             </div>
             <div class="commandbar-right">
                 <label class="studio-select">
@@ -96,13 +101,13 @@
                 </div>
                 <div class="explorer-pane active" id="explorer-files">
                     <div class="pane-toolbar">
-                        <button type="button" class="studio-icon-btn" id="btn-new-file" title="New file">+</button>
-                        <button type="button" class="studio-icon-btn" id="btn-new-folder" title="New folder">▣</button>
-                        <button type="button" class="studio-icon-btn" id="btn-upload" title="Upload">↑</button>
-                        <button type="button" class="studio-icon-btn" id="btn-import-zip" title="Import ZIP">ZIP</button>
+                        <button type="button" class="studio-btn ghost compact" id="btn-new-file" title="New file">New file</button>
+                        <button type="button" class="studio-btn ghost compact" id="btn-new-folder" title="New folder">Folder</button>
+                        <button type="button" class="studio-btn ghost compact" id="btn-upload" title="Upload">Upload</button>
+                        <button type="button" class="studio-btn ghost compact" id="btn-import-zip" title="Import ZIP">ZIP</button>
                     </div>
-                    <div class="file-tree" id="file-tree" tabindex="0"></div>
-                    <p class="fs-note">Browser workspace only. Not your computer disk.</p>
+                    <div class="file-tree studio-scroll" id="file-tree" tabindex="0"></div>
+                    <p class="fs-note">Browser workspace only — not your computer disk.</p>
                 </div>
                 <div class="explorer-pane" id="explorer-search">
                     <div class="search-box">
@@ -110,14 +115,14 @@
                         <label class="check"><input type="checkbox" id="search-names"> Names only</label>
                         <button type="button" class="studio-btn" id="btn-search">Search</button>
                     </div>
-                    <div id="search-results" class="search-results"></div>
+                    <div id="search-results" class="search-results studio-scroll"></div>
                     <div class="replace-box" id="replace-box">
                         <input id="project-replace" type="text" placeholder="Replace (preview first)">
                         <button type="button" class="studio-btn" id="btn-replace-preview">Preview replace</button>
                     </div>
                 </div>
                 <div class="explorer-pane" id="explorer-changes">
-                    <div id="changes-list" class="changes-list"></div>
+                    <div id="changes-list" class="changes-list studio-scroll"></div>
                     <div class="pane-toolbar wrap">
                         <button type="button" class="studio-btn" id="btn-accept-all" hidden>Accept all</button>
                         <button type="button" class="studio-btn" id="btn-review-changes">Review</button>
@@ -128,7 +133,7 @@
             <div class="resizer col" id="resizer-explorer" role="separator" aria-orientation="vertical" aria-label="Resize explorer"></div>
 
             <main class="studio-main">
-                <div class="editor-tabs" id="editor-tabs" role="tablist" aria-label="Open files"></div>
+                <div class="editor-tabs studio-scroll" id="editor-tabs" role="tablist" aria-label="Open files"></div>
                 <div class="editor-stage" id="editor-stage">
                     <div class="editor-column" id="editor-column">
                         <div id="monaco-container" class="monaco-container" role="region" aria-label="Editor"></div>
@@ -144,18 +149,22 @@
                     <div class="resizer col" id="resizer-preview" role="separator" aria-orientation="vertical" aria-label="Resize preview" hidden></div>
                     <section class="preview-dock" id="preview-dock" hidden>
                         <div class="preview-toolbar">
-                            <strong>Live Preview</strong>
-                            <span class="preview-state" id="preview-state">Stopped</span>
-                            <div class="preview-devices" role="group" aria-label="Preview width">
-                                <button type="button" class="studio-icon-btn active" data-device="desktop" title="Desktop">Desk</button>
-                                <button type="button" class="studio-icon-btn" data-device="tablet" title="Tablet">Tab</button>
-                                <button type="button" class="studio-icon-btn" data-device="mobile" title="Mobile">Mob</button>
+                            <div class="preview-title">
+                                <strong>Live Preview</strong>
+                                <span class="preview-state" id="preview-state">Stopped</span>
                             </div>
-                            <button type="button" class="studio-icon-btn" id="preview-refresh" title="Refresh">↻</button>
-                            <button type="button" class="studio-icon-btn" id="preview-larger" title="Open larger">⤢</button>
-                            <button type="button" class="studio-icon-btn" id="preview-hide" title="Hide preview">✕</button>
+                            <div class="preview-tools">
+                                <div class="preview-devices" role="group" aria-label="Preview width">
+                                    <button type="button" class="studio-icon-btn active" data-device="desktop" title="Desktop">Desktop</button>
+                                    <button type="button" class="studio-icon-btn" data-device="tablet" title="Tablet">Tablet</button>
+                                    <button type="button" class="studio-icon-btn" data-device="mobile" title="Mobile">Mobile</button>
+                                </div>
+                                <button type="button" class="studio-icon-btn" id="preview-refresh" title="Refresh" aria-label="Refresh preview">↻</button>
+                                <button type="button" class="studio-icon-btn" id="preview-larger" title="Open larger" aria-label="Open larger preview">⤢</button>
+                                <button type="button" class="studio-icon-btn" id="preview-hide" title="Hide preview" aria-label="Hide preview">✕</button>
+                            </div>
                         </div>
-                        <div class="preview-frame-wrap" id="preview-frame-wrap">
+                        <div class="preview-frame-wrap studio-scroll" id="preview-frame-wrap">
                             <iframe id="preview-frame" title="Live Preview" sandbox="allow-scripts"></iframe>
                         </div>
                     </section>
@@ -175,13 +184,15 @@
                         <button type="button" class="mode-btn" data-mode="agent">Agent</button>
                     </div>
                 </div>
-                <div class="context-chips" id="context-chips" aria-label="Context Aegis is using"></div>
-                <ol class="agent-plan" id="agent-plan" hidden></ol>
-                <div class="agent-activity" id="agent-activity" hidden></div>
-                <div class="agent-thread" id="agent-thread"></div>
+                <div class="agent-body studio-scroll" id="agent-body">
+                    <div class="context-chips" id="context-chips" aria-label="Context Aegis is using"></div>
+                    <div class="agent-plan" id="agent-plan" hidden></div>
+                    <div class="agent-activity" id="agent-activity" hidden></div>
+                    <div class="agent-thread" id="agent-thread"></div>
+                </div>
                 <div class="agent-composer">
-                    <p class="composer-hint">/ commands · @ files · Shift+Enter newline</p>
-                    <textarea id="agent-input" rows="3" placeholder="Describe the change you want in the project…"></textarea>
+                    <label class="composer-hint" for="agent-input">Describe an outcome. Use / for commands and @ to attach a file. Shift+Enter for a new line.</label>
+                    <textarea id="agent-input" rows="3" placeholder="Make the heading blue, add dark mode, or fix the preview…"></textarea>
                     <div class="composer-row">
                         <button type="button" class="studio-btn danger" id="btn-stop" hidden>Stop</button>
                         <button type="button" class="studio-btn primary" id="btn-send">Send</button>
@@ -200,19 +211,19 @@
                 <button type="button" class="panel-tab" data-bottom="problems">Problems</button>
                 <button type="button" class="panel-tab" data-bottom="tests">Tests</button>
                 <button type="button" class="panel-tab" data-bottom="agentlog">Agent log</button>
-                <button type="button" class="studio-icon-btn" id="btn-toggle-bottom" title="Collapse panel">▾</button>
+                <button type="button" class="studio-btn ghost compact" id="btn-toggle-bottom" title="Collapse or expand this panel">Collapse</button>
             </div>
-            <div class="bottom-pane active" id="pane-output"><pre id="output-pre"></pre></div>
+            <div class="bottom-pane active studio-scroll" id="pane-output"><pre id="output-pre">Studio output will appear here after you run, save, or ask Aegis.</pre></div>
             <div class="bottom-pane" id="pane-console">
                 <div class="pane-toolbar">
                     <button type="button" class="studio-btn" id="console-clear">Clear</button>
                     <label class="check"><input type="checkbox" id="console-errors"> Errors only</label>
                 </div>
-                <div id="console-list" class="log-list"></div>
+                <div id="console-list" class="log-list studio-scroll"></div>
             </div>
             <div class="bottom-pane" id="pane-terminal">
                 <p class="fs-note">Simulated project terminal. Not a host shell. Commands: help, ls, pwd, clear, run.</p>
-                <div id="terminal-output" class="terminal-output"></div>
+                <div id="terminal-output" class="terminal-output studio-scroll"></div>
                 <div class="terminal-line">
                     <label class="sr-only" for="terminal-input">Terminal command</label>
                     <span aria-hidden="true">project $</span>
@@ -220,16 +231,16 @@
                 </div>
             </div>
             <div class="bottom-pane" id="pane-problems">
-                <div id="problems-list" class="problems-list"></div>
+                <div id="problems-list" class="problems-list studio-scroll"></div>
             </div>
             <div class="bottom-pane" id="pane-tests">
                 <div class="pane-toolbar">
                     <button type="button" class="studio-btn" id="btn-run-tests">Run validation</button>
                 </div>
-                <div id="tests-list" class="tests-list"></div>
+                <div id="tests-list" class="tests-list studio-scroll"></div>
             </div>
             <div class="bottom-pane" id="pane-agentlog">
-                <div id="agent-log" class="log-list"></div>
+                <div id="agent-log" class="log-list studio-scroll"></div>
             </div>
         </section>
 

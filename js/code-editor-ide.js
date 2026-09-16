@@ -60,9 +60,16 @@
         init: function () {
             this.workspace = new WS.ProjectWorkspace();
             this.layout = getStorage(WS.STORAGE_LAYOUT, {
-                explorerW: 240, agentW: 360, previewW: 0.4, previewOn: false,
-                bottomH: 180, bottomCollapsed: false, theme: null, autonomy: 'review', mode: 'ask'
+                explorerW: 252, agentW: 380, previewW: 0.36, previewOn: false,
+                bottomH: 148, bottomCollapsed: true, theme: null, autonomy: 'review', mode: 'ask', uiDensity: 'v2'
             });
+            if (this.layout.uiDensity !== 'v2') {
+                this.layout.bottomCollapsed = true;
+                this.layout.bottomH = Math.min(this.layout.bottomH || 148, 148);
+                this.layout.explorerW = Math.max(this.layout.explorerW || 252, 240);
+                this.layout.agentW = Math.max(this.layout.agentW || 380, 340);
+                this.layout.uiDensity = 'v2';
+            }
             this.loadPersisted();
             this.agent = new Agent(this.makeHost());
             this.agent.setMode(this.layout.mode || 'ask');
@@ -128,6 +135,8 @@
             if (this.outputLines.length > 200) this.outputLines.shift();
             var pre = $('output-pre');
             if (pre) pre.textContent = this.outputLines.join('\n');
+            var pane = $('pane-output');
+            if (pane) pane.scrollTop = pane.scrollHeight;
         },
 
         pushConsole: function (type, args, meta) {
@@ -402,7 +411,8 @@
                 language: 'javascript',
                 theme: this.layout.theme === 'aegis-light' ? 'studio-light' : 'studio-dark',
                 automaticLayout: true,
-                fontSize: 14,
+                fontSize: 13,
+                lineHeight: 22,
                 fontFamily: "'JetBrains Mono','Consolas',monospace",
                 lineNumbers: 'on',
                 minimap: { enabled: false },
@@ -412,12 +422,14 @@
                 tabSize: 2,
                 insertSpaces: true,
                 folding: true,
+                padding: { top: 14, bottom: 28 },
+                scrollbar: { verticalScrollbarSize: 12, horizontalScrollbarSize: 12, alwaysConsumeMouseWheel: false },
                 quickSuggestions: { other: true, comments: false, strings: true },
                 suggestOnTriggerCharacters: true,
                 wordBasedSuggestions: 'matchingDocuments',
                 scrollBeyondLastLine: false,
                 renderLineHighlight: 'line',
-                smoothScrolling: false
+                smoothScrolling: true
             });
             this.editor.onDidChangeCursorPosition(function (e) {
                 var el = $('status-cursor');
@@ -549,10 +561,11 @@
             });
             el.innerHTML = rows.length ? rows.map(function (row) {
                 if (row.type === 'folder') {
-                    return '<div class="tree-folder" data-folder="' + escapeHtml(row.path) + '" style="padding-left:' + (8 + row.depth * 12) + 'px">' + escapeHtml(row.name) + '</div>';
+                    return '<div class="tree-folder" data-folder="' + escapeHtml(row.path) + '" style="padding-left:' + (10 + row.depth * 14) + 'px"><span class="tree-kind">dir</span>' + escapeHtml(row.name) + '</div>';
                 }
                 var active = row.file.id === self.workspace.currentFileId ? ' is-open' : '';
-                return '<div class="tree-item' + active + '" data-id="' + row.file.id + '" style="padding-left:' + (8 + row.depth * 12) + 'px">' + escapeHtml(row.file.name) + '</div>';
+                var ext = (row.file.name.split('.').pop() || 'file').slice(0, 4);
+                return '<div class="tree-item' + active + '" data-id="' + row.file.id + '" style="padding-left:' + (10 + row.depth * 14) + 'px"><span class="tree-kind">' + escapeHtml(ext) + '</span>' + escapeHtml(row.file.name) + '</div>';
             }).join('') : '<div class="fs-note">No files yet. Create one or ask Aegis to build.</div>';
         },
 
@@ -620,7 +633,10 @@
         setPreviewState: function (state) {
             this.previewState = state;
             var el = $('preview-state');
-            if (el) el.textContent = state.charAt(0).toUpperCase() + state.slice(1);
+            if (el) {
+                el.textContent = state.charAt(0).toUpperCase() + state.slice(1);
+                el.setAttribute('data-state', state);
+            }
             var st = $('status-preview');
             if (st) st.textContent = 'Preview ' + state;
         },
@@ -899,6 +915,7 @@
             if (el) {
                 el.textContent = state.replace(/_/g, ' ').toLowerCase();
                 el.classList.toggle('is-live', live);
+                el.setAttribute('data-state', state);
             }
             if (st) st.textContent = 'Agent ' + state.toLowerCase();
             if (stop) stop.hidden = !live;
@@ -919,9 +936,13 @@
             var el = $('agent-plan');
             if (!el) return;
             el.hidden = !plan || !plan.length;
-            el.innerHTML = (plan || []).map(function (s) {
-                return '<li class="' + escapeHtml(s.state) + '">' + escapeHtml(s.title) + ' · ' + escapeHtml(s.state) + '</li>';
-            }).join('');
+            if (!plan || !plan.length) {
+                el.innerHTML = '';
+                return;
+            }
+            el.innerHTML = '<p class="plan-label">Working plan</p><ol>' + plan.map(function (s) {
+                return '<li class="' + escapeHtml(s.state) + '">' + escapeHtml(s.title) + ' <span class="tree-kind">' + escapeHtml(s.state) + '</span></li>';
+            }).join('') + '</ol>';
         },
 
         renderActivity: function (item) {
@@ -942,11 +963,19 @@
         appendMessage: function (text, role) {
             var thread = $('agent-thread');
             if (!thread) return;
+            var clean = String(text || '').trim();
+            if (!clean) return;
+            var last = thread.lastElementChild;
+            if (last && last.getAttribute('data-text') === clean && last.classList.contains(role)) return;
             var div = document.createElement('div');
             div.className = 'agent-msg ' + role;
-            div.innerHTML = this.formatMessage(text);
+            div.setAttribute('data-text', clean);
+            var label = role === 'user' ? 'You' : (role === 'error' ? 'Needs attention' : 'Aegis');
+            div.innerHTML = '<span class="msg-role">' + label + '</span><div class="msg-body">' + this.formatMessage(clean) + '</div>';
             thread.appendChild(div);
-            thread.scrollTop = thread.scrollHeight;
+            var body = $('agent-body');
+            if (body) body.scrollTop = body.scrollHeight;
+            else thread.scrollTop = thread.scrollHeight;
         },
 
         formatMessage: function (raw) {
@@ -1089,6 +1118,8 @@
             card.className = 'action-card';
             card.innerHTML = '<strong>Proposed ' + escapeHtml(checked.id) + '</strong><p>' + escapeHtml(checked.args.path || '') + '</p><button type="button" class="studio-btn primary" data-accept="1">Accept</button> <button type="button" class="studio-btn" data-reject="1">Reject</button>';
             thread.appendChild(card);
+            var body = $('agent-body');
+            if (body) body.scrollTop = body.scrollHeight;
             card.addEventListener('click', function (e) {
                 if (e.target.getAttribute('data-accept')) self.acceptProposal();
                 if (e.target.getAttribute('data-reject')) self.rejectProposal();
@@ -1332,9 +1363,12 @@
             var ws = $('studio-workspace');
             ws.style.setProperty('--explorer-w', (this.layout.explorerW || 240) + 'px');
             ws.style.setProperty('--agent-w', (this.layout.agentW || 360) + 'px');
-            $('studio-bottom').style.setProperty('--bottom-h', (this.layout.bottomH || 180) + 'px');
-            $('studio-bottom').style.height = (this.layout.bottomH || 180) + 'px';
+            $('studio-bottom').style.setProperty('--bottom-h', (this.layout.bottomH || 148) + 'px');
+            if (this.layout.bottomCollapsed) $('studio-bottom').style.height = '';
+            else $('studio-bottom').style.height = (this.layout.bottomH || 148) + 'px';
             root.classList.toggle('is-bottom-collapsed', !!this.layout.bottomCollapsed);
+            var collapseBtn = $('btn-toggle-bottom');
+            if (collapseBtn) collapseBtn.textContent = this.layout.bottomCollapsed ? 'Expand' : 'Collapse';
             this.showPreview(!!this.layout.previewOn);
             this.applyResponsive();
         },
@@ -1657,17 +1691,42 @@
             $('btn-toggle-bottom').onclick = function () {
                 self.layout.bottomCollapsed = !self.layout.bottomCollapsed;
                 $('studio-root').classList.toggle('is-bottom-collapsed', self.layout.bottomCollapsed);
+                $('btn-toggle-bottom').textContent = self.layout.bottomCollapsed ? 'Expand' : 'Collapse';
                 self.persistLayout();
+                if (self.editor) try { self.editor.layout(); } catch (e) {}
             };
             $('btn-toggle-explorer').onclick = function () {
                 document.body.classList.toggle('is-explorer-open');
                 $('studio-workspace').classList.toggle('is-explorer-collapsed');
+                var on = !$('studio-workspace').classList.contains('is-explorer-collapsed') || document.body.classList.contains('is-explorer-open');
+                $('btn-toggle-explorer').setAttribute('aria-pressed', on ? 'true' : 'false');
+                if (self.editor) try { self.editor.layout(); } catch (e) {}
             };
             $('btn-toggle-agent').onclick = function () {
                 document.body.classList.toggle('is-agent-open');
                 $('studio-workspace').classList.toggle('is-agent-collapsed');
-                $('agent-input').focus();
+                var on = !$('studio-workspace').classList.contains('is-agent-collapsed') || document.body.classList.contains('is-agent-open');
+                $('btn-toggle-agent').setAttribute('aria-pressed', on ? 'true' : 'false');
+                if (on) $('agent-input').focus();
+                if (self.editor) try { self.editor.layout(); } catch (e) {}
             };
+            $('btn-more').onclick = function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var menu = $('more-menu');
+                var willOpen = menu.hidden;
+                menu.hidden = !willOpen;
+                $('btn-more').setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+            };
+            document.addEventListener('click', function (e) {
+                if (e.target.closest('#btn-more') || e.target.closest('#more-menu')) return;
+                $('more-menu').hidden = true;
+                $('btn-more').setAttribute('aria-expanded', 'false');
+            });
+            $('more-menu').addEventListener('click', function () {
+                $('more-menu').hidden = true;
+                $('btn-more').setAttribute('aria-expanded', 'false');
+            });
 
             $('file-tree').addEventListener('click', function (e) {
                 var item = e.target.closest('[data-id]');
