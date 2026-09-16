@@ -78,14 +78,16 @@
             try {
                 const currentId = localStorage.getItem(CURRENT_SESSION_KEY);
                 const flagged = localStorage.getItem(AUTH_FLAG) === '1';
-                if (currentId) {
-                    const sessions = JSON.parse(localStorage.getItem(SESSIONS_KEY) || '{}');
-                    if (!sessions[currentId] && !flagged) {
-                        redirectLogin();
-                    }
+                let sessions = {};
+                try { sessions = JSON.parse(localStorage.getItem(SESSIONS_KEY) || '{}'); } catch (e) { sessions = {}; }
+                if (currentId && (sessions[currentId] || flagged)) {
+                    reveal();
                     return;
                 }
-                if (flagged) return;
+                if (flagged) {
+                    reveal();
+                    return;
+                }
                 document.documentElement.style.visibility = 'hidden';
                 fetch('/api/auth/session', { credentials: 'same-origin' }).then(function (res) { return res.json(); }).then(function (data) {
                     if (data && data.authenticated && data.user) {

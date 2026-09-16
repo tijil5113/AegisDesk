@@ -23,7 +23,7 @@
         </div>
     </div>
 
-    <div class="auth-loading" id="auth-loading" role="status" aria-live="polite" aria-hidden="true">
+    <div class="auth-loading is-on" id="auth-loading" role="status" aria-live="polite" aria-hidden="false">
         <p>Checking your session…</p>
     </div>
 
@@ -107,6 +107,16 @@
 
             ui.bindToggle(document.getElementById('toggle-password'), document.getElementById('password'));
             ui.bindToggle(document.getElementById('toggle-gate'), document.getElementById('gate-secret'));
+            if (loading) {
+                loading.classList.add('is-on');
+                loading.setAttribute('aria-hidden', 'false');
+            }
+
+            function hideLoading() {
+                if (!loading) return;
+                loading.classList.remove('is-on');
+                loading.setAttribute('aria-hidden', 'true');
+            }
 
             function generateSessionId() {
                 const bytes = new Uint8Array(6);
@@ -126,7 +136,7 @@
                     const gate = document.getElementById('legacy-gate');
                     if (gate && data && data.accountsConfigured) gate.hidden = true;
                 }
-            });
+            }).finally(hideLoading);
 
             loginForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
@@ -183,8 +193,6 @@
                     ui.setBusy(gateSubmit, false);
                 }
             });
-
-            if (loading) loading.classList.remove('is-on');
         })();
     </script>
 </body>

@@ -23,6 +23,25 @@ export function getDatabaseStatus() {
   };
 }
 
+export function wrapDbError(err) {
+  if (!err) {
+    const safe = new Error('DATABASE_UNAVAILABLE');
+    safe.code = 'DATABASE_UNAVAILABLE';
+    return safe;
+  }
+  if (err.code === '23505' || err.code === 'DATABASE_UNAVAILABLE' || err.code === 'SCHEMA_NOT_READY') {
+    return err;
+  }
+  if (err.code === '42P01') {
+    const safe = new Error('SCHEMA_NOT_READY');
+    safe.code = 'SCHEMA_NOT_READY';
+    return safe;
+  }
+  const safe = new Error('DATABASE_UNAVAILABLE');
+  safe.code = 'DATABASE_UNAVAILABLE';
+  return safe;
+}
+
 export function getPool() {
   if (!isDatabaseConfigured()) return null;
   if (pool) return pool;
@@ -63,13 +82,11 @@ export async function query(text, params = []) {
     lastError = null;
     return result;
   } catch (err) {
-    if (err.code === 'DATABASE_UNAVAILABLE') throw err;
+    const wrapped = wrapDbError(err);
+    if (wrapped.code === 'SCHEMA_NOT_READY' || wrapped.code === '23505') throw wrapped;
     status = 'unavailable';
     lastError = 'query failed';
-    const safe = new Error('DATABASE_UNAVAILABLE');
-    safe.code = 'DATABASE_UNAVAILABLE';
-    safe.cause = err;
-    throw safe;
+    throw wrapped;
   }
 }
 
@@ -97,12 +114,10 @@ export async function withTransaction(fn) {
     return result;
   } catch (err) {
     try { await client.query('ROLLBACK'); } catch (_) { /* ignore */ }
-    if (err && err.code === '23505') throw err;
-    if (err && err.code === 'DATABASE_UNAVAILABLE') throw err;
+    const wrapped = wrapDbError(err);
+    if (wrapped.code === '23505' || wrapped.code === 'SCHEMA_NOT_READY') throw wrapped;
     status = 'unavailable';
-    const safe = new Error('DATABASE_UNAVAILABLE');
-    safe.code = 'DATABASE_UNAVAILABLE';
-    throw safe;
+    throw wrapped;
   } finally {
     if (client) client.release();
   }

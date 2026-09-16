@@ -80,6 +80,10 @@
         </main>
     </div>
 
+    <div class="auth-loading is-on" id="auth-loading" role="status" aria-live="polite" aria-hidden="false">
+        <p>Checking your session…</p>
+    </div>
+
     <script src="js/auth/aegis-auth-ui.js"></script>
     <script>
         (function () {
@@ -87,8 +91,26 @@
             const form = document.getElementById('signup-form');
             const status = document.getElementById('signup-status');
             const submit = document.getElementById('signup-submit');
+            const loading = document.getElementById('auth-loading');
             ui.bindToggle(document.getElementById('toggle-password'), document.getElementById('password'));
             ui.bindToggle(document.getElementById('toggle-confirm'), document.getElementById('confirm-password'));
+
+            if (loading) {
+                loading.classList.add('is-on');
+                loading.setAttribute('aria-hidden', 'false');
+            }
+            function hideLoading() {
+                if (!loading) return;
+                loading.classList.remove('is-on');
+                loading.setAttribute('aria-hidden', 'true');
+            }
+            ui.fetchSession().then((data) => {
+                if (data && data.authenticated && data.user) {
+                    ui.rememberLocalSession(data.user);
+                    ui.setStatus(status, 'You already have a session. Opening AegisDesk…', 'success');
+                    setTimeout(ui.goDesktop, 350);
+                }
+            }).finally(hideLoading);
 
             form.addEventListener('submit', async (event) => {
                 event.preventDefault();

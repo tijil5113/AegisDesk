@@ -23,6 +23,20 @@ import { allowedEmails, getGateSession, isLoginConfigured } from './login.js';
 
 const COOKIE = 'aegis_session';
 
+function authDbFailure(res, err, fallback) {
+  if (err?.code === 'SCHEMA_NOT_READY') {
+    return res.status(503).json({
+      error: 'Account tables are not ready yet. Wait a moment and try again.',
+      code: 'schema_not_ready'
+    });
+  }
+  if (err?.code === 'DATABASE_UNAVAILABLE') {
+    return res.status(503).json({ error: 'Account service is temporarily unavailable.', code: 'database_unavailable' });
+  }
+  console.error(fallback.log, err?.message || err);
+  return res.status(500).json({ error: fallback.error, code: fallback.code });
+}
+
 function cookieOptions() {
   const secure = process.env.NODE_ENV === 'production';
   const maxAge = Math.floor(SESSION_TTL_MS / 1000);
@@ -73,7 +87,7 @@ export async function getAccountSession(req) {
     }
     return session;
   } catch (err) {
-    if (err?.code === 'DATABASE_UNAVAILABLE') return null;
+    if (err?.code === 'DATABASE_UNAVAILABLE' || err?.code === 'SCHEMA_NOT_READY') return null;
     throw err;
   }
 }
@@ -136,11 +150,7 @@ export async function signupHandler(req, res) {
       session: { expiresAt: session.expiresAt }
     });
   } catch (err) {
-    if (err?.code === 'DATABASE_UNAVAILABLE') {
-      return res.status(503).json({ error: 'Account service is temporarily unavailable.', code: 'database_unavailable' });
-    }
-    console.error('[auth/signup]', err?.message || err);
-    return res.status(500).json({ error: 'Could not create the account.', code: 'signup_failed' });
+    return authDbFailure(res, err, { log: '[auth/signup]', error: 'Could not create the account.', code: 'signup_failed' });
   }
 }
 
@@ -179,11 +189,7 @@ export async function accountLoginHandler(req, res) {
       session: { expiresAt: session.expiresAt }
     });
   } catch (err) {
-    if (err?.code === 'DATABASE_UNAVAILABLE') {
-      return res.status(503).json({ error: 'Account service is temporarily unavailable.', code: 'database_unavailable' });
-    }
-    console.error('[auth/login]', err?.message || err);
-    return res.status(500).json({ error: 'Could not sign in.', code: 'login_failed' });
+    return authDbFailure(res, err, { log: '[auth/login]', error: 'Could not sign in.', code: 'login_failed' });
   }
 }
 
@@ -191,7 +197,7 @@ export async function logoutHandler(req, res) {
   const token = parseCookies(req)[COOKIE];
   if (token && accountsAvailable()) {
     try { await revokeSession(token); } catch (err) {
-      if (err?.code !== 'DATABASE_UNAVAILABLE') console.error('[auth/logout]', err?.message || err);
+      if (err?.code !== 'DATABASE_UNAVAILABLE' && err?.code !== 'SCHEMA_NOT_READY') console.error('[auth/logout]', err?.message || err);
     }
   }
   clearSessionCookie(res);
@@ -226,7 +232,7 @@ export async function sessionHandler(req, res) {
       gateConfigured: gate
     });
   } catch (err) {
-    if (err?.code === 'DATABASE_UNAVAILABLE') {
+    if (err?.code === 'DATABASE_UNAVAILABLE' || err?.code === 'SCHEMA_NOT_READY') {
       return res.status(200).json({
         ok: true,
         authenticated: false,
@@ -234,7 +240,7 @@ export async function sessionHandler(req, res) {
         user: null,
         accountsConfigured: configured,
         gateConfigured: gate,
-        database: 'unavailable'
+        database: err.code === 'SCHEMA_NOT_READY' ? 'schema_not_ready' : 'unavailable'
       });
     }
     console.error('[auth/session]', err?.message || err);
@@ -252,7 +258,7 @@ export async function requireAccountOrGate(req, res, next) {
         return next();
       }
     } catch (err) {
-      if (err?.code !== 'DATABASE_UNAVAILABLE') {
+      if (err?.code !== 'DATABASE_UNAVAILABLE' && err?.code !== 'SCHEMA_NOT_READY') {
         console.error('[auth/require]', err?.message || err);
         return res.status(500).json({ error: 'Authentication service error.' });
       }
@@ -279,7 +285,7 @@ export async function requireMailAuth(req, res, next) {
         return next();
       }
     } catch (err) {
-      if (err?.code !== 'DATABASE_UNAVAILABLE') {
+      if (err?.code !== 'DATABASE_UNAVAILABLE' && err?.code !== 'SCHEMA_NOT_READY') {
         return res.status(500).json({ ok: false, code: 'auth_error', error: 'Authentication service error' });
       }
     }

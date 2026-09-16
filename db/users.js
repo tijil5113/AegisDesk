@@ -98,6 +98,9 @@ export async function createUser({ displayName, email, password }) {
     if (err?.code === '23505') {
       return { ok: false, status: 409, error: 'An account with this email already exists.', code: 'email_taken' };
     }
+    if (err?.code === 'SCHEMA_NOT_READY') {
+      return { ok: false, status: 503, error: 'Account tables are not ready yet. Wait a moment and try again.', code: 'schema_not_ready' };
+    }
     if (err?.code === 'DATABASE_UNAVAILABLE') {
       return { ok: false, status: 503, error: 'Account service is temporarily unavailable.', code: 'database_unavailable' };
     }

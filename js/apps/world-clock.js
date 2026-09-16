@@ -139,6 +139,7 @@
         panel.id = 'aegis-world-clock-panel';
         panel.className = 'wc-panel';
         panel.setAttribute('role', 'dialog');
+        panel.setAttribute('aria-modal', 'true');
         panel.setAttribute('aria-label', 'World Clock');
         panel.setAttribute('aria-hidden', 'true');
         panel.innerHTML = '<header class="wc-panel-head"><h2>World Clock</h2>' +
@@ -165,6 +166,14 @@
         panel.classList.add('visible');
         panel.setAttribute('aria-hidden', 'false');
         var self = this;
+        if (this._panelDocClose) {
+            document.removeEventListener('mousedown', this._panelDocClose);
+            this._panelDocClose = null;
+        }
+        if (this._panelKeyClose) {
+            document.removeEventListener('keydown', this._panelKeyClose);
+            this._panelKeyClose = null;
+        }
         if (this.panelUnsub) this.panelUnsub();
         this.panelUnsub = engine.subscribe(function (rows) {
             if (!grid) return;
@@ -173,10 +182,15 @@
         var onDoc = function (e) {
             if (!panel.contains(e.target) && !e.target.closest('#time-display, #date-display, .time-date-container')) {
                 self.hidePanel();
-                document.removeEventListener('mousedown', onDoc);
             }
         };
+        var onKey = function (e) {
+            if (e.key === 'Escape') self.hidePanel();
+        };
         document.addEventListener('mousedown', onDoc);
+        document.addEventListener('keydown', onKey);
+        this._panelDocClose = onDoc;
+        this._panelKeyClose = onKey;
     };
 
     WorldClockApp.prototype.hidePanel = function () {
@@ -185,6 +199,14 @@
             this.panel.setAttribute('aria-hidden', 'true');
         }
         if (this.panelUnsub) { this.panelUnsub(); this.panelUnsub = null; }
+        if (this._panelDocClose) {
+            document.removeEventListener('mousedown', this._panelDocClose);
+            this._panelDocClose = null;
+        }
+        if (this._panelKeyClose) {
+            document.removeEventListener('keydown', this._panelKeyClose);
+            this._panelKeyClose = null;
+        }
     };
 
     WorldClockApp.prototype.togglePanel = function () {

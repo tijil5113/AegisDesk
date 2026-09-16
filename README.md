@@ -37,7 +37,7 @@ Required for accounts: `DATABASE_URL`. Recommended for the access-code gate: `SE
 
 | Command | Purpose |
 | --- | --- |
-| `npm start` | Run Express (`server.js`) |
+| `npm start` | Apply pending SQL migrations (if `DATABASE_URL` is set), then run Express |
 | `npm run migrate` | Apply SQL migrations |
 | `npm run build` | Copy a static `dist/` snapshot |
 | `npm run test:auth` | Validation + Intl checks; live DB tests if `DATABASE_URL` works |
@@ -46,10 +46,11 @@ Required for accounts: `DATABASE_URL`. Recommended for the access-code gate: `SE
 ## Railway
 
 1. Web service from this repo. Start command: `npm start`. Health check: `/health`.
-2. PostgreSQL plugin. Copy `DATABASE_URL` onto the web service.
-3. Run `npm run migrate` once against that database (Railway one-off command or local with the production URL).
-4. Set `SESSION_SECRET`. Optionally `LOGIN_ALLOWED_EMAILS` / `LOGIN_ACCESS_CODE`.
-5. Optional providers: `OPENAI_API_KEY`, `RESEND_API_KEY`, `MAIL_FROM`, `YOUTUBE_API_KEY`, `NEWS_API_KEY`, `GNEWS_API_KEY`.
+2. PostgreSQL plugin. Copy `DATABASE_URL` onto the **web** service (not only the database service).
+3. Set `SESSION_SECRET` and `NODE_ENV=production`. Optionally `LOGIN_ALLOWED_EMAILS` / `LOGIN_ACCESS_CODE`.
+4. Optional providers: `OPENAI_API_KEY`, `RESEND_API_KEY`, `MAIL_FROM`, `YOUTUBE_API_KEY`, `NEWS_API_KEY`, `GNEWS_API_KEY`.
+
+`npm start` applies SQL migrations on boot when `DATABASE_URL` is set. That does not drop tables. If migrations fail, the public website still starts and account routes return a structured error. You can still run `npm run migrate` as a one-off.
 
 Do not put secrets in frontend code. `/health` reports `service` and `database` (`ok` / `unavailable` / `unconfigured`) without connection details.
 

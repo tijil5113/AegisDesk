@@ -1,6 +1,6 @@
 // Service Worker for AegisDesk PWA
 // Bump CACHE_VERSION on each production release so old shells are dropped.
-const CACHE_VERSION = 'aegisdesk-v12';
+const CACHE_VERSION = 'aegisdesk-v13';
 const PRECACHE_URLS = [
   '/index.html',
   '/desktop.html',
@@ -19,9 +19,12 @@ const PRECACHE_URLS = [
   '/styles/aegis-apps.css',
   '/styles/aegis-intelligence.css',
   '/styles/aegis-site.css',
+  '/styles/aegis-auth.css',
+  '/styles/aegis-world-clock.css',
   '/styles/main.css',
   '/styles/window.css',
   '/js/main.js',
+  '/js/auth/aegis-auth-ui.js',
   '/js/core/aegis-shell.js',
   '/js/core/aegis-app-icons.js',
   '/js/core/aegis-app-kit.js',
@@ -29,6 +32,8 @@ const PRECACHE_URLS = [
   '/js/core/aegis-actions.js',
   '/js/core/aegis-intelligence.js',
   '/js/core/aegis-os.js',
+  '/js/core/world-clock-engine.js',
+  '/js/apps/world-clock.js',
   '/js/site/aegis-site.js',
   '/assets/brand/favicon.svg',
   '/assets/brand/aegis-mark.svg',
@@ -49,7 +54,12 @@ function isSensitiveRequest(request) {
   if (isApiRequest(url)) return true;
   if (request.method && request.method !== 'GET') return true;
   if (request.headers && request.headers.get('Authorization')) return true;
-  return /\/api\/(chat|intent|mail|login|news|gnews|music|auth)/.test(url);
+  if (/\/api\/(chat|intent|mail|login|news|gnews|music|auth)/.test(url)) return true;
+  try {
+    const parsed = new URL(url);
+    if (parsed.pathname === '/health') return true;
+  } catch (_) { /* ignore */ }
+  return false;
 }
 
 self.addEventListener('install', (event) => {

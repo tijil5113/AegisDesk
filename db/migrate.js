@@ -2,7 +2,8 @@
 /**
  * Apply versioned SQL migrations in db/migrations/.
  * Usage: node db/migrate.js
- * Never drops production tables.
+ * Also imported by server.js so Railway `npm start` applies schema
+ * without a separate one-off command. Never drops production tables.
  */
 import 'dotenv/config';
 import fs from 'fs';
@@ -13,10 +14,11 @@ import { getPool, isDatabaseConfigured, closePool } from './pool.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MIGRATIONS_DIR = path.join(__dirname, 'migrations');
 
-async function migrate() {
+export async function runMigrations({ keepPool = false } = {}) {
   if (!isDatabaseConfigured()) {
-    console.error('DATABASE_URL is not set. Migrations were not applied.');
-    process.exit(1);
+    const error = new Error('DATABASE_URL is not set. Migrations were not applied.');
+    error.code = 'DATABASE_UNCONFIGURED';
+    throw error;
   }
 
   const pool = getPool();
@@ -55,11 +57,22 @@ async function migrate() {
     console.log('Migrations complete.');
   } finally {
     client.release();
-    await closePool();
+    if (!keepPool) await closePool();
   }
 }
 
-migrate().catch((err) => {
-  console.error('Migration failed:', err?.message || err);
-  process.exit(1);
-});
+function isDirectRun() {
+  try {
+    const invoked = process.argv[1] && path.resolve(process.argv[1]);
+    return invoked === fileURLToPath(import.meta.url);
+  } catch (_) {
+    return false;
+  }
+}
+
+if (isDirectRun()) {
+  runMigrations().catch((err) => {
+    console.error('Migration failed:', err?.message || err);
+    process.exit(1);
+  });
+}

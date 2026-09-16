@@ -21,6 +21,7 @@ import {
 import { applyCors, handlePreflight } from './api/cors.js';
 import { applySecurityHeaders, envReport, rateLimit, requireSameOrigin } from './api/security.js';
 import { pingDatabase, isDatabaseConfigured } from './db/pool.js';
+import { runMigrations } from './db/migrate.js';
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -210,4 +211,18 @@ function tryListen(port) {
     }
   });
 }
-tryListen(PORT);
+
+async function boot() {
+  if (isDatabaseConfigured()) {
+    try {
+      await runMigrations({ keepPool: true });
+      console.log('Database: schema is ready');
+    } catch (err) {
+      console.warn('Database: migrations did not complete. Public site still works; account login/signup may fail until schema is applied.');
+      console.warn(err?.message || err);
+    }
+  }
+  tryListen(PORT);
+}
+
+boot();
