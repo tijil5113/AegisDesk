@@ -1,15 +1,15 @@
 /* AegisDesk Music - Spotify-Style Design */
 
 :root {
-    --music-green: #1db954;
-    --music-green-hover: #1ed760;
-    --music-bg: #121212;
-    --music-bg-secondary: #181818;
-    --music-bg-card: #1a1a1a;
-    --music-text: #ffffff;
-    --music-text-secondary: #b3b3b3;
-    --music-text-muted: #6a6a6a;
-    --music-border: rgba(255, 255, 255, 0.1);
+    --music-green: #3EC6D8;
+    --music-green-hover: #62D4E2;
+    --music-bg: #070B14;
+    --music-bg-secondary: #101826;
+    --music-bg-card: #162030;
+    --music-text: #F4F7FB;
+    --music-text-secondary: #C5D0DE;
+    --music-text-muted: #8B9BB0;
+    --music-border: rgba(148, 163, 184, 0.16);
 }
 
 * {
@@ -18,7 +18,7 @@
 
 .music-app {
     min-height: 100vh;
-    background: linear-gradient(180deg, #1e3264 0%, var(--music-bg) 20%);
+    background: linear-gradient(180deg, #162036 0%, var(--music-bg) 28%);
     color: var(--music-text);
     position: relative;
     padding-bottom: 100px;

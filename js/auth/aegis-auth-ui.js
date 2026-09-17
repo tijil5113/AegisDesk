@@ -68,8 +68,15 @@
     }
 
     function goDesktop() {
+        try { sessionStorage.setItem('aegis_auth_enter', '1'); } catch (_) {}
+        const reduced = document.documentElement.classList.contains('aegis-reduced-motion')
+            || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+        document.body.classList.add('auth-leaving');
         const last = localStorage.getItem(LAST_ROUTE_KEY) || 'desktop.html';
-        window.location.href = last.indexOf('desktop') >= 0 ? last : 'desktop.html';
+        const dest = last.indexOf('desktop') >= 0 ? last : 'desktop.html';
+        setTimeout(function () {
+            window.location.href = dest;
+        }, reduced ? 1 : 220);
     }
 
     window.AegisAuthUI = {

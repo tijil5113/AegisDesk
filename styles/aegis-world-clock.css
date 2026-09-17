@@ -17,7 +17,16 @@
 }
 .wc-card.is-day { background: linear-gradient(180deg, rgba(56, 189, 248, 0.12), rgba(15, 23, 42, 0.72)); }
 .wc-card.is-night { background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.8)); }
-.wc-card-top { display: flex; justify-content: space-between; gap: 8px; }
+.wc-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.wc-analog { width: 36px; height: 36px; color: var(--aegis-text-secondary, #C5D0DE); flex-shrink: 0; }
+.wc-card.is-day .wc-analog { color: #3EC6D8; }
+.wc-card.is-night .wc-analog { color: #7C8CFF; }
+.wc-card {
+    padding: 14px;
+    border-radius: 16px;
+    border: 1px solid var(--aegis-border-default, rgba(148, 163, 184, 0.16));
+    background: color-mix(in srgb, var(--aegis-bg-elevated, #162030) 88%, transparent);
+}
 .wc-card-top span, .wc-meta { color: var(--text-muted, #94a3b8); font-size: 0.78rem; }
 .wc-card-top strong, .wc-card-top div { display: block; }
 .wc-time { font-size: 1.7rem; letter-spacing: -0.04em; margin: 10px 0 6px; font-variant-numeric: tabular-nums; }

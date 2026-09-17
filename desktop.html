@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AegisDesk</title>
     <meta name="description" content="AegisDesk — a next-generation web operating environment.">
-    <meta name="theme-color" content="#020617">
+    <meta name="theme-color" content="#070B14">
     <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="assets/brand/aegis-mark-app.svg">
     <!-- Performance optimizations -->
     <meta http-equiv="x-dns-prefetch-control" content="on">
     <style id="aegis-boot-critical">
-        html, body { background: #020617; color: #f1f5f9; }
-        html.theme-light, html.theme-light body { background: #f8fafc; color: #0f172a; }
-        .boot-overlay { background: #020617; }
+        html, body { background: #070B14; color: #f4f7fb; }
+        html.theme-light, html.theme-light body { background: #E8EDF5; color: #0f172a; }
+        .boot-overlay { background: #070B14; }
     </style>
     <script>
         (function () {
@@ -54,6 +54,7 @@
     <link rel="stylesheet" href="styles/aegis-apps.css">
     <link rel="stylesheet" href="styles/aegis-intelligence.css">
     <link rel="stylesheet" href="styles/aegis-world-clock.css">
+    <link rel="stylesheet" href="styles/aegis-experience.css">
     <!-- CSS loader must run before lazy-CSS script so critical path works -->
     <script src="js/css-loader.js"></script>
     <script>
@@ -124,7 +125,6 @@
                     'styles/quick-actions.css',
                     'styles/search-suggestions.css',
                     'styles/desktop-widgets.css',
-                    'styles/world-class-enhancements.css',
                     'styles/notification-center.css',
                     'styles/global-search.css',
                     'styles/code-editor-vscode.css',
@@ -143,7 +143,7 @@
                 'styles/apps.css', 'styles/zoom-responsive.css',
                 'styles/news-tamilnadu.css', 'styles/notifications.css',
                 'styles/advanced-apps.css', 'styles/help.css', 'styles/quick-actions.css',
-                'styles/search-suggestions.css', 'styles/desktop-widgets.css', 'styles/world-class-enhancements.css',
+                'styles/search-suggestions.css', 'styles/desktop-widgets.css',
                 'styles/notification-center.css', 'styles/global-search.css', 'styles/code-editor-vscode.css',
                 'styles/terminal-v2.css', 'styles/files-v2.css', 'styles/insights.css', 'styles/power-features.css'
             ];
@@ -184,14 +184,14 @@
         <div class="boot-stage">
             <div class="aegis-mark aegis-mark-reveal" aria-hidden="true">
                 <svg viewBox="0 0 64 64" fill="none">
-                    <circle class="aegis-mark-ring" cx="32" cy="32" r="27" stroke="#818CF8" stroke-width="2.6" stroke-linecap="round" pathLength="100" stroke-dasharray="88 12" stroke-dashoffset="6"/>
+                    <circle class="aegis-mark-ring" cx="32" cy="32" r="27" stroke="#7C8CFF" stroke-width="2.6" stroke-linecap="round" pathLength="100" stroke-dasharray="88 12" stroke-dashoffset="6"/>
                     <path class="aegis-mark-leg" d="M32 14 L18.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
                     <path class="aegis-mark-leg" d="M32 14 L45.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
-                    <path class="aegis-mark-slit" d="M23.5 36.8 H40.5" stroke="#38BDF8" stroke-width="2.8" stroke-linecap="round"/>
+                    <path class="aegis-mark-slit" d="M23.5 36.8 H40.5" stroke="#3EC6D8" stroke-width="2.8" stroke-linecap="round"/>
                 </svg>
             </div>
             <div class="aegis-wordmark aegis-wordmark-reveal">Aegis<span>Desk</span></div>
-            <div class="boot-status">Initializing</div>
+            <div class="boot-status">AegisDesk</div>
             <div class="boot-loader" aria-hidden="true"><div class="boot-loader-bar"></div></div>
         </div>
     </div>
@@ -282,7 +282,7 @@
                         <circle class="aegis-mark-ring" cx="32" cy="32" r="27" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" pathLength="100" stroke-dasharray="88 12" stroke-dashoffset="6"/>
                         <path class="aegis-mark-leg" d="M32 14 L18.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
                         <path class="aegis-mark-leg" d="M32 14 L45.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
-                        <path class="aegis-mark-slit" d="M23.5 36.8 H40.5" stroke="#38BDF8" stroke-width="2.8" stroke-linecap="round"/>
+                        <path class="aegis-mark-slit" d="M23.5 36.8 H40.5" stroke="#3EC6D8" stroke-width="2.8" stroke-linecap="round"/>
                     </svg>
                 </div>
                 <h1 class="aegis-wordmark desktop-title">Aegis<span>Desk</span></h1>
@@ -840,6 +840,7 @@
     <script src="js/core/window-manager.js" defer></script>
     <script src="js/core/aegis-sound.js" defer></script>
     <script src="js/core/aegis-shell.js" defer></script>
+    <script src="js/core/aegis-experience.js" defer></script>
     <script src="js/core/ai-system.js" defer></script>
     <script src="js/core/notification-center.js" defer></script>
     <script src="js/core/mode-manager.js" defer></script>

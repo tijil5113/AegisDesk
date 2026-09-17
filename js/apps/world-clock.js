@@ -9,11 +9,23 @@
             .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
+    function analog(clock) {
+        var hour = ((clock.hour % 12) + clock.minute / 60) * 30;
+        var minute = clock.minute * 6;
+        return '<svg class="wc-analog" viewBox="0 0 40 40" aria-hidden="true">' +
+            '<circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="1.4" opacity="0.35"/>' +
+            '<line x1="20" y1="20" x2="20" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" transform="rotate(' + hour + ' 20 20)"/>' +
+            '<line x1="20" y1="20" x2="20" y2="7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.7" transform="rotate(' + minute + ' 20 20)"/>' +
+            '<circle cx="20" cy="20" r="1.6" fill="currentColor"/>' +
+            '</svg>';
+    }
+
     function card(clock, compact) {
         var day = clock.isDay ? 'is-day' : 'is-night';
         return '<article class="wc-card ' + day + (compact ? ' wc-card-compact' : '') + '" data-id="' + escapeHtml(clock.id) + '">' +
             '<div class="wc-card-top">' +
             '<div><strong>' + escapeHtml(clock.city) + '</strong><span>' + escapeHtml(clock.country) + '</span></div>' +
+            analog(clock) +
             '<span class="wc-phase" aria-hidden="true">' + (clock.isDay ? 'Day' : 'Night') + '</span>' +
             '</div>' +
             '<div class="wc-time" data-time>' + escapeHtml(clock.time) + '</div>' +

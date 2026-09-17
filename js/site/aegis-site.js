@@ -6,10 +6,10 @@
 
     const MARK = `<span class="aegis-mark aegis-mark-24" aria-hidden="true">
         <svg viewBox="0 0 64 64" fill="none">
-            <circle cx="32" cy="32" r="27" stroke="#818CF8" stroke-width="2.6"/>
+            <circle cx="32" cy="32" r="27" stroke="#7C8CFF" stroke-width="2.6"/>
             <path d="M32 14 L18.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
             <path d="M32 14 L45.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
-            <path d="M23.5 36.8 H40.5" stroke="#38BDF8" stroke-width="2.8" stroke-linecap="round"/>
+            <path d="M23.5 36.8 H40.5" stroke="#3EC6D8" stroke-width="2.8" stroke-linecap="round"/>
         </svg>
     </span>`;
 

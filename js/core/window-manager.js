@@ -35,6 +35,13 @@ class WindowManager {
         return this.zIndexCounter;
     }
 
+    taskbarReserve() {
+        const raw = getComputedStyle(document.documentElement).getPropertyValue('--aegis-taskbar-height');
+        const parsed = parseInt(raw, 10);
+        const inset = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--aegis-dock-inset'), 10) || 10;
+        return (parsed || 56) + inset;
+    }
+
     reducedMotion() {
         return document.documentElement.classList.contains('aegis-reduced-motion')
             || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -106,7 +113,7 @@ class WindowManager {
 
         const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
         const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-        const taskbarHeight = 56;
+        const taskbarHeight = this.taskbarReserve();
 
         const maxWidth = Math.min(config.width, viewportWidth - 40);
         const maxHeight = Math.min(config.height, viewportHeight - taskbarHeight - 40);
@@ -219,7 +226,7 @@ class WindowManager {
     getSnapZone(clientX, clientY) {
         const edge = 28;
         const vw = window.innerWidth;
-        const vh = window.innerHeight - 56;
+        const vh = window.innerHeight - this.taskbarReserve();
         if (clientY <= edge) return 'maximize';
         if (clientX <= edge) return 'left';
         if (clientX >= vw - edge) return 'right';
@@ -235,7 +242,7 @@ class WindowManager {
         }
         const gap = 8;
         const vw = window.innerWidth;
-        const vh = window.innerHeight - 56;
+        const vh = window.innerHeight - this.taskbarReserve();
         if (zone === 'left') {
             preview.style.left = gap + 'px';
             preview.style.top = gap + 'px';
@@ -258,7 +265,7 @@ class WindowManager {
     applySnap(windowEl, zone) {
         if (!zone || windowEl.classList.contains('maximized')) return;
         const vw = window.innerWidth;
-        const vh = window.innerHeight - 56;
+        const vh = window.innerHeight - this.taskbarReserve();
         this.saveWindowPosition(windowEl);
         windowEl.classList.add('aegis-geometry-animating');
         if (zone === 'maximize') {
@@ -285,7 +292,7 @@ class WindowManager {
         const rect = windowEl.getBoundingClientRect();
         const snapDistance = 20;
         const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight - 56;
+        const viewportHeight = window.innerHeight - this.taskbarReserve();
 
         let newLeft = parseInt(windowEl.style.left, 10);
         let newTop = parseInt(windowEl.style.top, 10);
@@ -478,7 +485,7 @@ class WindowManager {
             } else {
                 const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
                 const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-                const taskbarHeight = 56;
+                const taskbarHeight = this.taskbarReserve();
 
                 if (savedPos.left !== undefined) {
                     const maxLeft = viewportWidth - (savedPos.width || parseInt(windowEl.style.width, 10) || 500);
@@ -506,7 +513,7 @@ class WindowManager {
 
         const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
         const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-        const taskbarHeight = 56;
+        const taskbarHeight = this.taskbarReserve();
 
         const rect = windowEl.getBoundingClientRect();
         let left = parseInt(windowEl.style.left, 10) || rect.left;

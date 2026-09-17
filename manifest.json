@@ -4,8 +4,8 @@
   "description": "AegisDesk — a next-generation web operating environment.",
   "start_url": "/desktop.html",
   "display": "standalone",
-  "background_color": "#020617",
-  "theme_color": "#020617",
+  "background_color": "#070B14",
+  "theme_color": "#070B14",
   "orientation": "any",
   "scope": "/",
   "icons": [

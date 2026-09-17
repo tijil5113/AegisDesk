@@ -71,14 +71,27 @@ class DesktopWidgets {
         };
 
         updateClock();
-        this._clockInterval = setInterval(updateClock, 1000);
+        this._clockInterval = null;
+        const startTick = () => {
+            if (this._clockInterval) return;
+            this._clockInterval = setInterval(updateClock, 1000);
+        };
+        const stopTick = () => {
+            if (this._clockInterval) { clearInterval(this._clockInterval); this._clockInterval = null; }
+        };
+        if (window.AegisWorldClock && typeof AegisWorldClock.subscribe === 'function') {
+            this._clockUnsub = AegisWorldClock.subscribe(function (_rows, now) {
+                if (document.hidden) return;
+                if (timeEl) timeEl.textContent = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                if (dateEl) dateEl.textContent = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            });
+            AegisWorldClock.setSecondsVisible(true);
+        } else {
+            startTick();
+        }
         document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                if (this._clockInterval) { clearInterval(this._clockInterval); this._clockInterval = null; }
-            } else if (!this._clockInterval) {
-                updateClock();
-                this._clockInterval = setInterval(updateClock, 1000);
-            }
+            if (document.hidden) stopTick();
+            else if (!this._clockUnsub) { updateClock(); startTick(); }
         });
         return widget;
     }

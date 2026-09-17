@@ -43,18 +43,44 @@ class SettingsApp {
                 <header class="aegis-app-header">
                     <div>
                         <h2 class="aegis-app-title">Settings</h2>
-                        <p class="aegis-app-subtitle">Preferences for this AegisDesk browser profile</p>
+                        <p class="aegis-app-subtitle">Control center for this AegisDesk browser profile</p>
                     </div>
                 </header>
+                <nav class="settings-nav" aria-label="Settings sections">
+                    <a href="#settings-appearance">Appearance</a>
+                    <a href="#settings-desktop">Desktop</a>
+                    <a href="#settings-motion">Motion</a>
+                    <a href="#settings-notifications">Notifications</a>
+                    <a href="#settings-account">Account</a>
+                    <a href="#settings-about">About</a>
+                </nav>
                 
                 <div class="settings-section" id="settings-appearance">
                     <div class="settings-section-title">Appearance</div>
                     <div class="settings-item">
                         <div class="settings-item-label" style="flex: 1;">
                             <div class="settings-item-title">Theme</div>
-                            <div class="settings-item-desc">Choose your preferred color theme</div>
+                            <div class="settings-item-desc">Light, dark, and additional palettes persist in this browser.</div>
                             <div class="theme-selector" style="margin-top: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
                                 ${this.renderThemeOptions()}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section" id="settings-desktop">
+                    <div class="settings-section-title">Wallpaper</div>
+                    <div class="settings-item">
+                        <div class="settings-item-label" style="flex: 1;">
+                            <div class="settings-item-title">Aegis wallpapers</div>
+                            <div class="settings-item-desc">Vector fields. Slow drift pauses when the page is hidden or motion is reduced.</div>
+                            <div class="wallpaper-grid" id="wallpaper-grid">
+                                <button type="button" class="wallpaper-chip" data-paper="aurora">Aurora</button>
+                                <button type="button" class="wallpaper-chip" data-paper="midnight">Midnight</button>
+                                <button type="button" class="wallpaper-chip" data-paper="atmosphere">Atmosphere</button>
+                                <button type="button" class="wallpaper-chip" data-paper="horizon">Horizon</button>
+                                <button type="button" class="wallpaper-chip" data-paper="obsidian">Obsidian</button>
+                                <button type="button" class="wallpaper-chip" data-paper="light-field">Light Field</button>
                             </div>
                         </div>
                     </div>
@@ -111,7 +137,7 @@ class SettingsApp {
                     </div>
                 </div>
 
-                <div class="settings-section">
+                <div class="settings-section" id="settings-notifications">
                     <div class="settings-section-title">Notifications</div>
                     <div class="settings-item">
                         <div class="settings-item-label">
@@ -248,7 +274,7 @@ class SettingsApp {
                     </div>
                 </div>
 
-                <div class="settings-section">
+                <div class="settings-section" id="settings-account">
                     <div class="settings-section-title">Account</div>
                     <div class="settings-item">
                         <div class="settings-item-label" style="flex: 1;">
@@ -304,15 +330,15 @@ class SettingsApp {
                     </div>
                 </div>
 
-                <div class="settings-section">
+                <div class="settings-section" id="settings-about">
                     <div class="settings-section-title">About</div>
                     <div class="settings-item">
                         <div class="settings-item-label" style="flex: 1;">
                             <div class="settings-item-title">AegisDesk</div>
                             <div class="settings-item-desc" style="margin-top: 8px;">
-                                Version 1.0.0<br>
-                                AI-Powered Unified Desktop Operating System for Personal Productivity<br><br>
-                                Built with ❤️ for organizing your digital life.
+                                Version 2.0<br>
+                                AegisDesk — a web operating environment.<br><br>
+                                Built by Monish Tijil.
                             </div>
                         </div>
                     </div>
@@ -414,6 +440,20 @@ class SettingsApp {
                 }
             });
         });
+
+        const wallpaperGrid = content.querySelector('#wallpaper-grid');
+        if (wallpaperGrid && window.AegisExperience) {
+            const current = AegisExperience.currentWallpaper();
+            wallpaperGrid.querySelectorAll('.wallpaper-chip').forEach((chip) => {
+                chip.setAttribute('aria-pressed', chip.dataset.paper === current ? 'true' : 'false');
+                chip.addEventListener('click', () => {
+                    AegisExperience.applyWallpaper(chip.dataset.paper);
+                    wallpaperGrid.querySelectorAll('.wallpaper-chip').forEach((c) => {
+                        c.setAttribute('aria-pressed', c === chip ? 'true' : 'false');
+                    });
+                });
+            });
+        }
 
         // Desktop switcher
         const desktopSwitcherBtn = content.querySelector('#desktop-switcher-btn');

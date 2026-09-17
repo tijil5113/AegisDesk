@@ -22,6 +22,13 @@ class DragManager {
         this._onResizeUp = this._onResizeUp.bind(this);
     }
 
+    _chrome() {
+        if (typeof windowManager !== 'undefined' && typeof windowManager.taskbarReserve === 'function') {
+            return windowManager.taskbarReserve();
+        }
+        return 66;
+    }
+
     _bind(el, type, handler) {
         el.addEventListener(type, handler);
     }
@@ -131,7 +138,7 @@ class DragManager {
         const deltaX = this._pendingX - this.startX;
         const deltaY = this._pendingY - this.startY;
         const maxLeft = window.innerWidth - this.elWidth;
-        const maxTop = window.innerHeight - this.elHeight - 56;
+        const maxTop = window.innerHeight - this.elHeight - this._chrome();
         const newLeft = Math.max(0, Math.min(this.startLeft + deltaX, maxLeft));
         const newTop = Math.max(0, Math.min(this.startTop + deltaY, maxTop));
         this.currentElement.style.left = newLeft + 'px';
@@ -225,7 +232,7 @@ class DragManager {
         }
 
         const maxWidth = window.innerWidth - newLeft;
-        const maxHeight = window.innerHeight - newTop - 56;
+        const maxHeight = window.innerHeight - newTop - this._chrome();
         newWidth = Math.min(newWidth, maxWidth);
         newHeight = Math.min(newHeight, maxHeight);
         newLeft = Math.max(0, newLeft);

@@ -5,12 +5,12 @@
 
 :root {
     color-scheme: dark;
-    --site-bg: #020617;
-    --site-fg: #f1f5f9;
-    --site-muted: #94a3b8;
+    --site-bg: #070B14;
+    --site-fg: #f4f7fb;
+    --site-muted: #8B9BB0;
     --site-line: rgba(148, 163, 184, 0.16);
-    --site-accent: #818cf8;
-    --site-accent-strong: #6366f1;
+    --site-accent: #7C8CFF;
+    --site-accent-strong: #6B7CFF;
     --site-card: rgba(15, 23, 42, 0.82);
     --site-radius: 18px;
     --site-max: 1120px;
@@ -117,7 +117,53 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
     font-weight: 600;
     font-size: 0.9rem;
 }
-.site-cta:hover { background: #818cf8; }
+.site-cta:hover { background: #8896FF; }
+
+.os-desktop-frame {
+    position: relative;
+    min-height: 420px;
+    border-radius: 22px;
+    border: 1px solid var(--site-line);
+    overflow: hidden;
+    background: #070B14;
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+}
+.os-wallpaper {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 70% 50% at 18% 10%, rgba(107, 124, 255, 0.28), transparent 52%),
+        radial-gradient(ellipse 50% 40% at 88% 18%, rgba(62, 198, 216, 0.14), transparent 50%),
+        linear-gradient(180deg, #070B14, #101826 50%, #070B14);
+}
+.os-dock {
+    position: absolute;
+    left: 50%;
+    bottom: 14px;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 14px;
+    background: rgba(16, 24, 38, 0.86);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    z-index: 4;
+}
+.os-dock span {
+    width: 22px;
+    height: 22px;
+    border-radius: 7px;
+    background: #6B7CFF;
+}
+.os-dock span:nth-child(2) { background: #3EC6D8; }
+.os-dock span:nth-child(3) { background: #059669; }
+.os-dock span:nth-child(4) { background: #D97706; }
+.os-dock span:nth-child(5) { background: #2563EB; }
+
+.os-window--mail { left: 18px; top: 36px; z-index: 2; }
+.os-window--music { right: 22px; top: 18px; z-index: 3; width: min(280px, 86%); }
+.os-window--clock { left: 48px; bottom: 64px; z-index: 1; width: min(300px, 90%); }
+.now-bar span { background: #3EC6D8; }
 
 .site-menu-btn {
     display: none;
@@ -209,9 +255,9 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 .os-dot { width: 8px; height: 8px; border-radius: 50%; background: #334155; }
 .os-window-body { padding: 14px; font-size: 0.85rem; color: #cbd5e1; }
 
-.os-window--mail { left: 0; top: 24px; z-index: 2; }
-.os-window--music { right: 8px; top: 0; z-index: 3; width: min(280px, 86%); }
-.os-window--clock { left: 36px; bottom: 8px; z-index: 1; width: min(300px, 90%); }
+.os-window--mail,
+.os-window--music,
+.os-window--clock { position: absolute; }
 .site-stage .os-window {
     animation: siteStageFloat 9s ease-in-out infinite;
 }
@@ -244,7 +290,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
     display: block;
     width: 46%;
     height: 100%;
-    background: #34d399;
+    background: #3EC6D8;
 }
 
 .site-section { padding: 72px 0; }

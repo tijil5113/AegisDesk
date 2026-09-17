@@ -9,28 +9,34 @@
 :root {
     color-scheme: dark;
 
-    /* ========== BACKGROUND ========== */
-    --aegis-bg-base: #020617;
-    --aegis-bg-surface: #0f172a;
-    --aegis-bg-elevated: rgba(30, 41, 59, 0.92);
-    --aegis-bg-overlay: rgba(2, 6, 23, 0.62);
+    /* ========== BACKGROUND / SURFACES ========== */
+    --aegis-bg-base: #070B14;
+    --aegis-bg-surface: #101826;
+    --aegis-bg-elevated: rgba(22, 32, 48, 0.94);
+    --aegis-bg-overlay: rgba(7, 11, 20, 0.66);
+    --aegis-bg-sunken: #0A101C;
+    --aegis-bg-inset: rgba(7, 11, 20, 0.55);
 
     /* ========== TEXT ========== */
-    --aegis-text-primary: #f1f5f9;
-    --aegis-text-secondary: #cbd5e1;
-    --aegis-text-muted: #94a3b8;
-    --aegis-text-inverse: #020617;
+    --aegis-text-primary: #F4F7FB;
+    --aegis-text-secondary: #C5D0DE;
+    --aegis-text-muted: #8B9BB0;
+    --aegis-text-inverse: #070B14;
 
     /* ========== BORDERS ========== */
-    --aegis-border-subtle: rgba(148, 163, 184, 0.12);
-    --aegis-border-default: rgba(148, 163, 184, 0.22);
-    --aegis-border-strong: rgba(99, 102, 241, 0.42);
+    --aegis-border-subtle: rgba(148, 163, 184, 0.10);
+    --aegis-border-default: rgba(148, 163, 184, 0.18);
+    --aegis-border-strong: rgba(107, 124, 255, 0.42);
 
-    /* ========== ACCENT ========== */
-    --aegis-accent: #6366f1;
-    --aegis-accent-hover: #818cf8;
-    --aegis-accent-active: #4f46e5;
-    --aegis-accent-soft: rgba(99, 102, 241, 0.16);
+    /* ========== ACCENT (Field indigo + Aperture cyan) ========== */
+    --aegis-accent: #6B7CFF;
+    --aegis-accent-hover: #8896FF;
+    --aegis-accent-active: #5566F0;
+    --aegis-accent-soft: rgba(107, 124, 255, 0.16);
+    --aegis-aperture: #3EC6D8;
+    --aegis-aperture-soft: rgba(62, 198, 216, 0.16);
+    --aegis-selection: rgba(107, 124, 255, 0.28);
+    --aegis-selection-text: #F4F7FB;
 
     /* ========== STATUS ========== */
     --aegis-success: #10b981;
@@ -86,6 +92,7 @@
     --aegis-duration-instant: 80ms;
     --aegis-duration-fast: 140ms;
     --aegis-duration-standard: 220ms;
+    --aegis-duration-expressive: 260ms;
     --aegis-duration-slow: 320ms;
     --aegis-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
     --aegis-ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
@@ -108,6 +115,7 @@
 
     /* ========== TYPOGRAPHY ========== */
     --aegis-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --aegis-font-numeric: 'Inter', ui-sans-serif, system-ui, sans-serif;
     --aegis-font-mono: 'JetBrains Mono', 'SFMono-Regular', ui-monospace, Menlo, Consolas, monospace;
     --aegis-lh-tight: 1.2;
     --aegis-lh-snug: 1.35;
@@ -131,7 +139,8 @@
 
     --aegis-focus-ring: 2px solid var(--aegis-accent-hover);
     --aegis-focus-offset: 2px;
-    --aegis-taskbar-height: 56px;
+    --aegis-taskbar-height: 64px;
+    --aegis-dock-inset: 10px;
 
     /* Legacy aliases — keep existing sheets on the same values */
     --primary: var(--aegis-accent);
@@ -190,18 +199,26 @@ html.theme-light,
 body.theme-light,
 html[data-aegis-theme="light"] {
     color-scheme: light;
-    --aegis-bg-base: #eef2f7;
-    --aegis-bg-surface: #f8fafc;
-    --aegis-bg-elevated: #ffffff;
-    --aegis-bg-overlay: rgba(15, 23, 42, 0.38);
-    --aegis-text-primary: #0f172a;
+    --aegis-bg-base: #E8EDF5;
+    --aegis-bg-surface: #F5F7FB;
+    --aegis-bg-elevated: #FFFFFF;
+    --aegis-bg-overlay: rgba(15, 23, 42, 0.36);
+    --aegis-bg-sunken: #DDE3EE;
+    --aegis-bg-inset: rgba(255, 255, 255, 0.72);
+    --aegis-text-primary: #0F172A;
     --aegis-text-secondary: #334155;
-    --aegis-text-muted: #64748b;
-    --aegis-text-inverse: #f8fafc;
+    --aegis-text-muted: #64748B;
+    --aegis-text-inverse: #F5F7FB;
     --aegis-border-subtle: rgba(15, 23, 42, 0.08);
     --aegis-border-default: rgba(15, 23, 42, 0.14);
-    --aegis-border-strong: rgba(79, 70, 229, 0.38);
-    --aegis-accent-soft: rgba(79, 70, 229, 0.12);
+    --aegis-border-strong: rgba(79, 95, 232, 0.38);
+    --aegis-accent: #4F5FE8;
+    --aegis-accent-hover: #6B7CFF;
+    --aegis-accent-active: #3F4FD4;
+    --aegis-accent-soft: rgba(79, 95, 232, 0.12);
+    --aegis-aperture: #0E8FA3;
+    --aegis-selection: rgba(79, 95, 232, 0.22);
+    --aegis-selection-text: #0F172A;
     --aegis-shadow-1: 0 1px 2px rgba(15, 23, 42, 0.08);
     --aegis-shadow-2: 0 4px 14px rgba(15, 23, 42, 0.10);
     --aegis-shadow-3: 0 12px 28px rgba(15, 23, 42, 0.12);
@@ -235,6 +252,11 @@ html.aegis-reduced-motion {
 .aegis-type-label { font: var(--aegis-type-label); letter-spacing: var(--aegis-tracking-wide); text-transform: uppercase; color: var(--aegis-text-muted); }
 .aegis-type-button { font: var(--aegis-type-button); }
 .aegis-type-code { font: var(--aegis-type-code); }
+
+::selection {
+    background: var(--aegis-selection);
+    color: var(--aegis-selection-text);
+}
 
 .aegis-truncate {
     overflow: hidden;
@@ -749,6 +771,7 @@ body.aegis-resizing * { cursor: inherit; }
         --aegis-duration-instant: 0.01ms;
         --aegis-duration-fast: 0.01ms;
         --aegis-duration-standard: 0.01ms;
+        --aegis-duration-expressive: 0.01ms;
         --aegis-duration-slow: 0.01ms;
         --anim-micro: 0.01ms;
         --anim-micro-slow: 0.01ms;

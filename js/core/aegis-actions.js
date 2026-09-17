@@ -670,6 +670,28 @@
     });
 
     define({
+        id: 'settings.setWallpaper',
+        title: 'Change wallpaper',
+        description: 'Apply an Aegis wallpaper: aurora, midnight, atmosphere, horizon, obsidian, or light-field',
+        application: 'settings',
+        category: 'Appearance',
+        args: ['wallpaper'],
+        risk: RISK.LOCAL,
+        undoable: true,
+        handler: function (args) {
+            if (!global.AegisExperience || typeof AegisExperience.applyWallpaper !== 'function') {
+                return { success: false, error: 'Wallpaper engine unavailable' };
+            }
+            var prev = AegisExperience.currentWallpaper();
+            var requested = str(args.wallpaper, 40).toLowerCase().replace(/\s+/g, '-');
+            if (!requested) requested = 'aurora';
+            AegisExperience.applyWallpaper(requested);
+            lastUndo = { label: 'Wallpaper changed', run: function () { AegisExperience.applyWallpaper(prev); } };
+            return { success: true, message: 'Wallpaper set to ' + requested };
+        }
+    });
+
+    define({
         id: 'help.open',
         title: 'Open Help',
         description: 'Open Help and documentation',

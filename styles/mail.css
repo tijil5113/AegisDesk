@@ -1,17 +1,17 @@
 /* MAIL - Mail Application Styles */
 
 :root {
-    --mail-primary: #3b82f6;
-    --mail-primary-dark: #2563eb;
+    --mail-primary: #6B7CFF;
+    --mail-primary-dark: #5566F0;
     --mail-success: #10b981;
     --mail-warning: #f59e0b;
     --mail-error: #ef4444;
-    --mail-bg: rgba(15, 23, 42, 0.95);
-    --mail-bg-secondary: rgba(30, 41, 59, 0.8);
-    --mail-card-bg: rgba(255, 255, 255, 0.05);
-    --mail-border: rgba(255, 255, 255, 0.1);
-    --mail-text: rgba(255, 255, 255, 0.9);
-    --mail-text-muted: rgba(255, 255, 255, 0.6);
+    --mail-bg: #070B14;
+    --mail-bg-secondary: rgba(16, 24, 38, 0.92);
+    --mail-card-bg: rgba(22, 32, 48, 0.88);
+    --mail-border: rgba(148, 163, 184, 0.16);
+    --mail-text: #F4F7FB;
+    --mail-text-muted: #8B9BB0;
     --mail-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     --mail-shadow-hover: 0 12px 48px rgba(59, 130, 246, 0.2);
 }
@@ -19,7 +19,7 @@
 .mail-page {
     margin: 0;
     padding: 0;
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+    background: var(--aegis-bg-base, #070B14);
     min-height: 100vh;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     color: var(--mail-text);

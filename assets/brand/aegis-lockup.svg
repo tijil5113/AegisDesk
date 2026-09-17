@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 64" fill="none" role="img" aria-labelledby="aegisLockupTitle">
+  <title id="aegisLockupTitle">AegisDesk</title>
+  <circle class="aegis-mark-ring" cx="32" cy="32" r="27" stroke="#7C8CFF" stroke-width="2.6" stroke-linecap="round" pathLength="100" stroke-dasharray="88 12" stroke-dashoffset="6"/>
+  <path d="M32 14 L18.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
+  <path d="M32 14 L45.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
+  <path d="M23.5 36.8 H40.5" stroke="#3EC6D8" stroke-width="2.8" stroke-linecap="round"/>
+  <text x="78" y="40" font-family="Inter, Segoe UI, system-ui, sans-serif" font-size="30" font-weight="700" letter-spacing="-1.1" fill="#F8FAFC">Aegis</text>
+  <text x="170" y="40" font-family="Inter, Segoe UI, system-ui, sans-serif" font-size="30" font-weight="650" letter-spacing="-1" fill="#7C8CFF">Desk</text>
+</svg>
