@@ -236,7 +236,18 @@ class NotificationCenter {
         if (this.history.length === 0) {
             historyContainer.innerHTML = '<div class="notification-center-empty">No notification history</div>';
         } else {
-            historyContainer.innerHTML = this.history.slice(0, 50).map(n => this.renderNotification(n, false)).join('');
+            const start = new Date();
+            start.setHours(0, 0, 0, 0);
+            const today = [];
+            const earlier = [];
+            this.history.slice(0, 50).forEach((n) => {
+                const t = new Date(n.timestamp).getTime();
+                if (t >= start.getTime()) today.push(n);
+                else earlier.push(n);
+            });
+            historyContainer.innerHTML =
+                (today.length ? '<p class="global-search-header">Today</p>' + today.map(n => this.renderNotification(n, false)).join('') : '') +
+                (earlier.length ? '<p class="global-search-header">Earlier</p>' + earlier.map(n => this.renderNotification(n, false)).join('') : '');
         }
         
         // Setup event listeners for new notifications
@@ -277,7 +288,7 @@ class NotificationCenter {
                     <div class="notification-title">${this.escapeHtml(notification.title)}</div>
                     <div class="notification-message">${this.escapeHtml(notification.message)}</div>
                     <div class="notification-meta">
-                        <span class="notification-source">${this.escapeHtml(notification.source)}</span>
+                        <span class="notification-source">${this.escapeHtml(notification.appName || notification.source || 'AegisDesk')}</span>
                         <span class="notification-time">${timeAgo}</span>
                     </div>
                 </div>
@@ -295,11 +306,11 @@ class NotificationCenter {
     // Get type icon
     getTypeIcon(type) {
         const icons = {
-            info: 'ℹ️',
+            info: 'i',
             success: '✓',
-            warning: '⚠️',
-            error: '✕',
-            critical: '🚨'
+            warning: '!',
+            error: '×',
+            critical: '!'
         };
         return icons[type] || icons.info;
     }

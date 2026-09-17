@@ -8,10 +8,10 @@
 
     var MARK_SVG =
         '<svg viewBox="0 0 64 64" fill="none" aria-hidden="true">' +
-        '<circle class="aegis-mark-ring" cx="32" cy="32" r="27" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" pathLength="100" stroke-dasharray="88 12" stroke-dashoffset="6"/>' +
-        '<path class="aegis-mark-leg" d="M32 14 L18.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>' +
-        '<path class="aegis-mark-leg" d="M32 14 L45.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>' +
-        '<path class="aegis-mark-slit" d="M23.5 36.8 H40.5" stroke="#38BDF8" stroke-width="2.8" stroke-linecap="round"/>' +
+        '<path class="aegis-mark-ring" d="M32 5.6L53.2 14.4v16.8c0 14.6-9.1 24.8-21.2 29.4C19.9 56 10.8 45.8 10.8 31.2V14.4L32 5.6z" stroke="currentColor" stroke-width="2.7" stroke-linejoin="round" pathLength="100"/>' +
+        '<path class="aegis-mark-leg" d="M32 18.2 L20.6 46.6" stroke="#F8FAFC" stroke-width="3.5" stroke-linecap="round"/>' +
+        '<path class="aegis-mark-leg" d="M32 18.2 L43.4 46.6" stroke="#F8FAFC" stroke-width="3.5" stroke-linecap="round"/>' +
+        '<path class="aegis-mark-slit" d="M24 35.2 H40" stroke="#3EC6D8" stroke-width="2.8" stroke-linecap="round"/>' +
         '</svg>';
 
     function prefersReducedMotion() {
@@ -73,8 +73,11 @@
             '<div class="aegis-menu-sep"></div>' +
             '<button class="aegis-menu-item" role="menuitem" data-aegis-action="open-notes">New Note</button>' +
             '<button class="aegis-menu-item" role="menuitem" data-aegis-action="open-tasks">New Task</button>' +
+            '<button class="aegis-menu-item" role="menuitem" data-aegis-action="open-code">Open Code Studio</button>' +
             '<div class="aegis-menu-sep"></div>' +
-            '<button class="aegis-menu-item" role="menuitem" data-aegis-action="open-theme">Change Theme</button>';
+            '<button class="aegis-menu-item" role="menuitem" data-aegis-action="open-theme">Change wallpaper</button>' +
+            '<button class="aegis-menu-item" role="menuitem" data-aegis-action="customize">Customize Desktop</button>' +
+            '<button class="aegis-menu-item" role="menuitem" data-aegis-action="refresh">Refresh</button>';
         document.body.appendChild(menu);
         menu.addEventListener('click', function (e) {
             var btn = e.target.closest('[data-aegis-action]');
@@ -105,8 +108,15 @@
                 global.desktop.openApp('notes');
             } else if (action === 'open-tasks' && global.desktop) {
                 global.desktop.openApp('tasks');
-            } else if (action === 'open-theme' && global.themeSystem) {
-                global.themeSystem.showThemePanel();
+            } else if (action === 'open-code' && global.desktop) {
+                global.desktop.openApp('code-editor');
+            } else if (action === 'customize' && global.AegisDesktopOS) {
+                AegisDesktopOS.customize();
+            } else if (action === 'refresh' && global.AegisDesktopOS) {
+                AegisDesktopOS.refresh();
+            } else if (action === 'open-theme') {
+                if (global.AegisDesktopOS) AegisDesktopOS.customize();
+                else if (global.themeSystem) global.themeSystem.showThemePanel();
             }
         });
         menu.addEventListener('keydown', function (e) {

@@ -643,6 +643,7 @@
         description: 'Switch the AegisDesk theme',
         application: 'settings',
         category: 'Appearance',
+        aliases: ['dark mode', 'night mode', 'light mode'],
         args: ['theme'],
         risk: RISK.LOCAL,
         undoable: true,
@@ -672,7 +673,7 @@
     define({
         id: 'settings.setWallpaper',
         title: 'Change wallpaper',
-        description: 'Apply an Aegis wallpaper: aurora, midnight, atmosphere, horizon, obsidian, or light-field',
+        description: 'Apply an Aegis wallpaper: aurora, midnight, atmosphere, horizon, obsidian, celestial, or light-field',
         application: 'settings',
         category: 'Appearance',
         args: ['wallpaper'],
@@ -832,6 +833,33 @@
         handler: function (args) {
             if (global.AegisIntelligence) AegisIntelligence.show(str(args.query, 200));
             return { success: true, message: 'Aegis Intelligence opened' };
+        }
+    });
+
+    define({
+        id: 'desktop.customize',
+        title: 'Customize Desktop',
+        description: 'Show or hide widgets, density, and wallpaper',
+        application: 'system',
+        category: 'Appearance',
+        aliases: ['customize desktop', 'widgets'],
+        risk: RISK.NAV,
+        handler: function () {
+            if (global.AegisDesktopOS && AegisDesktopOS.customize) AegisDesktopOS.customize();
+            return { success: true, message: 'Customize Desktop opened' };
+        }
+    });
+
+    define({
+        id: 'worldclock.open',
+        title: 'Open World Clock',
+        description: 'Open world clocks and manage cities',
+        application: 'world-clock',
+        category: 'Open',
+        aliases: ['world clock', 'add world clock', 'time zones'],
+        risk: RISK.NAV,
+        handler: function () {
+            return openApp('world-clock');
         }
     });
 

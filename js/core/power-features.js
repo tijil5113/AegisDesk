@@ -272,6 +272,7 @@
         setupKonami();
 
         function injectWidgets() {
+            if (document.body.classList.contains('aegis-desktop-os')) return;
             if (!document.getElementById('quote-widget')) createQuoteWidget();
             if (!document.getElementById('session-timer')) createSessionTimer();
         }

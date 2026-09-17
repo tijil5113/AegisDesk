@@ -42,6 +42,13 @@ class WindowManager {
         return (parsed || 56) + inset;
     }
 
+    barReserve() {
+        const bar = document.getElementById('aegis-system-bar');
+        if (bar) return bar.offsetHeight || 42;
+        const raw = getComputedStyle(document.documentElement).getPropertyValue('--aegis-bar-height');
+        return parseInt(raw, 10) || 0;
+    }
+
     reducedMotion() {
         return document.documentElement.classList.contains('aegis-reduced-motion')
             || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -114,9 +121,10 @@ class WindowManager {
         const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
         const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
         const taskbarHeight = this.taskbarReserve();
+        const barHeight = this.barReserve();
 
         const maxWidth = Math.min(config.width, viewportWidth - 40);
-        const maxHeight = Math.min(config.height, viewportHeight - taskbarHeight - 40);
+        const maxHeight = Math.min(config.height, viewportHeight - taskbarHeight - barHeight - 40);
 
         windowEl.style.width = maxWidth + 'px';
         windowEl.style.height = maxHeight + 'px';
@@ -127,39 +135,40 @@ class WindowManager {
         const savedPos = this.windowPositions[config.id];
         if (savedPos && !savedPos.maximized) {
             const savedLeft = Math.max(0, Math.min(savedPos.left, viewportWidth - maxWidth));
-            const savedTop = Math.max(0, Math.min(savedPos.top, viewportHeight - taskbarHeight - maxHeight));
+            const savedTop = Math.max(barHeight, Math.min(savedPos.top, viewportHeight - taskbarHeight - maxHeight));
             windowEl.style.left = savedLeft + 'px';
             windowEl.style.top = savedTop + 'px';
         } else {
             const centerX = Math.max(20, (viewportWidth - maxWidth) / 2);
-            const centerY = Math.max(20, (viewportHeight - taskbarHeight - maxHeight) / 3);
+            const centerY = Math.max(barHeight + 12, (viewportHeight - taskbarHeight - maxHeight) / 3);
             windowEl.style.left = centerX + 'px';
             windowEl.style.top = centerY + 'px';
         }
 
         this.ensureWindowInViewport(windowEl);
 
+        const iconHtml = config.icon || (typeof AEGIS_APP_ICONS !== 'undefined' && AEGIS_APP_ICONS[config.id]) || '';
         windowEl.innerHTML = `
             <div class="window-titlebar">
                 <div class="window-titlebar-left">
-                    ${config.icon ? `<div class="window-icon" aria-hidden="true">${config.icon}</div>` : ''}
+                    ${iconHtml ? `<div class="window-icon" aria-hidden="true">${iconHtml}</div>` : ''}
                     <div class="window-title" id="window-title-${config.id}">${config.title}</div>
+                    ${config.documentTitle ? `<div class="window-document-title">${config.documentTitle}</div>` : ''}
                 </div>
                 <div class="window-titlebar-right">
-                    <button type="button" class="window-button minimize" data-action="minimize" aria-label="Minimize">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <button type="button" class="window-button minimize" data-action="minimize" aria-label="Minimize" data-tooltip="Minimize" title="Minimize">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                            <rect x="5" y="11" width="14" height="2" rx="1"></rect>
                         </svg>
                     </button>
-                    <button type="button" class="window-button maximize" data-action="maximize" aria-label="Maximize">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                            <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"></path>
+                    <button type="button" class="window-button maximize" data-action="maximize" aria-label="Maximize" data-tooltip="Maximize" title="Maximize">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                            <rect x="6" y="6" width="12" height="12" rx="2"></rect>
                         </svg>
                     </button>
-                    <button type="button" class="window-button close" data-action="close" aria-label="Close">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                    <button type="button" class="window-button close" data-action="close" aria-label="Close" data-tooltip="Close" title="Close">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                            <path d="M7 7l10 10M17 7L7 17"></path>
                         </svg>
                     </button>
                 </div>
@@ -183,8 +192,19 @@ class WindowManager {
         document.body.appendChild(windowEl);
         windowEl.style.visibility = 'visible';
         if (!this.reducedMotion()) {
-            windowEl.classList.add('aegis-window-enter');
-            const clear = () => windowEl.classList.remove('aegis-window-enter');
+            const origin = this._launchOrigin;
+            this._launchOrigin = null;
+            if (origin) {
+                const rect = windowEl.getBoundingClientRect();
+                windowEl.style.setProperty('--aegis-origin-x', (origin.x - rect.left) + 'px');
+                windowEl.style.setProperty('--aegis-origin-y', (origin.y - rect.top) + 'px');
+                windowEl.classList.add('aegis-from-origin');
+            } else {
+                windowEl.classList.add('aegis-window-enter');
+            }
+            const clear = () => {
+                windowEl.classList.remove('aegis-window-enter', 'aegis-from-origin');
+            };
             windowEl.addEventListener('animationend', clear, { once: true });
             setTimeout(clear, this.motionMs(280, 1));
         }
@@ -241,21 +261,22 @@ class WindowManager {
             return;
         }
         const gap = 8;
+        const top = this.barReserve() + gap;
         const vw = window.innerWidth;
-        const vh = window.innerHeight - this.taskbarReserve();
+        const vh = window.innerHeight - this.taskbarReserve() - this.barReserve();
         if (zone === 'left') {
             preview.style.left = gap + 'px';
-            preview.style.top = gap + 'px';
+            preview.style.top = top + 'px';
             preview.style.width = (vw / 2 - gap * 1.5) + 'px';
             preview.style.height = (vh - gap * 2) + 'px';
         } else if (zone === 'right') {
             preview.style.left = (vw / 2 + gap / 2) + 'px';
-            preview.style.top = gap + 'px';
+            preview.style.top = top + 'px';
             preview.style.width = (vw / 2 - gap * 1.5) + 'px';
             preview.style.height = (vh - gap * 2) + 'px';
         } else {
             preview.style.left = gap + 'px';
-            preview.style.top = gap + 'px';
+            preview.style.top = top + 'px';
             preview.style.width = (vw - gap * 2) + 'px';
             preview.style.height = (vh - gap * 2) + 'px';
         }
@@ -265,7 +286,8 @@ class WindowManager {
     applySnap(windowEl, zone) {
         if (!zone || windowEl.classList.contains('maximized')) return;
         const vw = window.innerWidth;
-        const vh = window.innerHeight - this.taskbarReserve();
+        const top = this.barReserve();
+        const vh = window.innerHeight - this.taskbarReserve() - top;
         this.saveWindowPosition(windowEl);
         windowEl.classList.add('aegis-geometry-animating');
         if (zone === 'maximize') {
@@ -273,12 +295,12 @@ class WindowManager {
             this.triggerCallback(windowEl, 'onMaximize', true);
         } else if (zone === 'left') {
             windowEl.style.left = '0px';
-            windowEl.style.top = '0px';
+            windowEl.style.top = top + 'px';
             windowEl.style.width = Math.floor(vw / 2) + 'px';
             windowEl.style.height = vh + 'px';
         } else if (zone === 'right') {
             windowEl.style.left = Math.floor(vw / 2) + 'px';
-            windowEl.style.top = '0px';
+            windowEl.style.top = top + 'px';
             windowEl.style.width = Math.floor(vw / 2) + 'px';
             windowEl.style.height = vh + 'px';
         }
@@ -361,10 +383,22 @@ class WindowManager {
                 windowEl.style.width = savedPos.width + 'px';
                 windowEl.style.height = savedPos.height + 'px';
             }
+            const restore = windowEl.querySelector('.window-button.maximize');
+            if (restore) {
+                restore.setAttribute('aria-label', 'Maximize');
+                restore.setAttribute('data-tooltip', 'Maximize');
+                restore.setAttribute('title', 'Maximize');
+            }
             this.triggerCallback(windowEl, 'onMaximize', false);
         } else {
             this.saveWindowPosition(windowEl);
             windowEl.classList.add('maximized');
+            const restore = windowEl.querySelector('.window-button.maximize');
+            if (restore) {
+                restore.setAttribute('aria-label', 'Restore');
+                restore.setAttribute('data-tooltip', 'Restore');
+                restore.setAttribute('title', 'Restore');
+            }
             this.triggerCallback(windowEl, 'onMaximize', true);
         }
         this.ensureWindowInViewport(windowEl);

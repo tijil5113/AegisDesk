@@ -780,6 +780,7 @@ class MailApp {
 
         this.composeSending = true;
         this.setComposeStatus('Sending', 'Sending...');
+        if (window.AegisAppStatus) AegisAppStatus.refresh();
 
         const emailData = {
             to,
@@ -837,17 +838,20 @@ class MailApp {
             this.saveData();
             this.renderEmails();
             this.setComposeStatus('Sent', 'Email sent successfully');
+            this.composeSending = false;
+            this._sentAt = Date.now();
+            if (window.AegisAppStatus) AegisAppStatus.refresh();
             if (window.notificationSystem) {
-                window.notificationSystem.success('Mail', 'Email sent successfully');
+                window.notificationSystem.success('Mail', 'Message sent');
             }
             this.composeDraft = null;
             setTimeout(() => {
                 this.hideComposeModal();
-                this.composeSending = false;
             }, 700);
         } catch (error) {
             this.composeSending = false;
             this.setComposeStatus('Failed', error.message || 'Failed to send email.');
+            if (window.AegisAppStatus) AegisAppStatus.refresh();
             if (window.notificationSystem) {
                 window.notificationSystem.error('Mail', error.message || 'Failed to send email');
             }

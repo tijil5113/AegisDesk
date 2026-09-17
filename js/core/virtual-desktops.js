@@ -12,7 +12,7 @@ class VirtualDesktops {
         for (let i = 0; i < this.maxDesktops; i++) {
                 this.desktops.push({
                 id: i,
-                name: `Space ${i + 1}`,
+                name: `Workspace ${i + 1}`,
                 windows: [],
                 wallpaper: null
             });
@@ -22,12 +22,12 @@ class VirtualDesktops {
         if (saved && Array.isArray(saved.desktops)) {
             this.desktops = saved.desktops.slice(0, this.maxDesktops).map((d, i) => ({
                 id: i,
-                name: (d && d.name) || `Space ${i + 1}`,
+                name: (d && d.name) || `Workspace ${i + 1}`,
                 windows: Array.isArray(d.windows) ? d.windows : (d.windows && typeof d.windows === 'object' ? Object.keys(d.windows) : []),
                 wallpaper: null
             }));
             while (this.desktops.length < this.maxDesktops) {
-                this.desktops.push({ id: this.desktops.length, name: `Space ${this.desktops.length + 1}`, windows: [], wallpaper: null });
+                this.desktops.push({ id: this.desktops.length, name: `Workspace ${this.desktops.length + 1}`, windows: [], wallpaper: null });
             }
             this.currentDesktop = Math.max(0, Math.min(saved.currentDesktop || 0, this.maxDesktops - 1));
         }
@@ -137,7 +137,7 @@ class VirtualDesktops {
         storage.set('virtualDesktops', {
             desktops: this.desktops.map((d, i) => ({
                 id: i,
-                name: d.name || `Space ${i + 1}`,
+                name: d.name || `Workspace ${i + 1}`,
                 windows: Array.isArray(d.windows) ? d.windows : []
             })),
             currentDesktop: this.currentDesktop
@@ -165,19 +165,20 @@ class VirtualDesktops {
                 if (e.key === 'Escape') overlay.classList.remove('visible');
             });
         }
-        overlay.innerHTML = `<div class="aegis-spaces-grid">${this.desktops.map((d, i) => {
+            overlay.innerHTML = `<div class="aegis-spaces-grid">${this.desktops.map((d, i) => {
             const wins = (typeof windowManager !== 'undefined')
                 ? Array.from(windowManager.windows.entries()).filter(([, el]) => Number(el.dataset.aegisSpace || 0) === i)
                 : (d.windows || []).map((id) => [id, null]);
             const count = wins.length;
             const list = wins.map(([id]) => {
                 const title = (typeof APP_REGISTRY !== 'undefined' && APP_REGISTRY[id] && APP_REGISTRY[id].title) || id;
-                return `<li><span>${title}</span><label>Move <select data-move-window="${id}" aria-label="Move ${title} to another Space">${this.desktops.map((_, j) =>
-                    `<option value="${j}"${j === i ? ' selected' : ''}>Space ${j + 1}</option>`).join('')}</select></label></li>`;
+                return `<li><span>${title}</span><label>Move <select data-move-window="${id}" aria-label="Move ${title} to another workspace">${this.desktops.map((_, j) =>
+                    `<option value="${j}"${j === i ? ' selected' : ''}>${this.desktops[j].name || ('Workspace ' + (j + 1))}</option>`).join('')}</select></label></li>`;
             }).join('');
             return `<div class="aegis-space-card ${i === this.currentDesktop ? 'is-active' : ''}">
-                <button type="button" data-space="${i}"><h3>${d.name || ('Space ' + (i + 1))}</h3>
+                <button type="button" data-space="${i}"><h3>${d.name || ('Workspace ' + (i + 1))}</h3>
                 <p>${count} window${count === 1 ? '' : 's'}</p></button>
+                <label class="aegis-space-rename">Rename <input data-rename-space="${i}" value="${d.name || ('Workspace ' + (i + 1))}" maxlength="24"></label>
                 ${list ? `<ul class="aegis-space-windows">${list}</ul>` : '<p class="aegis-side-note">No windows</p>'}
             </div>`;
         }).join('')}</div>`;
@@ -189,6 +190,16 @@ class VirtualDesktops {
                 const dest = Number(sel.value);
                 this.moveWindowToDesktop(windowId, dest);
                 this.showOverview();
+            });
+        });
+        overlay.querySelectorAll('[data-rename-space]').forEach((input) => {
+            input.addEventListener('click', (e) => e.stopPropagation());
+            input.addEventListener('change', () => {
+                const i = Number(input.getAttribute('data-rename-space'));
+                const name = String(input.value || '').trim().slice(0, 24);
+                if (!name || !this.desktops[i]) return;
+                this.desktops[i].name = name;
+                this.saveState();
             });
         });
     }

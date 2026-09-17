@@ -7,7 +7,7 @@
     'use strict';
 
     var WALLPAPER_KEY = 'aegis_wallpaper';
-    var WALLPAPERS = ['aurora', 'midnight', 'atmosphere', 'horizon', 'obsidian', 'light-field'];
+    var WALLPAPERS = ['aurora', 'midnight', 'atmosphere', 'horizon', 'obsidian', 'celestial', 'light-field'];
 
     function reduced() {
         return document.documentElement.classList.contains('aegis-reduced-motion')
@@ -101,6 +101,9 @@
             hideDockMenu();
             if (!appId) return;
             if (action === 'open' && global.desktop && desktop.openApp) desktop.openApp(appId);
+            if (action === 'show' && global.windowManager && windowManager.windows && windowManager.windows.has(appId)) {
+                windowManager.focusWindow(windowManager.windows.get(appId));
+            }
             if (action === 'close' && global.windowManager && windowManager.windows && windowManager.windows.has(appId)) {
                 windowManager.closeWindow(windowManager.windows.get(appId));
             }
@@ -116,6 +119,7 @@
         menu.setAttribute('data-app', appId);
         menu.innerHTML =
             '<button class="aegis-menu-item" role="menuitem" data-dock-action="open">Open ' + title + '</button>' +
+            (running ? '<button class="aegis-menu-item" role="menuitem" data-dock-action="show">Show window</button>' : '') +
             (running ? '<button class="aegis-menu-item" role="menuitem" data-dock-action="close">Close</button>' : '');
         menu.classList.add('visible');
         menu.setAttribute('aria-hidden', 'false');
@@ -193,6 +197,7 @@
         wallpapers: WALLPAPERS,
         applyWallpaper: applyWallpaper,
         currentWallpaper: currentWallpaper,
-        applyFamilyIcons: applyFamilyIcons
+        applyFamilyIcons: applyFamilyIcons,
+        showDockMenu: showDockMenu
     };
 })(typeof window !== 'undefined' ? window : this);

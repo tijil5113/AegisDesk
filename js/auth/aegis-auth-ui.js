@@ -72,11 +72,16 @@
         const reduced = document.documentElement.classList.contains('aegis-reduced-motion')
             || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
         document.body.classList.add('auth-leaving');
+        const overlay = document.getElementById('auth-success-mark');
+        if (overlay && !reduced) {
+            overlay.classList.add('is-on');
+            overlay.hidden = false;
+        }
         const last = localStorage.getItem(LAST_ROUTE_KEY) || 'desktop.html';
         const dest = last.indexOf('desktop') >= 0 ? last : 'desktop.html';
         setTimeout(function () {
             window.location.href = dest;
-        }, reduced ? 1 : 220);
+        }, reduced ? 1 : 420);
     }
 
     window.AegisAuthUI = {

@@ -1,0 +1,872 @@
+/**
+ * AegisDesk Ultimate Desktop OS
+ * Productive workspace. Labels first. Real state. Restrained motion.
+ */
+
+:root {
+    --aegis-bar-height: 42px;
+    --aegis-workspace-pad: 20px;
+}
+
+body.aegis-desktop-os {
+    --aegis-taskbar-height: 64px;
+}
+
+/* ========== SYSTEM BAR ========== */
+.aegis-system-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--aegis-bar-height);
+    z-index: var(--aegis-z-taskbar, 900);
+    display: grid;
+    grid-template-columns: minmax(160px, 1fr) minmax(180px, 1.2fr) minmax(220px, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 0 12px;
+    background: color-mix(in srgb, var(--aegis-bg-sunken, #070B14) 78%, transparent);
+    border-bottom: 1px solid var(--aegis-border-subtle, rgba(255,255,255,0.08));
+    backdrop-filter: blur(18px) saturate(140%);
+    color: var(--aegis-text-primary, #f4f7fb);
+}
+.aegis-bar-left,
+.aegis-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+.aegis-bar-right { justify-content: flex-end; }
+.aegis-bar-center {
+    display: flex;
+    justify-content: center;
+    min-width: 0;
+}
+.aegis-bar-mark {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--aegis-accent, #7C8CFF);
+    cursor: pointer;
+}
+.aegis-bar-mark svg { width: 100%; height: 100%; display: block; }
+html.theme-light .aegis-bar-mark .aegis-mark-leg { stroke: #0F172A; }
+.aegis-bar-context {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.15;
+}
+.aegis-bar-context strong {
+    font: 600 12px/1.2 var(--aegis-font-sans, Inter, system-ui, sans-serif);
+    letter-spacing: -0.01em;
+}
+.aegis-bar-context span {
+    font: 500 11px/1.2 var(--aegis-font-sans, Inter, system-ui, sans-serif);
+    color: var(--aegis-text-muted, #8B9BB0);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.aegis-bar-btn,
+.aegis-bar-clock {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    border-radius: 8px;
+    min-height: 28px;
+}
+.aegis-bar-btn {
+    width: 30px;
+    display: grid;
+    place-items: center;
+    position: relative;
+}
+.aegis-bar-btn:hover,
+.aegis-bar-clock:hover,
+.aegis-bar-mark:hover {
+    background: rgba(255,255,255,0.06);
+}
+.aegis-bar-btn.is-on { color: var(--aegis-accent, #7C8CFF); }
+.aegis-bar-dot {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ef4444;
+}
+.aegis-bar-clock {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    padding: 2px 8px;
+    line-height: 1.1;
+}
+.aegis-bar-clock time {
+    font: 600 12px/1.1 var(--aegis-font-sans, Inter, system-ui, sans-serif);
+    font-variant-numeric: tabular-nums;
+}
+.aegis-bar-clock span {
+    font: 500 10px/1.1 var(--aegis-font-sans, Inter, system-ui, sans-serif);
+    color: var(--aegis-text-muted, #8B9BB0);
+}
+
+.aegis-activity-capsule {
+    max-width: min(420px, 100%);
+    min-height: 28px;
+    padding: 4px 14px;
+    border: 1px solid var(--aegis-border-subtle, rgba(255,255,255,0.1));
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--aegis-bg-elevated, #121826) 82%, transparent);
+    color: inherit;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    overflow: hidden;
+}
+.aegis-activity-capsule .aegis-cap-app {
+    font: 650 11px/1 var(--aegis-font-sans, Inter, system-ui, sans-serif);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--aegis-accent, #7C8CFF);
+    white-space: nowrap;
+}
+.aegis-activity-capsule .aegis-cap-detail {
+    font: 500 12px/1.2 var(--aegis-font-sans, Inter, system-ui, sans-serif);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.aegis-activity-capsule.is-open {
+    border-radius: 14px;
+    padding: 8px 16px;
+}
+.aegis-cap-hint { font-size: 11px; color: var(--aegis-text-muted, #8B9BB0); }
+
+/* ========== WORKSPACE ========== */
+body.aegis-desktop-os .desktop-icon-carousel,
+body.aegis-desktop-os .aegis-workspace-host {
+    top: var(--aegis-bar-height);
+    bottom: calc(var(--aegis-taskbar-height) + 14px);
+    left: 0;
+    right: 0;
+    height: auto;
+    min-height: 280px;
+    justify-content: stretch;
+    align-items: stretch;
+    pointer-events: auto;
+    opacity: 1 !important;
+    visibility: visible !important;
+    animation: none !important;
+    transform: none !important;
+    z-index: 40;
+    display: flex !important;
+    flex-direction: column;
+}
+.aegis-workspace {
+    pointer-events: auto;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.7fr);
+    gap: 20px;
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 280px;
+    height: 100%;
+    padding: 16px 22px 8px;
+    overflow: auto;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+.aegis-work-main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow: auto;
+}
+.aegis-work-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 12px;
+}
+.aegis-work-header h2 {
+    margin: 0;
+    font: 650 22px/1.1 var(--aegis-font-sans, Inter, system-ui, sans-serif);
+    letter-spacing: -0.03em;
+}
+.aegis-kicker {
+    margin: 0 0 4px;
+    font: 650 10px/1 var(--aegis-font-sans, Inter, system-ui, sans-serif);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--aegis-text-muted, #8B9BB0);
+}
+.aegis-work-tools { display: flex; gap: 8px; flex-wrap: wrap; }
+.aegis-chip,
+.aegis-icon-btn {
+    border: 1px solid var(--aegis-border-subtle, rgba(255,255,255,0.12));
+    background: color-mix(in srgb, var(--aegis-bg-elevated, #121826) 70%, transparent);
+    color: inherit;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font: 600 12px/1 var(--aegis-font-sans, Inter, system-ui, sans-serif);
+    cursor: pointer;
+}
+.aegis-chip:hover,
+.aegis-icon-btn:hover { background: rgba(255,255,255,0.08); }
+.aegis-chip-primary {
+    background: var(--aegis-accent, #6B7CFF);
+    border-color: transparent;
+    color: #fff;
+}
+.aegis-icon-btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+}
+
+.aegis-app-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+    gap: 10px;
+}
+body[data-desktop-density="compact"] .aegis-app-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+}
+.aegis-app-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 72px;
+    padding: 10px 12px;
+    text-align: left;
+    border: 1px solid var(--aegis-border-subtle, rgba(255,255,255,0.08));
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--aegis-bg-elevated, #121826) 62%, transparent);
+    color: inherit;
+    cursor: pointer;
+    transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+.aegis-app-card:hover {
+    transform: translate3d(0, -2px, 0);
+    background: color-mix(in srgb, var(--aegis-bg-elevated, #121826) 82%, transparent);
+    border-color: rgba(124, 140, 255, 0.28);
+}
+.aegis-app-card.is-pressed { transform: scale(0.98); }
+.aegis-app-card.running { box-shadow: inset 0 0 0 1px rgba(124, 140, 255, 0.28); }
+.aegis-app-card.active { border-color: var(--aegis-accent, #7C8CFF); }
+.aegis-app-glyph {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    display: grid;
+    place-items: center;
+}
+.aegis-app-glyph svg { width: 40px; height: 40px; display: block; }
+.aegis-app-meta {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.aegis-app-name {
+    font: 650 13px/1.25 var(--aegis-font-sans, Inter, system-ui, sans-serif);
+    letter-spacing: -0.01em;
+    white-space: normal;
+    overflow: visible;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.aegis-app-status {
+    font: 500 11px/1.2 var(--aegis-font-sans, Inter, system-ui, sans-serif);
+    color: var(--aegis-text-muted, #8B9BB0);
+}
+.aegis-app-status.is-live { color: #3EC6D8; }
+.aegis-app-status.is-attention { color: #FBBF24; }
+
+.aegis-continue-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.aegis-continue-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--aegis-border-subtle, rgba(255,255,255,0.08));
+    background: color-mix(in srgb, var(--aegis-bg-elevated, #121826) 55%, transparent);
+    color: inherit;
+    cursor: pointer;
+    min-width: 140px;
+}
+.aegis-continue-chip span { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--aegis-text-muted, #8B9BB0); }
+.aegis-continue-chip strong { font-size: 13px; }
+
+/* ========== LIVE AREA ========== */
+.aegis-live-area {
+    min-width: 0;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 8px;
+}
+.aegis-widget {
+    border: 1px solid var(--aegis-border-subtle, rgba(255,255,255,0.08));
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--aegis-bg-elevated, #121826) 70%, transparent);
+    padding: 12px 14px;
+}
+.aegis-widget-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.aegis-widget-head h3 {
+    margin: 0;
+    flex: 1;
+    font: 650 15px/1.2 var(--aegis-font-sans, Inter, system-ui, sans-serif);
+}
+.aegis-widget-row,
+.aegis-widget-link {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    padding: 6px 0;
+    cursor: pointer;
+    font: 500 13px/1.3 var(--aegis-font-sans, Inter, system-ui, sans-serif);
+}
+.aegis-widget-link { color: var(--aegis-accent, #7C8CFF); font-weight: 650; }
+.aegis-widget-empty,
+.aegis-live-empty {
+    margin: 0;
+    font: 500 13px/1.45 var(--aegis-font-sans, Inter, system-ui, sans-serif);
+    color: var(--aegis-text-secondary, #C5D0DE);
+}
+.aegis-widget-list { margin: 0; padding-left: 16px; font-size: 13px; }
+.aegis-mini-clocks { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--aegis-text-muted, #8B9BB0); }
+.aegis-tz-list { display: grid; gap: 6px; }
+.aegis-tz-card {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    column-gap: 10px;
+    border: 0;
+    background: rgba(255,255,255,0.03);
+    color: inherit;
+    border-radius: 10px;
+    padding: 8px 10px;
+    text-align: left;
+    cursor: pointer;
+}
+.aegis-tz-card strong { font-variant-numeric: tabular-nums; font-size: 16px; grid-row: 1 / span 2; align-self: center; }
+.aegis-tz-city { font-weight: 700; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+.aegis-tz-meta { font-size: 11px; color: var(--aegis-text-muted, #8B9BB0); grid-column: 1; }
+.aegis-tz-card.is-night { box-shadow: inset 3px 0 0 rgba(124,140,255,0.45); }
+.aegis-tz-card.is-day { box-shadow: inset 3px 0 0 rgba(251,191,36,0.55); }
+.aegis-tz-card.is-dawn,
+.aegis-tz-card.is-dusk { box-shadow: inset 3px 0 0 rgba(62,198,216,0.5); }
+.aegis-action-rail { display: flex; flex-wrap: wrap; gap: 6px; }
+.aegis-action-rail button {
+    border: 1px solid var(--aegis-border-subtle, rgba(255,255,255,0.1));
+    background: transparent;
+    color: inherit;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font: 600 12px/1 var(--aegis-font-sans, Inter, system-ui, sans-serif);
+    cursor: pointer;
+}
+.aegis-quick-note,
+.aegis-ask-form { display: grid; gap: 8px; }
+.aegis-quick-note textarea,
+.aegis-ask-form input {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--aegis-border-subtle, rgba(255,255,255,0.12));
+    background: rgba(0,0,0,0.18);
+    color: inherit;
+    padding: 8px 10px;
+    font: 500 13px/1.4 var(--aegis-font-sans, Inter, system-ui, sans-serif);
+}
+
+body.aegis-desktop-os #quick-launch,
+body.aegis-desktop-os #desktop-widgets,
+body.aegis-desktop-os .desktop-title-container,
+body.aegis-desktop-os .carousel-nav,
+body.aegis-desktop-os #icon-modal-overlay {
+    display: none !important;
+}
+
+/* ========== DOCK ========== */
+body.aegis-desktop-os .taskbar.aegis-dock {
+    height: var(--aegis-taskbar-height);
+    padding: 8px 12px;
+    border-radius: 20px;
+}
+body.aegis-desktop-os .taskbar-icon,
+body.aegis-desktop-os .taskbar-app-icon {
+    width: 44px;
+    height: 44px;
+    position: relative;
+}
+body.aegis-desktop-os .taskbar-icon svg,
+body.aegis-desktop-os .taskbar-app-icon svg {
+    width: 26px;
+    height: 26px;
+}
+body.aegis-desktop-os .taskbar-icon-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+}
+.aegis-dock-state {
+    position: absolute;
+    left: 50%;
+    bottom: 3px;
+    width: 5px;
+    height: 5px;
+    border-radius: 99px;
+    transform: translateX(-50%);
+    background: transparent;
+}
+.aegis-dock-state[data-state="running"] { background: rgba(248,250,252,0.55); }
+.aegis-dock-state[data-state="active"] { width: 12px; background: var(--aegis-accent, #7C8CFF); }
+.aegis-dock-state[data-state="minimized"] { background: #FBBF24; }
+.aegis-dock-state[data-state="attention"] { background: #ef4444; width: 7px; height: 7px; }
+body.aegis-desktop-os .taskbar-left > .taskbar-icon[data-app],
+body.aegis-desktop-os .taskbar-left > .taskbar-app-icon[data-app] {
+    display: none !important;
+}
+body.aegis-desktop-os #notification-center-btn,
+body.aegis-desktop-os #quick-actions-btn,
+body.aegis-desktop-os #theme-switcher-btn {
+    display: none !important;
+}
+body.aegis-desktop-os .taskbar-pinned-apps {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+body.aegis-desktop-os .taskbar-icon.running { opacity: 1; }
+body.aegis-desktop-os .taskbar-windows { display: none; }
+.aegis-dock-preview {
+    position: fixed;
+    width: 220px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: var(--glass-bg-solid, #121826);
+    border: 1px solid var(--aegis-border-default, rgba(255,255,255,0.12));
+    box-shadow: var(--aegis-shadow-3, 0 16px 40px rgba(0,0,0,0.35));
+    z-index: 1200;
+    opacity: 0;
+    pointer-events: none;
+    display: grid;
+    gap: 4px;
+}
+.aegis-dock-preview.visible { opacity: 1; pointer-events: auto; }
+.aegis-dock-preview p { margin: 0; font-size: 11px; color: var(--aegis-text-muted, #8B9BB0); }
+.aegis-dock-preview button {
+    margin-top: 6px;
+    border: 0;
+    background: var(--aegis-accent-soft, rgba(124,140,255,0.16));
+    color: inherit;
+    border-radius: 8px;
+    padding: 6px;
+    cursor: pointer;
+}
+
+/* ========== PANELS ========== */
+.aegis-clock-panel,
+.aegis-quick-settings,
+.aegis-customize {
+    position: fixed;
+    z-index: 1100;
+    width: min(420px, calc(100vw - 16px));
+    max-height: min(72vh, 640px);
+    overflow: auto;
+    padding: 16px;
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--aegis-bg-elevated, #121826) 92%, transparent);
+    border: 1px solid var(--aegis-border-default, rgba(255,255,255,0.12));
+    box-shadow: var(--aegis-shadow-4, 0 24px 60px rgba(0,0,0,0.4));
+    display: none;
+}
+.aegis-clock-panel.visible,
+.aegis-quick-settings.visible,
+.aegis-customize.visible { display: block; }
+.aegis-clock-panel { top: calc(var(--aegis-bar-height) + 8px); right: 12px; }
+.aegis-quick-settings { top: calc(var(--aegis-bar-height) + 8px); right: 52px; }
+.aegis-customize { top: 12%; left: 50%; transform: translateX(-50%); width: min(480px, calc(100vw - 24px)); }
+.aegis-clock-hero {
+    display: grid;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+.aegis-clock-hero strong { font-size: 36px; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.aegis-phase { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--aegis-text-muted, #8B9BB0); }
+.aegis-cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin: 8px 0 14px;
+}
+.aegis-cal-grid span {
+    text-align: center;
+    font-size: 12px;
+    padding: 4px 0;
+    border-radius: 6px;
+}
+.aegis-cal-grid .is-today { background: var(--aegis-accent, #6B7CFF); color: #fff; }
+.aegis-clock-world { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.aegis-tz-tools { display: flex; gap: 2px; grid-column: 1 / -1; justify-content: flex-end; }
+.aegis-clock-add {
+    display: grid;
+    gap: 6px;
+    margin: 10px 0 6px;
+    font: 650 11px/1 var(--aegis-font-sans, Inter, system-ui, sans-serif);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--aegis-text-muted, #8B9BB0);
+}
+.aegis-clock-add input,
+.aegis-clock-results {
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 500;
+}
+.aegis-clock-add input {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--aegis-border-subtle, rgba(255,255,255,0.12));
+    background: rgba(0,0,0,0.18);
+    color: inherit;
+    padding: 8px 10px;
+}
+.aegis-phase-mark {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 4px;
+    vertical-align: 1px;
+    background: #FBBF24;
+}
+.aegis-phase-mark[data-phase="night"] { background: #7C8CFF; }
+.aegis-phase-mark[data-phase="dawn"],
+.aegis-phase-mark[data-phase="dusk"] { background: #3EC6D8; }
+.app-library-cat {
+    margin: 16px 0 8px;
+    font: 650 11px/1 var(--aegis-font-sans, Inter, system-ui, sans-serif);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--aegis-text-muted, #8B9BB0);
+}
+.app-library-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+    gap: 10px;
+}
+body.aegis-larger-text {
+    --aegis-ui-scale: 1.12;
+}
+body.aegis-larger-text .aegis-app-name,
+body.aegis-larger-text .aegis-widget-head h3,
+body.aegis-larger-text .aegis-bar-clock time {
+    font-size: 15px;
+}
+body.aegis-high-contrast .aegis-kicker,
+body.aegis-high-contrast .aegis-app-status,
+body.aegis-high-contrast .aegis-widget-empty,
+html.aegis-high-contrast .aegis-kicker {
+    color: inherit;
+    opacity: 0.88;
+}
+body.aegis-hide-labels .aegis-app-name { /* still required — density only compresses cards */ }
+body.aegis-live-off #aegis-activity-capsule { display: none !important; }
+/* Hide the legacy icon strip only after the workspace is actually in the DOM.
+   Unconditional display:none left a blank desktop whenever init aborted. */
+#desktop-icon-carousel:has(> #aegis-workspace) .carousel-container,
+#desktop-icon-carousel:has(> #aegis-workspace) .carousel-nav {
+    display: none !important;
+}
+.aegis-clock-tools,
+.aegis-qs-grid,
+.aegis-qs-papers { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.aegis-paper-chip {
+    border: 1px solid var(--aegis-border-subtle, rgba(255,255,255,0.12));
+    background: transparent;
+    color: inherit;
+    border-radius: 999px;
+    padding: 6px 10px;
+    text-transform: capitalize;
+    cursor: pointer;
+    font-size: 12px;
+}
+.aegis-paper-chip.is-on { background: var(--aegis-accent-soft, rgba(124,140,255,0.18)); }
+.aegis-customize header { display: flex; justify-content: space-between; align-items: center; }
+.aegis-customize h2 { margin: 0; font-size: 18px; }
+.aegis-customize label,
+.aegis-check { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 13px; }
+.aegis-customize select {
+    margin-left: auto;
+    background: rgba(0,0,0,0.2);
+    color: inherit;
+    border-radius: 8px;
+    border: 1px solid var(--aegis-border-subtle, rgba(255,255,255,0.12));
+    padding: 4px 8px;
+}
+.aegis-menu-note {
+    margin: 0;
+    padding: 6px 12px 10px;
+    font-size: 12px;
+    color: var(--aegis-text-muted, #8B9BB0);
+}
+
+/* ========== OVERVIEW / WELCOME ========== */
+.aegis-overview {
+    position: fixed;
+    inset: 0;
+    z-index: 1300;
+    background: rgba(7,11,20,0.62);
+    display: none;
+    padding: 48px 24px 88px;
+}
+.aegis-overview.visible { display: block; }
+.aegis-overview-inner { max-width: 1100px; margin: 0 auto; }
+.aegis-overview-inner header { display: flex; justify-content: space-between; align-items: center; }
+.aegis-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+}
+.aegis-overview-card {
+    position: relative;
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--aegis-bg-elevated, #121826) 86%, transparent);
+    border: 1px solid var(--aegis-border-subtle, rgba(255,255,255,0.1));
+    padding: 14px;
+}
+.aegis-overview-card button[data-focus-win] {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    display: grid;
+    gap: 6px;
+}
+.aegis-overview-card .aegis-icon-btn { position: absolute; top: 8px; right: 8px; }
+.aegis-space-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.aegis-space-pill {
+    border: 1px solid var(--aegis-border-subtle, rgba(255,255,255,0.12));
+    background: transparent;
+    color: inherit;
+    border-radius: 999px;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+.aegis-space-pill.is-on { background: var(--aegis-accent, #6B7CFF); color: #fff; border-color: transparent; }
+
+.aegis-welcome {
+    position: fixed;
+    inset: 0;
+    z-index: 1600;
+    display: grid;
+    place-items: center;
+    background: rgba(7,11,20,0.72);
+}
+.aegis-welcome-card {
+    width: min(420px, calc(100vw - 24px));
+    padding: 28px;
+    border-radius: 22px;
+    background: var(--aegis-bg-elevated, #121826);
+    display: grid;
+    gap: 12px;
+    text-align: center;
+}
+.aegis-welcome-card h1 { margin: 0; font-size: 26px; letter-spacing: -0.03em; }
+.aegis-welcome-card label { display: grid; gap: 6px; text-align: left; font-size: 13px; }
+.aegis-welcome-card select {
+    background: rgba(0,0,0,0.2);
+    color: inherit;
+    border-radius: 8px;
+    border: 1px solid var(--aegis-border-subtle, rgba(255,255,255,0.12));
+    padding: 8px;
+}
+
+/* ========== WINDOWS 3.0 ========== */
+body.aegis-desktop-os .window {
+    top: calc(var(--aegis-bar-height) + 8px);
+}
+body.aegis-desktop-os .window.maximized {
+    top: var(--aegis-bar-height) !important;
+    height: calc(100dvh - var(--aegis-bar-height) - var(--aegis-taskbar-height) - var(--aegis-dock-inset, 10px)) !important;
+    max-height: calc(100dvh - var(--aegis-bar-height) - var(--aegis-taskbar-height) - var(--aegis-dock-inset, 10px)) !important;
+}
+.window-button {
+    width: 28px;
+    height: 22px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+}
+.window-button:hover { background: rgba(255,255,255,0.08); }
+.window-button.close:hover { background: rgba(239, 68, 68, 0.22); }
+.window-button svg { width: 12px; height: 12px; }
+.window-title {
+    font-weight: 650;
+    letter-spacing: -0.01em;
+}
+.window-document-title {
+    margin-left: 8px;
+    font-size: 12px;
+    color: var(--aegis-text-muted, #8B9BB0);
+    font-weight: 500;
+}
+
+/* Launch from origin */
+.window.aegis-from-origin {
+    animation: aegisFromOrigin 240ms var(--aegis-ease-enter, cubic-bezier(.2,.8,.2,1)) both;
+    transform-origin: var(--aegis-origin-x, 50%) var(--aegis-origin-y, 40%);
+}
+@keyframes aegisFromOrigin {
+    from { opacity: 0.55; transform: scale(0.86); }
+    to { opacity: 1; transform: none; }
+}
+
+/* ========== COMMAND CENTER ========== */
+#global-search-overlay.aegis-command-center .global-search-panel,
+.global-search-overlay .global-search-panel {
+    border-radius: 20px;
+}
+.global-search-header { letter-spacing: 0.12em; text-transform: uppercase; font-size: 11px; color: var(--aegis-text-muted, #8B9BB0); }
+.app-tile-purpose {
+    margin-top: 4px;
+    font-size: 11px;
+    line-height: 1.3;
+    color: var(--aegis-text-muted, #8B9BB0);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ========== WALLPAPERS ========== */
+.desktop-background[data-wallpaper="celestial"] {
+    background-image:
+        radial-gradient(ellipse 40% 28% at 18% 18%, rgba(124,140,255,0.22), transparent 58%),
+        radial-gradient(ellipse 36% 30% at 82% 72%, rgba(62,198,216,0.12), transparent 55%),
+        radial-gradient(circle at 70% 22%, rgba(248,250,252,0.08) 0 1px, transparent 2px),
+        linear-gradient(180deg, #070B18 0%, #10182A 52%, #070B14 100%);
+}
+body.aegis-time-aware[data-aegis-phase="night"] .desktop-background { filter: saturate(0.92) brightness(0.92); }
+body.aegis-time-aware[data-aegis-phase="day"] .desktop-background { filter: saturate(1.04) brightness(1.03); }
+html.aegis-reduced-motion body.aegis-time-aware .desktop-background,
+body.performance-mode.aegis-time-aware .desktop-background { filter: none; }
+
+/* ========== NOTIFICATIONS ========== */
+.notification-toast,
+.aegis-notification {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 8px 10px;
+}
+.notification-center-panel h3 { letter-spacing: -0.02em; }
+
+/* ========== LIGHT THEME ========== */
+html.theme-light .aegis-system-bar,
+html.theme-light .aegis-widget,
+html.theme-light .aegis-app-card,
+html.theme-light .aegis-clock-panel,
+html.theme-light .aegis-quick-settings,
+html.theme-light .aegis-customize {
+    color: #0f172a;
+}
+html.theme-light .aegis-app-name,
+html.theme-light .aegis-work-header h2,
+html.theme-light .aegis-widget-head h3 { color: #0f172a; }
+html.theme-light .aegis-kicker,
+html.theme-light .aegis-app-status,
+html.theme-light .aegis-widget-empty { color: #334155; }
+html.theme-light .aegis-app-card,
+html.theme-light .aegis-widget {
+    background: color-mix(in srgb, #ffffff 78%, transparent);
+    border-color: rgba(15,23,42,0.08);
+}
+html.theme-light .aegis-system-bar {
+    background: color-mix(in srgb, #F5F7FB 82%, transparent);
+    border-bottom-color: rgba(15,23,42,0.08);
+}
+
+/* ========== FOCUS / DROP ========== */
+body.aegis-focus-on .aegis-live-area,
+body.aegis-focus-on .aegis-continue { opacity: 0.35; }
+.aegis-workspace.is-drop { outline: 2px dashed var(--aegis-accent, #7C8CFF); outline-offset: -8px; }
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1280px) {
+    .aegis-workspace { grid-template-columns: minmax(0, 1fr) 260px; padding: 12px 14px; }
+    .aegis-app-grid { grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); }
+}
+@media (max-width: 1024px) {
+    .aegis-workspace { grid-template-columns: 1fr; }
+    .aegis-live-area { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .aegis-system-bar { grid-template-columns: 1fr auto 1fr; }
+    .aegis-bar-context span { display: none; }
+    .aegis-app-name { font-size: 13px; }
+}
+@media (max-width: 768px) {
+    .aegis-system-bar { display: flex; justify-content: space-between; }
+    .aegis-bar-center { display: none; }
+    .aegis-live-area { display: none; }
+    .aegis-workspace { padding: 10px; }
+    .aegis-app-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .aegis-app-name { font-size: 13px; }
+    body.aegis-desktop-os .window:not(.maximized) {
+        top: var(--aegis-bar-height) !important;
+        height: calc(100dvh - var(--aegis-bar-height) - var(--aegis-taskbar-height) - 8px) !important;
+    }
+}
+@media (max-width: 430px) {
+    .aegis-app-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .aegis-app-card { min-height: 64px; padding: 8px; gap: 8px; }
+    .aegis-bar-clock span,
+    #aegis-bar-quick,
+    #aegis-bar-focus { display: none; }
+}
+
+html.aegis-reduced-motion .aegis-app-card,
+html.aegis-reduced-motion .window.aegis-from-origin,
+body.performance-mode .aegis-app-card,
+body.performance-mode .window.aegis-from-origin {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+}
+.visually-hidden {
+    position: absolute !important;
+    width: 1px; height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+}

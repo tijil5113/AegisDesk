@@ -199,6 +199,7 @@ class DesktopWidgets {
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
+            if (document.getElementById('aegis-live-area') || document.body.classList.contains('aegis-desktop-os')) return;
             if (typeof storage !== 'undefined') {
                 const widgetsEnabled = storage.get('desktopWidgets', true);
                 if (widgetsEnabled) {
@@ -209,6 +210,7 @@ if (document.readyState === 'loading') {
     });
 } else {
     setTimeout(() => {
+        if (document.getElementById('aegis-live-area') || document.body.classList.contains('aegis-desktop-os')) return;
         if (typeof storage !== 'undefined') {
             const widgetsEnabled = storage.get('desktopWidgets', true);
             if (widgetsEnabled) {

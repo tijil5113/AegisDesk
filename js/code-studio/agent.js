@@ -59,6 +59,23 @@
         if (STATES.indexOf(state) < 0) return;
         this.state = state;
         if (this.host && this.host.onState) this.host.onState(state);
+        try {
+            var live = !!(LIVE[state]);
+            var detail = this.plan && this.plan.length
+                ? ('Step ' + (this.step || 0) + ' of ' + this.plan.length)
+                : (state === 'COMPLETED' ? 'Finished' : state);
+            var payload = {
+                source: 'aegis-code-studio',
+                type: 'agent-status',
+                active: live,
+                detail: detail,
+                progress: this.plan && this.plan.length ? ((this.step || 0) / this.plan.length) : null
+            };
+            if (!live) payload._doneAt = Date.now();
+            if (window.parent && window.parent !== window) window.parent.postMessage(payload, window.location.origin);
+            window.AegisLive = window.AegisLive || {};
+            window.AegisLive.agent = payload;
+        } catch (e) { /* ignore */ }
     };
 
     Agent.prototype.isLive = function () {

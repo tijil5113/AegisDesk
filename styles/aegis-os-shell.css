@@ -883,6 +883,7 @@ body.performance-mode .notification {
         animation: none !important;
         transition: none !important;
         transform: none !important;
+        opacity: 1 !important;
     }
     .apps-menu.visible {
         animation: none !important;

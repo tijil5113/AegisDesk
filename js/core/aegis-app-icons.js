@@ -76,7 +76,7 @@
     const CATALOG = [
         { id: 'mail', name: 'Mail', description: 'Compose and send mail through AegisDesk. Sent history stays on this device.' },
         { id: 'music', name: 'Music', description: 'Search YouTube and play results in a built-in player with a queue foundation.' },
-        { id: 'ai-chat', name: 'AI Assistant', description: 'A conversation app for writing, planning, and questions. Uses the server OpenAI integration.' },
+        { id: 'ai-chat', name: 'Aegis', description: 'Ask questions, plan, and write. Uses the server OpenAI integration when you send a message.' },
         { id: 'news-reader', name: 'News', description: 'Headlines from configured server news providers, with loading and error states.' },
         { id: 'tasks', name: 'Tasks', description: 'Create, complete, and organize work with filters that match saved task data.' },
         { id: 'notes', name: 'Notes', description: 'A focused writing space with local notes, search, and autosave.' },
@@ -86,7 +86,7 @@
         { id: 'bookmarks', name: 'Bookmarks', description: 'Save, search, and open links. Integrates with Browser when available.' },
         { id: 'calculator', name: 'Calculator', description: 'A keyboard-ready calculator with clear, backspace, and honest error handling.' },
         { id: 'terminal', name: 'Terminal', description: 'A simulated AegisDesk shell with safe commands. Not a host operating-system prompt.' },
-        { id: 'code-editor', name: 'Aegis Code Studio', description: 'An AI-assisted browser workspace for building, previewing, and repairing frontend projects. Not unrestricted disk or shell access.' },
+        { id: 'code-editor', name: 'Code Studio', description: 'Build software with Aegis. An AI-assisted browser workspace — not unrestricted disk or shell access.' },
         { id: 'gallery', name: 'Gallery', description: 'View images you import. Nothing is fabricated or pulled from stock libraries.' },
         { id: 'drawing', name: 'Drawing', description: 'Brush, eraser, color, and export on a local canvas.' },
         { id: 'system-monitor', name: 'System Monitor', description: 'Browser runtime metrics such as JS heap and battery. Not host CPU or RAM.' },

@@ -58,16 +58,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 100);
     
-    // Welcome message and test notification
+    // Keep the console hint. Do not spam a prototype "enhanced" toast on every boot.
     setTimeout(() => {
-        console.log('Welcome to AegisDesk! Press Alt+Space to open the apps menu.');
-        
-        // Show welcome notification with new features
-        if (typeof notificationSystem !== 'undefined') {
-            notificationSystem.success('AegisDesk Enhanced!', 'New features loaded: Themes, Notifications, Virtual Desktops, and more!', {
-                duration: 5000
-            });
-        }
+        console.log('Welcome to AegisDesk! Press Alt+Space to open the App Library.');
     }, 3000);
     
     // Prevent context menu on desktop (optional)

@@ -323,6 +323,36 @@ body.auth-leaving .auth-atmosphere {
     opacity: 0.4;
     transition: opacity 220ms ease;
 }
+.auth-success-mark {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    display: none;
+    place-items: center;
+    background: #070B14;
+    pointer-events: none;
+}
+.auth-success-mark.is-on { display: grid; }
+.auth-success-mark svg {
+    width: 72px;
+    height: 72px;
+    color: #7C8CFF;
+}
+.auth-success-mark .aegis-mark-ring {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: aegisRingDraw 420ms cubic-bezier(.2,.8,.2,1) forwards;
+}
+.auth-success-mark .aegis-mark-leg {
+    opacity: 0;
+    animation: aegisFade 240ms ease 160ms forwards;
+}
+.auth-success-mark .aegis-mark-slit {
+    opacity: 0;
+    animation: aegisFade 260ms ease 280ms forwards;
+}
+@keyframes aegisRingDraw { to { stroke-dashoffset: 0; } }
+@keyframes aegisFade { to { opacity: 1; } }
 
 @keyframes authAtmosphere { from { opacity: 0; } to { opacity: 1; } }
 @keyframes authRing { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }

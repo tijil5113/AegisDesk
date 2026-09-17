@@ -56,11 +56,11 @@ class GlobalSearch {
         // Create search overlay
         const overlay = document.createElement('div');
         overlay.id = 'global-search-overlay';
-        overlay.className = 'global-search-overlay';
+        overlay.className = 'global-search-overlay aegis-command-center';
         overlay.setAttribute('aria-hidden', 'true');
         
         overlay.innerHTML = `
-            <div class="global-search-panel" role="dialog" aria-modal="true" aria-label="Global search">
+            <div class="global-search-panel" role="dialog" aria-modal="true" aria-label="Aegis Command Center">
                 <div class="global-search-input-container">
                     <svg class="global-search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <circle cx="11" cy="11" r="8"></circle>
@@ -70,9 +70,9 @@ class GlobalSearch {
                         type="text" 
                         id="global-search-input" 
                         class="global-search-input" 
-                        placeholder="Search apps, notes, tasks, mail, music..."
+                        placeholder="Command Center — apps, actions, settings"
                         autocomplete="off"
-                        aria-label="Global search"
+                        aria-label="Aegis Command Center"
                         aria-controls="global-search-results"
                         role="combobox"
                         aria-autocomplete="list"
@@ -213,7 +213,12 @@ class GlobalSearch {
             { id: 'new-note', title: 'New Note', command: 'new note', type: 'command', category: 'Create' },
             { id: 'new-task', title: 'New Task', command: 'new task', type: 'command', category: 'Create' },
             { id: 'open-settings', title: 'Open Settings', command: 'open settings', type: 'command', category: 'Appearance' },
-            { id: 'dark-theme', title: 'Switch to dark theme', command: 'dark theme', type: 'command', category: 'Appearance' },
+            { id: 'open-code', title: 'Open Code Studio', command: 'code studio', type: 'command', category: 'Open' },
+            { id: 'open-world', title: 'Open World Clock', command: 'world clock', type: 'command', category: 'Open' },
+            { id: 'add-clock', title: 'Add world clock', command: 'add world clock', type: 'command', category: 'Create' },
+            { id: 'wallpaper', title: 'Change wallpaper', command: 'change wallpaper', type: 'command', category: 'Appearance' },
+            { id: 'customize', title: 'Customize Desktop', command: 'customize desktop', type: 'command', category: 'Appearance' },
+            { id: 'dark-mode', title: 'Dark mode', command: 'dark mode', type: 'command', category: 'Appearance' },
             { id: 'light-theme', title: 'Switch to light theme', command: 'light theme', type: 'command', category: 'Appearance' },
             { id: 'focus-on', title: 'Enter Focus Mode', command: 'focus mode', type: 'command', category: 'Workspace' },
             { id: 'layouts', title: 'Two column layout', command: 'two columns', type: 'command', category: 'Window' },
@@ -285,7 +290,10 @@ class GlobalSearch {
         this.searchIndex.apps.forEach(app => {
             if (app.title.toLowerCase().includes(lowerQuery) || 
                 app.id.toLowerCase().includes(lowerQuery) ||
-                (app.id === 'mail' && (lowerQuery === 'email' || lowerQuery === 'e-mail' || lowerQuery === 'e mail')) ||
+                (app.id === 'ai-chat' && (lowerQuery === 'aegis' || lowerQuery.includes('intelligence'))) ||
+                (app.id === 'code-editor' && (lowerQuery.includes('code') || lowerQuery.includes('studio') || lowerQuery === 'ide')) ||
+                (app.id === 'world-clock' && (lowerQuery.includes('world') || lowerQuery.includes('clock') || lowerQuery.includes('timezone'))) ||
+                (app.id === 'settings' && (lowerQuery.includes('setting') || lowerQuery.includes('wallpaper') || lowerQuery === 'theme')) ||
                 (app.id === 'music' && (lowerQuery === 'youtube' || lowerQuery === 'songs' || lowerQuery === 'player'))) {
                 this.results.push(app);
             }
@@ -392,16 +400,17 @@ class GlobalSearch {
             else if (result.type === 'help') grouped.help.push(result);
             else if (result.type === 'file') grouped.files.push(result);
         });
-        
-        // Flatten with type headers
+
         const flattened = [];
-        Object.entries(grouped).forEach(([type, items]) => {
-            if (items.length > 0) {
-                flattened.push({ type: 'header', title: this.getTypeTitle(type) });
-                flattened.push(...items);
-            }
+        const order = ['apps', 'commands', 'notes', 'tasks', 'files', 'bookmarks', 'help', 'ask'];
+        let first = true;
+        order.forEach((type) => {
+            const items = grouped[type];
+            if (!items || !items.length) return;
+            flattened.push({ type: 'header', title: first ? 'Best match' : this.getTypeTitle(type) });
+            first = false;
+            flattened.push(...items);
         });
-        
         return flattened;
     }
 
@@ -412,7 +421,7 @@ class GlobalSearch {
             tasks: 'Tasks',
             files: 'Files',
             help: 'Help',
-            commands: 'Commands',
+            commands: 'Actions',
             bookmarks: 'Bookmarks',
             ask: 'Ask Aegis'
         };
@@ -435,15 +444,16 @@ class GlobalSearch {
             if (recentApps.length || recentCmds.length) {
                 recents = '<div class="aegis-search-recents">';
                 if (recentApps.length) {
-                    recents += '<div class="global-search-header">Recent apps</div>' + recentApps.map((id, i) => {
+                    recents += '<div class="global-search-header">Recent apps</div>' + recentApps.map((id) => {
                         const title = (typeof APP_REGISTRY !== 'undefined' && APP_REGISTRY[id] && APP_REGISTRY[id].title) || id;
-                        return `<div class="global-search-result" data-recent-app="${this.escapeHtml(id)}" role="option"><div class="global-search-result-icon">📱</div><div class="global-search-result-content"><div class="global-search-result-title">${this.escapeHtml(title)}</div></div></div>`;
+                        const icon = (window.AEGIS_APP_ICONS && AEGIS_APP_ICONS[id]) || '';
+                        return `<div class="global-search-result" data-recent-app="${this.escapeHtml(id)}" role="option"><div class="global-search-result-icon">${icon || 'App'}</div><div class="global-search-result-content"><div class="global-search-result-title">${this.escapeHtml(title)}</div></div></div>`;
                     }).join('');
                 }
                 if (recentCmds.length) {
                     recents += '<div class="global-search-header">Recent commands</div>' + recentCmds.map((id) => {
                         const def = (typeof AegisActions !== 'undefined' && AegisActions.get(id)) || { title: id };
-                        return `<div class="global-search-result" data-recent-cmd="${this.escapeHtml(id)}" role="option"><div class="global-search-result-icon">⚡</div><div class="global-search-result-content"><div class="global-search-result-title">${this.escapeHtml(def.title)}</div></div></div>`;
+                        return `<div class="global-search-result" data-recent-cmd="${this.escapeHtml(id)}" role="option"><div class="global-search-result-icon">Do</div><div class="global-search-result-content"><div class="global-search-result-title">${this.escapeHtml(def.title)}</div></div></div>`;
                     }).join('');
                 }
                 recents += '</div>';
@@ -496,17 +506,20 @@ class GlobalSearch {
     }
 
     getResultIcon(result) {
+        if (result.type === 'app' && result.id && window.AEGIS_APP_ICONS && AEGIS_APP_ICONS[result.id]) {
+            return AEGIS_APP_ICONS[result.id];
+        }
         const icons = {
-            app: '📱',
-            note: '📝',
-            task: '✓',
-            file: '📄',
-            help: '❓',
-            command: '⚡',
-            bookmark: '🔖',
-            ask: '✦'
+            app: 'App',
+            note: 'Note',
+            task: 'Task',
+            file: 'File',
+            help: 'Help',
+            command: 'Do',
+            bookmark: 'Link',
+            ask: 'Ask'
         };
-        return icons[result.type] || '📄';
+        return icons[result.type] || 'Item';
     }
 
     handleKeyNavigation(e) {
@@ -638,10 +651,16 @@ class GlobalSearch {
             if (typeof settingsApp !== 'undefined') settingsApp.open();
         } else if (cmd.includes('open dashboard')) {
             if (typeof window !== 'undefined') window.open('dashboard.html', '_blank');
-        } else if (cmd.includes('dark theme')) {
+        } else if (cmd.includes('dark theme') || cmd.includes('dark mode')) {
             if (typeof AegisActions !== 'undefined') AegisActions.run('settings.setTheme', { theme: 'dark' });
         } else if (cmd.includes('light theme')) {
             if (typeof AegisActions !== 'undefined') AegisActions.run('settings.setTheme', { theme: 'light' });
+        } else if (cmd.includes('world clock') || cmd.includes('add world')) {
+            if (typeof desktop !== 'undefined') desktop.openApp('world-clock');
+        } else if (cmd.includes('code studio')) {
+            if (typeof desktop !== 'undefined') desktop.openApp('code-editor');
+        } else if (cmd.includes('change wallpaper') || cmd.includes('customize desktop')) {
+            if (window.AegisDesktopOS && AegisDesktopOS.customize) AegisDesktopOS.customize();
         } else if (cmd.includes('focus')) {
             if (typeof AegisActions !== 'undefined') AegisActions.run('focus.enter', { minutes: 25 });
         } else if (cmd.includes('two columns')) {

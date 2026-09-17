@@ -46,11 +46,20 @@ class SettingsApp {
                         <p class="aegis-app-subtitle">Control center for this AegisDesk browser profile</p>
                     </div>
                 </header>
+                <label class="aegis-search-field settings-search">
+                    <span class="visually-hidden">Search settings</span>
+                    <input type="search" id="settings-search" class="aegis-input" placeholder="Search wallpaper, motion, clock…" autocomplete="off">
+                </label>
                 <nav class="settings-nav" aria-label="Settings sections">
                     <a href="#settings-appearance">Appearance</a>
                     <a href="#settings-desktop">Desktop</a>
-                    <a href="#settings-motion">Motion</a>
+                    <a href="#settings-dock">Dock</a>
+                    <a href="#settings-widgets">Widgets</a>
+                    <a href="#settings-world">World Time</a>
                     <a href="#settings-notifications">Notifications</a>
+                    <a href="#settings-aegis">Aegis</a>
+                    <a href="#settings-apps">Applications</a>
+                    <a href="#settings-a11y">Accessibility</a>
                     <a href="#settings-account">Account</a>
                     <a href="#settings-about">About</a>
                 </nav>
@@ -79,9 +88,95 @@ class SettingsApp {
                                 <button type="button" class="wallpaper-chip" data-paper="midnight">Midnight</button>
                                 <button type="button" class="wallpaper-chip" data-paper="atmosphere">Atmosphere</button>
                                 <button type="button" class="wallpaper-chip" data-paper="horizon">Horizon</button>
-                                <button type="button" class="wallpaper-chip" data-paper="obsidian">Obsidian</button>
+                                <button type="button" class="wallpaper-chip" data-paper="obsidian">Obsidian Flow</button>
+                                <button type="button" class="wallpaper-chip" data-paper="celestial">Celestial</button>
                                 <button type="button" class="wallpaper-chip" data-paper="light-field">Light Field</button>
                             </div>
+                        </div>
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-item-label" style="flex: 1;">
+                            <div class="settings-item-title">Density</div>
+                            <div class="settings-item-desc">Comfortable or compact application cards. Labels stay visible either way.</div>
+                            <div class="icon-size-buttons" style="margin-top: 10px;">
+                                <button type="button" class="icon-size-btn" data-density="comfortable">Comfortable</button>
+                                <button type="button" class="icon-size-btn" data-density="compact">Compact</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-item-label" style="flex: 1;">
+                            <div class="settings-item-title">Widgets and layout</div>
+                            <div class="settings-item-desc">Show or hide Today, Tasks, Notes, Calendar, World Time, and Continue.</div>
+                            <label class="aegis-check" style="margin-top:10px;"><input type="checkbox" data-desk-pref="labels"> Persistent application names</label>
+                            <label class="aegis-check"><input type="checkbox" data-desk-pref="liveActivity"> Live activity capsule</label>
+                            <button type="button" id="settings-customize-desktop" class="aegis-chip" style="margin-top: 10px;">Customize Desktop</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section" id="settings-dock">
+                    <div class="settings-section-title">Dock</div>
+                    <div class="settings-item">
+                        <div class="settings-item-label">
+                            <div class="settings-item-title">Pinned and running apps</div>
+                            <div class="settings-item-desc">Pinned apps stay. Running apps appear while open. Tooltips include window state.</div>
+                            <label class="aegis-check" style="margin-top:10px;"><input type="checkbox" data-desk-pref="showRunningDock"> Show running apps in Dock</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section" id="settings-widgets">
+                    <div class="settings-section-title">Widgets</div>
+                    <div class="settings-item">
+                        <div class="settings-item-label" style="flex: 1;">
+                            <div class="settings-item-title">Live widgets</div>
+                            <div class="settings-item-desc">Widgets use persisted notes, tasks, calendar events, clocks, and music state. Nothing is fabricated.</div>
+                            <button type="button" id="settings-widgets-btn" class="aegis-chip" style="margin-top: 10px;">Choose widgets</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section" id="settings-world">
+                    <div class="settings-section-title">World Time</div>
+                    <div class="settings-item">
+                        <div class="settings-item-label" style="flex: 1;">
+                            <div class="settings-item-title">Cities and time zones</div>
+                            <div class="settings-item-desc">Search IANA-compatible cities. Offsets are relative to local time, including DST.</div>
+                            <button type="button" id="settings-world-clock-btn" class="aegis-chip" style="margin-top: 10px;">Open World Clock</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section" id="settings-aegis">
+                    <div class="settings-section-title">Aegis</div>
+                    <div class="settings-item">
+                        <div class="settings-item-label">
+                            <div class="settings-item-title">Command Center</div>
+                            <div class="settings-item-desc">Ctrl/Cmd+K searches apps and actions locally. Ask Aegis is optional.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section" id="settings-apps">
+                    <div class="settings-section-title">Applications</div>
+                    <div class="settings-item">
+                        <div class="settings-item-label">
+                            <div class="settings-item-title">App Library</div>
+                            <div class="settings-item-desc">Every application has an icon, a name, and a one-line purpose.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section" id="settings-a11y">
+                    <div class="settings-section-title">Accessibility</div>
+                    <div class="settings-item">
+                        <div class="settings-item-label">
+                            <div class="settings-item-title">Reduced motion</div>
+                            <div class="settings-item-desc">Follows the browser preference. Decorative drift and parallax pause. Controls still change state.</div>
+                            <label class="aegis-check" style="margin-top:10px;"><input type="checkbox" data-desk-pref="largerText"> Larger interface text</label>
+                            <label class="aegis-check"><input type="checkbox" data-desk-pref="highContrast"> Higher contrast</label>
+                            <label class="aegis-check"><input type="checkbox" data-desk-pref="timeAware"> Time-aware wallpaper tone (does not change your theme)</label>
                         </div>
                     </div>
                 </div>
@@ -350,6 +445,47 @@ class SettingsApp {
     attachEvents(window) {
         const content = window.querySelector('.window-content');
         
+        const search = content.querySelector('#settings-search');
+        if (search) {
+            search.addEventListener('input', () => {
+                const q = search.value.toLowerCase().trim();
+                content.querySelectorAll('.settings-section').forEach((section) => {
+                    section.hidden = !!(q && !section.textContent.toLowerCase().includes(q));
+                });
+            });
+        }
+        const customizeBtn = content.querySelector('#settings-customize-desktop, #settings-widgets-btn');
+        content.querySelectorAll('#settings-customize-desktop, #settings-widgets-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                if (window.AegisDesktopOS && AegisDesktopOS.customize) AegisDesktopOS.customize();
+            });
+        });
+        const worldBtn = content.querySelector('#settings-world-clock-btn');
+        if (worldBtn) {
+            worldBtn.addEventListener('click', () => {
+                if (window.desktop && desktop.openApp) desktop.openApp('world-clock');
+            });
+        }
+        content.querySelectorAll('[data-density]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                if (window.AegisDesktopOS) AegisDesktopOS.save({ density: btn.getAttribute('data-density') });
+                content.querySelectorAll('[data-density]').forEach((b) => b.classList.toggle('active', b === btn));
+            });
+        });
+        const deskPrefs = (window.AegisDesktopOS && AegisDesktopOS.prefs) ? AegisDesktopOS.prefs() : {};
+        content.querySelectorAll('[data-desk-pref]').forEach((input) => {
+            const key = input.getAttribute('data-desk-pref');
+            const defaultsOn = (key === 'labels' || key === 'liveActivity' || key === 'showRunningDock');
+            input.checked = defaultsOn ? deskPrefs[key] !== false : !!deskPrefs[key];
+            input.addEventListener('change', () => {
+                if (!window.AegisDesktopOS) return;
+                const patch = {};
+                patch[key] = input.checked;
+                AegisDesktopOS.save(patch);
+                if (AegisDesktopOS.refresh) AegisDesktopOS.refresh();
+            });
+        });
+
         // Toggle switches
         content.querySelectorAll('.settings-toggle').forEach(toggle => {
             toggle.addEventListener('click', () => {

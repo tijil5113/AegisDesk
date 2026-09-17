@@ -237,6 +237,7 @@
             this.active = true;
             this.paused = false;
             document.documentElement.classList.add('aegis-focus');
+            document.body.classList.add('aegis-focus-on');
             if (global.notificationCenter) {
                 notificationCenter.focusMode = true;
                 if (notificationCenter.setFocusMode) notificationCenter.setFocusMode(true);
@@ -269,6 +270,7 @@
             this.active = false;
             this.paused = false;
             document.documentElement.classList.remove('aegis-focus');
+            document.body.classList.remove('aegis-focus-on');
             if (global.notificationCenter) {
                 notificationCenter.focusMode = false;
                 if (notificationCenter.setFocusMode) notificationCenter.setFocusMode(false);
@@ -310,6 +312,7 @@
             var state = load('aegis_focus_state', null);
             if (!state || !state.active || !AegisPrefs.get().focusPersist) return;
             document.documentElement.classList.add('aegis-focus');
+            document.body.classList.add('aegis-focus-on');
             this.active = true;
             if (state.paused && state.remaining > 0) {
                 this.paused = true;

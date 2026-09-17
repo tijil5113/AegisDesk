@@ -49,6 +49,7 @@ class TooltipSystem {
     /** True if element is a tooltip candidate (has text or is known control). */
     isTooltipTarget(el) {
         if (!el || typeof el.getAttribute !== 'function') return false;
+        if (el.classList && el.classList.contains('aegis-app-card')) return false;
         const hasAttr = el.getAttribute('data-tooltip') || el.getAttribute('title') ||
             el.getAttribute('aria-label') || el.getAttribute('data-original-title');
         if (hasAttr) return true;
@@ -73,7 +74,7 @@ class TooltipSystem {
         const text = this.getTooltipText(target);
         if (!text) return;
         this.currentTarget = target;
-        this.showTimeout = setTimeout(() => this.showTooltip(target, text), 280);
+        this.showTimeout = setTimeout(() => this.showTooltip(target, text), 160);
     }
 
     onPointerLeave(e) {

@@ -691,7 +691,7 @@ html.theme-light .aegis-search-field {
     animation: aegisFade 260ms var(--aegis-ease-enter) 340ms forwards;
 }
 @keyframes aegisRingDraw {
-    to { stroke-dasharray: 88 12; stroke-dashoffset: 6; }
+    to { stroke-dashoffset: 0; }
 }
 @keyframes aegisSlitIn {
     to { opacity: 1; transform: scaleX(1); }

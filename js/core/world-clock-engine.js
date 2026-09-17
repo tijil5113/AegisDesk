@@ -7,12 +7,10 @@
 
     var STORAGE_KEY = 'aegis_world_clocks';
     var DEFAULTS = [
-        { id: 'philadelphia', city: 'Philadelphia', country: 'United States', tz: 'America/New_York' },
+        { id: 'new-york', city: 'New York', country: 'United States', tz: 'America/New_York' },
         { id: 'london', city: 'London', country: 'United Kingdom', tz: 'Europe/London' },
-        { id: 'paris', city: 'Paris', country: 'France', tz: 'Europe/Paris' },
         { id: 'dubai', city: 'Dubai', country: 'United Arab Emirates', tz: 'Asia/Dubai' },
-        { id: 'new-delhi', city: 'New Delhi', country: 'India', tz: 'Asia/Kolkata' },
-        { id: 'chennai', city: 'Chennai', country: 'India', tz: 'Asia/Kolkata' },
+        { id: 'kolkata', city: 'Kolkata', country: 'India', tz: 'Asia/Kolkata' },
         { id: 'singapore', city: 'Singapore', country: 'Singapore', tz: 'Asia/Singapore' },
         { id: 'tokyo', city: 'Tokyo', country: 'Japan', tz: 'Asia/Tokyo' },
         { id: 'seoul', city: 'Seoul', country: 'South Korea', tz: 'Asia/Seoul' },
@@ -20,8 +18,11 @@
     ];
 
     var CITY_CATALOG = DEFAULTS.concat([
-        { id: 'new-york', city: 'New York', country: 'United States', tz: 'America/New_York' },
         { id: 'los-angeles', city: 'Los Angeles', country: 'United States', tz: 'America/Los_Angeles' },
+        { id: 'philadelphia', city: 'Philadelphia', country: 'United States', tz: 'America/New_York' },
+        { id: 'paris', city: 'Paris', country: 'France', tz: 'Europe/Paris' },
+        { id: 'chennai', city: 'Chennai', country: 'India', tz: 'Asia/Kolkata' },
+        { id: 'new-delhi', city: 'New Delhi', country: 'India', tz: 'Asia/Kolkata' },
         { id: 'chicago', city: 'Chicago', country: 'United States', tz: 'America/Chicago' },
         { id: 'toronto', city: 'Toronto', country: 'Canada', tz: 'America/Toronto' },
         { id: 'mexico-city', city: 'Mexico City', country: 'Mexico', tz: 'America/Mexico_City' },
@@ -132,15 +133,10 @@
         fmt.formatToParts(now).forEach(function (p) { bag[p.type] = p.value; });
         var hour = parseInt(bag.hour, 10);
         if (bag.hour === '24') hour = 0;
-        var utcFmt = new Intl.DateTimeFormat('en-US', {
-            timeZone: tz,
-            timeZoneName: 'shortOffset',
-            hour: '2-digit'
-        });
-        var offset = '';
-        utcFmt.formatToParts(now).forEach(function (p) {
-            if (p.type === 'timeZoneName') offset = p.value;
-        });
+        var phase = 'night';
+        if (hour >= 5 && hour < 8) phase = 'dawn';
+        else if (hour >= 8 && hour < 17) phase = 'day';
+        else if (hour >= 17 && hour < 20) phase = 'dusk';
         return {
             hour: hour,
             minute: parseInt(bag.minute, 10) || 0,
@@ -149,10 +145,51 @@
                 ? (bag.hour + ':' + bag.minute + ':' + bag.second)
                 : (bag.hour + ':' + bag.minute),
             date: (bag.weekday || '') + ', ' + (bag.month || '') + ' ' + (bag.day || ''),
+            weekday: bag.weekday || '',
             year: bag.year,
-            offset: offset || '',
-            isDay: hour >= 6 && hour < 19
+            offset: formatRelative(tz, now),
+            relative: formatRelative(tz, now),
+            isDay: hour >= 6 && hour < 19,
+            phase: phase
         };
+    }
+
+    function tzOffsetMs(date, timeZone) {
+        var fmt = new Intl.DateTimeFormat('en-US', {
+            timeZone: timeZone,
+            hour12: false,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        var bag = {};
+        fmt.formatToParts(date).forEach(function (p) { bag[p.type] = p.value; });
+        var hour = bag.hour === '24' ? 0 : parseInt(bag.hour, 10);
+        var asUTC = Date.UTC(
+            parseInt(bag.year, 10),
+            parseInt(bag.month, 10) - 1,
+            parseInt(bag.day, 10),
+            hour,
+            parseInt(bag.minute, 10) || 0,
+            parseInt(bag.second, 10) || 0
+        );
+        return asUTC - date.getTime();
+    }
+
+    function formatRelative(tz, now) {
+        var localTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        var diffMin = Math.round((tzOffsetMs(now, tz) - tzOffsetMs(now, localTz)) / 60000);
+        if (!diffMin) return 'same time';
+        var sign = diffMin > 0 ? '+' : '−';
+        var abs = Math.abs(diffMin);
+        var h = Math.floor(abs / 60);
+        var m = abs % 60;
+        if (h && m) return sign + h + 'h ' + m + 'm';
+        if (h) return sign + h + 'h';
+        return sign + m + 'm';
     }
 
     function snapshot(clocks, now, withSeconds) {

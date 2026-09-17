@@ -21,15 +21,16 @@
     }
 
     function card(clock, compact) {
-        var day = clock.isDay ? 'is-day' : 'is-night';
-        return '<article class="wc-card ' + day + (compact ? ' wc-card-compact' : '') + '" data-id="' + escapeHtml(clock.id) + '">' +
+            var day = clock.phase || (clock.isDay ? 'day' : 'night');
+            var phaseClass = 'is-' + day;
+            return '<article class="wc-card ' + phaseClass + (compact ? ' wc-card-compact' : '') + '" data-id="' + escapeHtml(clock.id) + '">' +
             '<div class="wc-card-top">' +
             '<div><strong>' + escapeHtml(clock.city) + '</strong><span>' + escapeHtml(clock.country) + '</span></div>' +
             analog(clock) +
-            '<span class="wc-phase" aria-hidden="true">' + (clock.isDay ? 'Day' : 'Night') + '</span>' +
+            '<span class="wc-phase" aria-hidden="true">' + escapeHtml(day) + '</span>' +
             '</div>' +
             '<div class="wc-time" data-time>' + escapeHtml(clock.time) + '</div>' +
-            '<div class="wc-meta"><span data-date>' + escapeHtml(clock.date) + '</span><span data-offset>' + escapeHtml(clock.offset) + '</span></div>' +
+            '<div class="wc-meta"><span data-date>' + escapeHtml((clock.weekday || '') + (clock.weekday ? ' · ' : '') + (clock.relative || clock.offset || '')) + '</span></div>' +
             (compact ? '' : '<div class="wc-actions">' +
                 '<button type="button" class="aegis-btn aegis-btn-ghost" data-wc="up" aria-label="Move up">Up</button>' +
                 '<button type="button" class="aegis-btn aegis-btn-ghost" data-wc="down" aria-label="Move down">Down</button>' +

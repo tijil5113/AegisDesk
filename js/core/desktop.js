@@ -13,18 +13,19 @@ class Desktop {
         this.appsMenu = document.getElementById('apps-menu');
         this.searchInput = document.getElementById('global-search');
         
-        // Setup event listeners
-        this.setupAppsMenu();
-        this.setupTaskbar();
-        this.setupSearch();
-        this.setupClock();
-        this.setupKeyboardShortcuts();
-        
-        // Apply saved icon size on load
-        this.applySavedIconSize();
-        
-        // Load saved window states
-        this.restoreWindows();
+        var steps = [
+            this.setupAppsMenu,
+            this.setupTaskbar,
+            this.setupSearch,
+            this.setupClock,
+            this.setupKeyboardShortcuts,
+            this.applySavedIconSize,
+            this.restoreWindows
+        ];
+        var self = this;
+        steps.forEach(function (fn) {
+            try { fn.call(self); } catch (err) { console.error('Desktop init step failed:', fn.name || fn, err); }
+        });
         
         requestAnimationFrame(() => {
             // Re-setup taskbar after apps are loaded (deferred scripts)
@@ -250,6 +251,18 @@ class Desktop {
         };
 
         updateClock();
+        if (window.AegisWorldClock && typeof AegisWorldClock.subscribe === 'function') {
+            try {
+                this._clockUnsub = AegisWorldClock.subscribe(function (_rows, now) {
+                    if (document.hidden) return;
+                    const stamp = now || new Date();
+                    timeEl.textContent = stamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+                    dateEl.textContent = stamp.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                });
+            } catch (err) {
+                console.error('Clock subscribe failed', err);
+            }
+        }
         const msUntilNextMinute = 60000 - (Date.now() % 60000);
         this._clockTimeout = setTimeout(() => {
             updateClock();
@@ -409,8 +422,9 @@ class Desktop {
             }
             
             // Escape HTML in title for tooltip
-            const title = app.title || appId;
+            const title = app.title === 'AI Assistant' ? 'Aegis' : (app.title || appId);
             const escapedTitle = title.replace(/"/g, '&quot;');
+            const purpose = (window.AEGIS_APP_CATALOG || []).find((c) => c.id === appId);
             
             return `
                 <div class="app-tile" 
@@ -424,6 +438,7 @@ class Desktop {
                         ${app.iconSVG}
                     </div>
                     <div class="app-tile-name">${title}</div>
+                    ${purpose && purpose.description ? `<div class="app-tile-purpose">${purpose.description}</div>` : ''}
                     <div class="app-tile-tooltip" role="tooltip" aria-hidden="true">${escapedTitle}</div>
                 </div>
             `;

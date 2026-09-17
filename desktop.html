@@ -55,6 +55,7 @@
     <link rel="stylesheet" href="styles/aegis-intelligence.css">
     <link rel="stylesheet" href="styles/aegis-world-clock.css">
     <link rel="stylesheet" href="styles/aegis-experience.css">
+    <link rel="stylesheet" href="styles/aegis-desktop-os.css">
     <!-- CSS loader must run before lazy-CSS script so critical path works -->
     <script src="js/css-loader.js"></script>
     <script>
@@ -89,7 +90,20 @@
                     reveal();
                     return;
                 }
+                var revealed = false;
+                var originalReveal = reveal;
+                reveal = function () {
+                    if (revealed) return;
+                    revealed = true;
+                    originalReveal();
+                };
                 document.documentElement.style.visibility = 'hidden';
+                setTimeout(function () {
+                    if (!revealed) {
+                        console.warn('AegisDesk: session check timed out; showing the desktop.');
+                        reveal();
+                    }
+                }, 1200);
                 fetch('/api/auth/session', { credentials: 'same-origin' }).then(function (res) { return res.json(); }).then(function (data) {
                     if (data && data.authenticated && data.user) {
                         remember(data.user);
@@ -97,12 +111,17 @@
                         return;
                     }
                     if (data && (data.accountsConfigured || data.gateConfigured)) {
+                        reveal();
                         redirectLogin();
                         return;
                     }
                     reveal();
-                }).catch(function () { redirectLogin(); });
+                }).catch(function () {
+                    reveal();
+                    redirectLogin();
+                });
             } catch (error) {
+                reveal();
                 redirectLogin();
             }
         })();
@@ -176,7 +195,7 @@
         }
     </style>
 </head>
-<body>
+<body class="aegis-desktop-os">
     <!-- PERF: Structure = static layers (background) + dynamic layers (taskbar, launcher, windows). Animations use transform/opacity only. -->
 
     <!-- Boot Sequence Overlay (PERF: one-time animation, then removed) -->
@@ -184,10 +203,10 @@
         <div class="boot-stage">
             <div class="aegis-mark aegis-mark-reveal" aria-hidden="true">
                 <svg viewBox="0 0 64 64" fill="none">
-                    <circle class="aegis-mark-ring" cx="32" cy="32" r="27" stroke="#7C8CFF" stroke-width="2.6" stroke-linecap="round" pathLength="100" stroke-dasharray="88 12" stroke-dashoffset="6"/>
-                    <path class="aegis-mark-leg" d="M32 14 L18.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
-                    <path class="aegis-mark-leg" d="M32 14 L45.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
-                    <path class="aegis-mark-slit" d="M23.5 36.8 H40.5" stroke="#3EC6D8" stroke-width="2.8" stroke-linecap="round"/>
+                    <path class="aegis-mark-ring" d="M32 5.6L53.2 14.4v16.8c0 14.6-9.1 24.8-21.2 29.4C19.9 56 10.8 45.8 10.8 31.2V14.4L32 5.6z" stroke="#7C8CFF" stroke-width="2.7" stroke-linejoin="round" pathLength="100"/>
+                    <path class="aegis-mark-leg" d="M32 18.2 L20.6 46.6" stroke="#F8FAFC" stroke-width="3.5" stroke-linecap="round"/>
+                    <path class="aegis-mark-leg" d="M32 18.2 L43.4 46.6" stroke="#F8FAFC" stroke-width="3.5" stroke-linecap="round"/>
+                    <path class="aegis-mark-slit" d="M24 35.2 H40" stroke="#3EC6D8" stroke-width="2.8" stroke-linecap="round"/>
                 </svg>
             </div>
             <div class="aegis-wordmark aegis-wordmark-reveal">Aegis<span>Desk</span></div>
@@ -195,6 +214,33 @@
             <div class="boot-loader" aria-hidden="true"><div class="boot-loader-bar"></div></div>
         </div>
     </div>
+
+    <script>
+        (function bootFailsafe() {
+            function revealShell() {
+                var overlay = document.getElementById('boot-overlay');
+                if (overlay && overlay.style.display !== 'none') {
+                    overlay.classList.add('hidden');
+                    overlay.style.display = 'none';
+                    overlay.setAttribute('aria-hidden', 'true');
+                }
+                if (document.documentElement.style.visibility === 'hidden') {
+                    document.documentElement.style.visibility = '';
+                    console.warn('AegisDesk: boot/session failsafe revealed the desktop.');
+                }
+                var car = document.getElementById('desktop-icon-carousel');
+                if (car) {
+                    car.style.opacity = '1';
+                    car.style.visibility = 'visible';
+                    car.style.animation = 'none';
+                    car.style.display = 'flex';
+                }
+                document.body.classList.add('desktop-ready', 'aegis-desktop-os');
+            }
+            setTimeout(revealShell, 1200);
+            setTimeout(revealShell, 2800);
+        })();
+    </script>
 
     <!-- PERF: Static layer — background/parallax; contain: strict to limit reflow -->
     <div class="desktop-background">
@@ -210,8 +256,8 @@
     <!-- PERF: Cursor glow — position via CSS var; will-change: transform; contain: strict -->
     <div class="cursor-glow" id="cursor-glow" aria-hidden="true"></div>
 
-    <!-- Quick Launch Shortcuts -->
-    <div class="quick-launch" id="quick-launch" aria-label="Quick launch shortcuts">
+    <!-- Quick Launch Shortcuts (kept for compatibility; Ultimate Desktop hides this rail) -->
+    <div class="quick-launch" id="quick-launch" aria-label="Quick launch shortcuts" hidden>
         <div class="quick-launch-item" data-app="tasks" title="New Task (Ctrl+N)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -273,16 +319,15 @@
     </div>
 
     <!-- PERF: Carousel — scroll layer; .carousel-track has contain + translateZ(0) to isolate repaints -->
-    <div class="desktop-icon-carousel" id="desktop-icon-carousel" aria-label="Pinned desktop apps carousel">
-        <!-- AEGIS DESK Title -->
-        <div class="desktop-title-container">
+    <div class="desktop-icon-carousel aegis-workspace-host" id="desktop-icon-carousel" aria-label="Desktop workspace">
+        <div class="desktop-title-container" hidden>
             <div class="desktop-brand-lockup">
                 <div class="aegis-mark aegis-mark-64" aria-hidden="true">
                     <svg viewBox="0 0 64 64" fill="none">
-                        <circle class="aegis-mark-ring" cx="32" cy="32" r="27" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" pathLength="100" stroke-dasharray="88 12" stroke-dashoffset="6"/>
-                        <path class="aegis-mark-leg" d="M32 14 L18.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
-                        <path class="aegis-mark-leg" d="M32 14 L45.5 50" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round"/>
-                        <path class="aegis-mark-slit" d="M23.5 36.8 H40.5" stroke="#3EC6D8" stroke-width="2.8" stroke-linecap="round"/>
+                        <path class="aegis-mark-ring" d="M32 5.6L53.2 14.4v16.8c0 14.6-9.1 24.8-21.2 29.4C19.9 56 10.8 45.8 10.8 31.2V14.4L32 5.6z" stroke="currentColor" stroke-width="2.7" stroke-linejoin="round" pathLength="100"/>
+                        <path class="aegis-mark-leg" d="M32 18.2 L20.6 46.6" stroke="#F8FAFC" stroke-width="3.5" stroke-linecap="round"/>
+                        <path class="aegis-mark-leg" d="M32 18.2 L43.4 46.6" stroke="#F8FAFC" stroke-width="3.5" stroke-linecap="round"/>
+                        <path class="aegis-mark-slit" d="M24 35.2 H40" stroke="#3EC6D8" stroke-width="2.8" stroke-linecap="round"/>
                     </svg>
                 </div>
                 <h1 class="aegis-wordmark desktop-title">Aegis<span>Desk</span></h1>
@@ -290,6 +335,42 @@
                     <span class="subtitle-text">Protected computing environment</span>
                 </div>
             </div>
+        </div>
+
+        <div id="aegis-workspace" class="aegis-workspace">
+            <section class="aegis-work-main">
+                <header class="aegis-work-header">
+                    <div>
+                        <p class="aegis-kicker">Applications</p>
+                        <h2>Desktop</h2>
+                    </div>
+                    <div class="aegis-work-tools">
+                        <button type="button" class="aegis-chip" id="aegis-customize-btn">Customize Desktop</button>
+                        <button type="button" class="aegis-chip" id="aegis-library-btn">App Library</button>
+                    </div>
+                </header>
+                <div id="aegis-app-grid" class="aegis-app-grid" role="list">
+                    <button type="button" class="aegis-app-card" data-app="ai-chat" role="listitem"><span class="aegis-app-name">Aegis</span></button>
+                    <button type="button" class="aegis-app-card" data-app="code-editor" role="listitem"><span class="aegis-app-name">Code Studio</span></button>
+                    <button type="button" class="aegis-app-card" data-app="mail" role="listitem"><span class="aegis-app-name">Mail</span></button>
+                    <button type="button" class="aegis-app-card" data-app="music" role="listitem"><span class="aegis-app-name">Music</span></button>
+                    <button type="button" class="aegis-app-card" data-app="files" role="listitem"><span class="aegis-app-name">Files</span></button>
+                    <button type="button" class="aegis-app-card" data-app="browser" role="listitem"><span class="aegis-app-name">Browser</span></button>
+                    <button type="button" class="aegis-app-card" data-app="calendar" role="listitem"><span class="aegis-app-name">Calendar</span></button>
+                    <button type="button" class="aegis-app-card" data-app="tasks" role="listitem"><span class="aegis-app-name">Tasks</span></button>
+                    <button type="button" class="aegis-app-card" data-app="notes" role="listitem"><span class="aegis-app-name">Notes</span></button>
+                    <button type="button" class="aegis-app-card" data-app="settings" role="listitem"><span class="aegis-app-name">Settings</span></button>
+                    <button type="button" class="aegis-app-card" data-app="bookmarks" role="listitem"><span class="aegis-app-name">Bookmarks</span></button>
+                    <button type="button" class="aegis-app-card" data-app="calculator" role="listitem"><span class="aegis-app-name">Calculator</span></button>
+                </div>
+                <div id="aegis-continue" class="aegis-continue" hidden></div>
+            </section>
+            <aside id="aegis-live-area" class="aegis-live-area" aria-label="Live widgets">
+                <section class="aegis-widget" data-widget="today" aria-label="Today">
+                    <header class="aegis-widget-head"><p class="aegis-kicker">Today</p><h3>Desktop</h3></header>
+                    <p class="aegis-widget-empty">Widgets fill from notes, tasks, calendar, and world clocks once the desktop finishes starting.</p>
+                </section>
+            </aside>
         </div>
         
         <div class="carousel-container">
@@ -490,9 +571,9 @@
                 </svg>
                 <input
                     type="text"
-                    placeholder="Search apps, actions, or web... (Ctrl+Shift+A for Quick Actions)"
+                    placeholder="Command Center — apps, actions, settings"
                     id="global-search"
-                    aria-label="Search apps, actions, or the web"
+                    aria-label="Open Command Center"
                 >
                 <div class="search-hint">Tip: type an app name (like "notes" or "terminal") or a website, then press Enter.</div>
             </div>
@@ -560,6 +641,25 @@
                     <time class="time-display" id="time-display" aria-label="Current time">00:00</time>
                     <time class="date-display" id="date-display" aria-label="Current date">Mon, Jan 1</time>
                 </div>
+                <script>
+                    (function stampDockClock() {
+                        function stamp() {
+                            var now = new Date();
+                            var time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+                            var date = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                            var t = document.getElementById('time-display');
+                            var d = document.getElementById('date-display');
+                            var t2 = document.getElementById('aegis-bar-time');
+                            var d2 = document.getElementById('aegis-bar-date');
+                            if (t) t.textContent = time;
+                            if (d) d.textContent = date;
+                            if (t2) t2.textContent = time;
+                            if (d2) d2.textContent = date;
+                        }
+                        stamp();
+                        setInterval(stamp, 15000);
+                    })();
+                </script>
             </div>
         </div>
     </div>
@@ -568,8 +668,8 @@
     <div class="apps-menu glass-effect" id="apps-menu" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Applications">
         <div class="apps-menu-header">
             <div>
-                <h2>Applications</h2>
-                <p class="apps-menu-subtitle">Press Alt+Space to open, then start typing an app name or action.</p>
+                <h2>App Library</h2>
+                <p class="apps-menu-subtitle">Every app is named. Filter instantly — no AI required.</p>
             </div>
             <button type="button" class="close-menu" data-action="hide-apps-menu" aria-label="Close applications menu">&times;</button>
         </div>
@@ -841,6 +941,9 @@
     <script src="js/core/aegis-sound.js" defer></script>
     <script src="js/core/aegis-shell.js" defer></script>
     <script src="js/core/aegis-experience.js" defer></script>
+    <script src="js/core/aegis-app-status.js" defer></script>
+    <script src="js/core/world-clock-engine.js" defer></script>
+    <script src="js/core/aegis-desktop-os.js" defer></script>
     <script src="js/core/ai-system.js" defer></script>
     <script src="js/core/notification-center.js" defer></script>
     <script src="js/core/mode-manager.js" defer></script>
@@ -884,7 +987,6 @@
     <script src="js/apps/news-reader.js" defer></script>
     <script src="js/apps/news.js" defer></script>
     <script src="js/apps/help.js" defer></script>
-    <script src="js/core/world-clock-engine.js" defer></script>
     <script src="js/apps/world-clock.js" defer></script>
     <script src="js/main.js" defer></script>
     

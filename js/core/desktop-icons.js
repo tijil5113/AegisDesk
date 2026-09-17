@@ -25,6 +25,9 @@ class DesktopIconCarousel {
     }
     
     init() {
+        if (document.getElementById('aegis-app-grid') || document.body.classList.contains('aegis-desktop-os')) {
+            return;
+        }
         if (!this.carousel || !this.track) {
             console.warn('Desktop icon carousel elements not found');
             return;
