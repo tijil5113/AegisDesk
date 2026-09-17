@@ -1,18 +1,23 @@
 #!/usr/bin/env node
 /**
- * Aegis Code Studio sandbox, tool, checkpoint, and policy tests.
+ * Aegis Code Studio sandbox, protocol, intent, checkpoint, and policy tests.
  * These tests do not call OpenAI and do not touch AegisDesk production source files as a project.
  */
 import { loadStudioUmd, studioNamespace } from '../js/code-studio/umd-load.mjs';
 import assert from 'assert';
 
 const security = loadStudioUmd('security.js');
+const protocol = loadStudioUmd('protocol.js');
+const intent = loadStudioUmd('intent.js');
+const contextApi = loadStudioUmd('context.js');
 loadStudioUmd('diff.js');
 const workspaceApi = loadStudioUmd('workspace.js');
+loadStudioUmd('companion.js');
 const agentApi = loadStudioUmd('agent.js');
 const ns = studioNamespace();
 const ProjectWorkspace = workspaceApi.ProjectWorkspace || (ns.workspace && ns.workspace.ProjectWorkspace);
 const Agent = (agentApi && agentApi.Agent) || (ns.agent && ns.agent.Agent);
+const ContextEngine = (contextApi && contextApi.ContextEngine) || (ns.context && ns.context.ContextEngine);
 
 function section(name) {
   console.log('\n== ' + name + ' ==');
@@ -26,6 +31,34 @@ function makeProject() {
   return ws;
 }
 
+function mockHost(overrides) {
+  const ws = makeProject();
+  const calls = [];
+  const host = Object.assign({
+    workspace: ws,
+    completeCalls: calls,
+    complete: function (payload) {
+      calls.push(payload);
+      return Promise.resolve({ protocolVersion: 1, type: 'completion', message: 'Finished.', summary: 'ok' });
+    },
+    runTool: function () { return { ok: true }; },
+    onState: function () {},
+    onActivity: function () {},
+    onMessage: function () {},
+    onPlan: function () {},
+    onDone: function () {},
+    onPaused: function () {},
+    readForContext: function (path) {
+      const rec = ws.readFile(path, {});
+      return rec.ok ? { content: rec.file.content || '', revision: rec.file.revision } : null;
+    },
+    getCurrentFile: function () { return ws.findByPath('index.html'); },
+    getProblems: function () { return []; },
+    getPreviewErrors: function () { return []; }
+  }, overrides || {});
+  return host;
+}
+
 section('path traversal');
 assert.equal(security.normalizeProjectPath('../secret').ok, false);
 assert.equal(security.normalizeProjectPath('../../etc/passwd').code, 'path_traversal');
@@ -33,15 +66,23 @@ assert.equal(security.normalizeProjectPath('/etc/passwd').ok, false);
 assert.equal(security.normalizeProjectPath('C:\\\\Windows\\\\system32').ok, false);
 assert.equal(security.normalizeProjectPath('src/app.js').ok, true);
 assert.equal(security.normalizeProjectPath('src/app.js').path, 'src/app.js');
-console.log('path traversal rejected');
+assert.equal(security.normalizeProjectPath('..%2fsecret').ok, false);
+assert.equal(security.normalizeProjectPath('%2e%2e/secret').ok, false);
+assert.equal(security.normalizeProjectPath('foo\0.html').ok, false);
+assert.equal(security.normalizeProjectPath('file://etc/passwd').ok, false);
+console.log('path traversal and encoded variants rejected');
 
 section('tool validation');
 assert.equal(security.validateToolCall('not.a.tool', {}, 'agent').code, 'unknown_tool');
 assert.equal(security.validateToolCall('project.deleteFile', { path: 'index.html' }, 'ask').code, 'permission');
+assert.equal(security.validateToolCall('project.deleteFile', { path: 'index.html' }, 'companion').code, 'permission');
 assert.equal(security.validateToolCall('project.readFile', { path: '../x' }, 'ask').ok, false);
 assert.equal(security.validateToolCall('project.editFile', { path: 'index.html', extra: 1 }, 'edit').ok, false);
 const okEdit = security.validateToolCall('project.editFile', { path: 'index.html', old_string: 'a', new_string: 'b' }, 'edit');
 assert.equal(okEdit.ok, true);
+assert.equal(security.validateToolCall('runtime.shell', { command: 'rm -rf /' }, 'agent').ok, false);
+assert.ok(security.TOOLS['preview.start']);
+assert.ok(security.TOOLS['changes.createCheckpoint']);
 console.log('tool schemas and mode permissions hold');
 
 section('sensitive files');
@@ -56,7 +97,11 @@ const read = wsSens.readFile('.env');
 assert.equal(read.ok, true);
 assert.equal(read.file.omitted, true);
 assert.equal(read.file.content, undefined);
-console.log('sensitive contents omitted from automatic reads');
+const ctx = new ContextEngine();
+ctx.rebuild(wsSens);
+const built = ctx.build(wsSens, { currentFile: { path: '.env' } });
+assert.equal(built.text.indexOf('should-not-leak') < 0, true);
+console.log('sensitive contents omitted from automatic reads and context');
 
 section('prompt injection does not grant tools');
 const poisoned = makeProject();
@@ -146,6 +191,52 @@ const envRead = wsSens.readFile('.env');
 assert.equal(!!envRead.file.content, false);
 console.log('unknown tools rejected; .env still omitted');
 
+section('intent routing');
+assert.equal(intent.classify('Hi').surface, 'companion');
+assert.equal(intent.classify('Hi').launchTools, false);
+assert.equal(intent.classify('Hello').launchTools, false);
+assert.equal(intent.classify('How are you?').launchTools, false);
+assert.equal(intent.classify('What can you do?').launchTools, false);
+assert.equal(intent.classify('What does this function do?').surface, 'companion');
+assert.equal(intent.classify('Why is this failing?').surface, 'companion');
+assert.equal(intent.classify('Explain the error first.').surface, 'companion');
+assert.equal(intent.classify('Fix this.').surface, 'agent');
+assert.equal(intent.classify('Build a dashboard.').surface, 'agent');
+assert.equal(intent.classify('Create a portfolio.').surface, 'agent');
+assert.equal(intent.classify('Run the tests and fix them.').surface, 'agent');
+assert.equal(intent.classify('Do it', { hasProposal: true }).handoff, true);
+assert.equal(intent.classify('Okay, do it.', { hasProposal: true }).handoff, true);
+console.log('greetings stay with Companion; outcomes route to Agent');
+
+section('protocol parse — no unrecognized dead-end');
+const prose = protocol.parse('Hey! What are we building today?');
+assert.equal(prose.ok, true);
+assert.equal(prose.envelope.type, 'assistant_message');
+const plan = protocol.parse({ type: 'plan', plan: [{ title: 'Inspect project' }] });
+assert.equal(plan.envelope.type, 'plan');
+const tool = protocol.parse({ type: 'tool', tool: { id: 'project.listFiles', args: {} } });
+assert.equal(tool.ok, true);
+assert.equal(tool.envelope.type, 'tool_call');
+const done = protocol.parse({ type: 'done', message: 'Finished the login page.' });
+assert.equal(done.envelope.type, 'completion');
+const extra = protocol.parse('Sure.\n{"protocolVersion":1,"type":"completion","message":"Done"}');
+assert.equal(extra.ok, true);
+assert.equal(extra.envelope.type, 'completion');
+const malformed = protocol.parse('{"type":"tool"}');
+assert.equal(malformed.ok, false);
+assert.equal(malformed.recoverable, true);
+assert.notEqual(malformed.error, 'Unrecognized agent response');
+const empty = protocol.parse('');
+assert.equal(empty.ok, false);
+assert.equal(empty.kind, 'empty');
+const truncated = protocol.parse('{"type":"tool_call","tool":{"id":"project.readFile"');
+assert.equal(truncated.ok, false);
+assert.equal(truncated.recoverable, true);
+const unknownTool = protocol.parse({ type: 'tool_call', tool: { id: 'runtime.shell', args: {} } }, { allowedTools: Object.keys(security.TOOLS) });
+assert.equal(unknownTool.ok, false);
+assert.equal(unknownTool.kind, 'unknown_tool');
+console.log('protocol recovers conversational, malformed, empty, truncated, and unknown-tool replies');
+
 section('stop cancels future steps');
 {
   let continued = false;
@@ -153,7 +244,7 @@ section('stop cancels future steps');
     workspace: makeProject(),
     complete: function () {
       continued = true;
-      return Promise.resolve(JSON.stringify({ type: 'message', message: 'should not finish' }));
+      return Promise.resolve({ type: 'assistant_message', message: 'should not finish' });
     },
     onState: function () {},
     onActivity: function () {}
@@ -165,6 +256,74 @@ section('stop cancels future steps');
   assert.equal(agent.state, 'CANCELLED');
   assert.equal(continued, false);
   console.log('stop prevented further model calls');
+}
+
+section('greeting does not launch tools');
+{
+  const tools = [];
+  const host = mockHost({
+    complete: function () {
+      return Promise.resolve({ protocolVersion: 1, type: 'assistant_message', message: 'Hey! What are we building today?' });
+    },
+    runTool: function (id) {
+      tools.push(id);
+      return { ok: true };
+    }
+  });
+  const agent = new Agent(host);
+  agent.setMode('agent');
+  const result = await agent.run('Hi');
+  assert.equal(tools.length, 0);
+  assert.notEqual(result.error, 'Unrecognized agent response');
+  assert.equal(result.ok, true);
+  console.log('Hi completed as conversation with zero tools');
+}
+
+section('malformed then protocol repair');
+{
+  let n = 0;
+  const host = mockHost({
+    complete: function () {
+      n += 1;
+      if (n === 1) return Promise.resolve('{"type":"tool"}');
+      return Promise.resolve({ protocolVersion: 1, type: 'completion', message: 'Recovered without executing.', summary: 'recovered' });
+    }
+  });
+  const agent = new Agent(host);
+  agent.setMode('agent');
+  const result = await agent.run('Continue the task');
+  assert.equal(n, 2);
+  assert.notEqual(result.error, 'Unrecognized agent response');
+  assert.equal(result.ok, true);
+  console.log('malformed tool envelope repaired instead of killing the task');
+}
+
+section('unknown tool is rejected and does not execute');
+{
+  const executed = [];
+  const host = mockHost({
+    complete: function () {
+      return Promise.resolve({ type: 'tool_call', tool: { id: 'runtime.shell', args: { command: 'pwd' } } });
+    },
+    runTool: function (id) {
+      executed.push(id);
+      return { ok: true };
+    }
+  });
+  const agent = new Agent(host);
+  agent.setMode('agent');
+  const result = await agent.run('Open a shell');
+  assert.equal(executed.length, 0);
+  assert.equal(result.paused || result.ok === false, true);
+  console.log('unknown tool rejected; Agent paused safely');
+}
+
+section('permissions never unrestricted');
+{
+  const prefs = security.normalizeUserPermissions({ edit: 'allowed', delete: 'allowed', network: 'allowed' });
+  assert.equal(prefs.delete, 'always_ask');
+  assert.equal(prefs.network, 'denied');
+  console.log('delete stays always-ask; network stays denied');
 }
 
 console.log('\nAegis Code Studio node tests passed.');

@@ -11,10 +11,15 @@
     var WS = S.workspace || {};
     var templatesApi = S.templates || { all: function () { return []; }, get: function () { return null; } };
     var Agent = (S.agent && S.agent.Agent) ? S.agent.Agent : function () {};
+    var Companion = (S.companion && S.companion.Companion) ? S.companion.Companion : function () {};
+    var ContextEngine = (S.context && S.context.ContextEngine) ? S.context.ContextEngine : function () {};
+    var intentApi = S.intent || { classify: function () { return { surface: 'companion', launchTools: false }; } };
 
     var MONACO_CDN = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs';
     var PREVIEW_DEBOUNCE_MS = 800;
     var MAX_CONSOLE = 200;
+    var MAX_AGENT_LOG = 120;
+    var STORAGE_PERMISSIONS = (WS.STORAGE_PERMISSIONS) || 'codeStudioPermissions';
 
     function getStorage(key, fallback) {
         try {
@@ -36,6 +41,9 @@
         workspace: null,
         editor: null,
         agent: null,
+        companion: null,
+        contextEngine: null,
+        aiSurface: 'companion',
         monacoLoaded: false,
         usingFallbackEditor: false,
         previewTimer: null,
@@ -56,24 +64,45 @@
         terminalIndex: 0,
         runFrame: null,
         lastCheckpointId: null,
+        lastUserPrompt: '',
+        sendLock: false,
+        lastAgentSummary: null,
+        userPermissions: null,
 
         init: function () {
             this.workspace = new WS.ProjectWorkspace();
             this.layout = getStorage(WS.STORAGE_LAYOUT, {
-                explorerW: 252, agentW: 380, previewW: 0.36, previewOn: false,
-                bottomH: 148, bottomCollapsed: true, theme: null, autonomy: 'review', mode: 'ask', uiDensity: 'v2'
+                explorerW: 252, agentW: 420, previewW: 0.36, previewOn: false,
+                bottomH: 148, bottomCollapsed: true, theme: null, autonomy: 'review', mode: 'agent',
+                aiSurface: 'companion', uiDensity: 'v3'
             });
-            if (this.layout.uiDensity !== 'v2') {
+            if (this.layout.uiDensity !== 'v3') {
                 this.layout.bottomCollapsed = true;
                 this.layout.bottomH = Math.min(this.layout.bottomH || 148, 148);
                 this.layout.explorerW = Math.max(this.layout.explorerW || 252, 240);
-                this.layout.agentW = Math.max(this.layout.agentW || 380, 340);
-                this.layout.uiDensity = 'v2';
+                this.layout.agentW = Math.max(this.layout.agentW || 420, 380);
+                this.layout.aiSurface = this.layout.aiSurface || 'companion';
+                this.layout.uiDensity = 'v3';
             }
             this.loadPersisted();
+            this.userPermissions = security.normalizeUserPermissions
+                ? security.normalizeUserPermissions(getStorage(STORAGE_PERMISSIONS, null))
+                : { read: 'allowed', edit: 'ask', create: 'ask', delete: 'always_ask', preview: 'allowed', tests: 'allowed', network: 'denied' };
+            this.contextEngine = new ContextEngine();
             this.agent = new Agent(this.makeHost());
-            this.agent.setMode(this.layout.mode || 'ask');
+            this.companion = new Companion(this.makeHost());
+            var self = this;
+            this.workspace.on(function (type) {
+                if (self.contextEngine) self.contextEngine.invalidate();
+                if (type === 'edit' || type === 'create' || type === 'delete' || type === 'rename') {
+                    self.updateEmptyState();
+                }
+            });
+            this.agent.setMode('agent');
             this.agent.setAutonomy(this.layout.autonomy || 'review');
+            this.agent.setPermissions(this.userPermissions);
+            this.aiSurface = this.layout.aiSurface === 'agent' ? 'agent' : 'companion';
+            this.companion.loadMemory(this.workspace.name || 'default');
             this.bindWelcome();
             this.bindGlobal();
             this.renderTemplates();
@@ -148,6 +177,7 @@
                 line: meta && meta.line
             };
             this.consoleLines.push(line);
+            if (this.consoleLines.length > MAX_CONSOLE) this.consoleLines.splice(0, this.consoleLines.length - MAX_CONSOLE);
             if (this.consoleLines.length > MAX_CONSOLE) this.consoleLines.shift();
             this.renderConsole();
             if (type === 'error') {
@@ -166,8 +196,11 @@
             var box = $('console-list');
             if (!box) return;
             var errorsOnly = $('console-errors') && $('console-errors').checked;
-            var html = this.consoleLines.filter(function (l) { return !errorsOnly || l.type === 'error'; }).map(function (l) {
-                return '<div class="log-item ' + l.type + '" data-file="' + escapeHtml(l.file || '') + '" data-line="' + (l.line || '') + '"><span>' + l.at + '</span> ' + escapeHtml(l.text) + '</div>';
+            var html = this.consoleLines.filter(function (l) { return !errorsOnly || l.type === 'error'; }).map(function (l, i) {
+                var actions = l.type === 'error'
+                    ? ' <button type="button" class="studio-btn compact" data-explain-console="' + i + '">Explain</button> <button type="button" class="studio-btn compact" data-fix-console="' + i + '">Fix with Agent</button>'
+                    : '';
+                return '<div class="log-item ' + l.type + '" data-file="' + escapeHtml(l.file || '') + '" data-line="' + (l.line || '') + '"><span>' + l.at + '</span> ' + escapeHtml(l.text) + actions + '</div>';
             }).join('');
             box.innerHTML = html || '<div class="fs-note">No project console output.</div>';
         },
@@ -240,9 +273,8 @@
             $('welcome-build').addEventListener('click', function () {
                 var prompt = $('welcome-prompt').value.trim();
                 self.startBlank().then(function () {
-                    self.agent.setMode('agent');
-                    self.syncModeUi();
-                    self.sendAgent(prompt || 'Create a simple responsive landing page.');
+                    self.setAiSurface('agent');
+                    self.routeSend(prompt || 'Create a simple responsive landing page.');
                 });
             });
             $('welcome-templates').addEventListener('click', function (e) {
@@ -292,6 +324,11 @@
                 self.syncModeUi();
                 self.refreshProblems();
                 self.writeOutput('Workspace ready. Files stay in this browser.');
+                self.setAiSurface(self.aiSurface || 'companion', { silent: true });
+                self.updateEmptyState();
+                if (self.workspace.files.length && self.companion && !self.companion.conversation.length) {
+                    self.appendCompanionMessage('Want a quick project overview, or should Agent check problems and responsiveness?', 'assistant');
+                }
             });
         },
 
@@ -526,11 +563,22 @@
         },
 
         renderAll: function () {
-            $('studio-project-name').textContent = this.workspace.name || 'Untitled project';
+            var name = $('studio-project-name');
+            if (name) name.textContent = this.workspace.name || 'Untitled project';
             this.renderTree();
             this.renderTabs();
             this.renderChanges();
             this.updateContextChips();
+            this.updateEmptyState();
+        },
+
+        updateEmptyState: function () {
+            var empty = $('editor-empty');
+            if (!empty) return;
+            var hasFiles = this.workspace.files.some(function (f) { return !f.isFolderPlaceholder; });
+            empty.hidden = hasFiles;
+            var stage = $('editor-stage');
+            if (stage) stage.classList.toggle('is-empty', !hasFiles);
         },
 
         renderTree: function () {
@@ -601,17 +649,36 @@
             if (!box) return;
             var chips = [];
             var cur = this.currentFile();
-            if (cur) chips.push({ id: 'current', label: 'Current: ' + (cur.path || cur.name) });
-            var sel = this.getSelection();
-            if (sel) chips.push({ id: 'selection', label: 'Selection' });
+            if (cur) chips.push({ id: 'current', label: 'Active — ' + (cur.path || cur.name) });
+            var sel = this.getSelectionMeta();
+            if (sel && sel.text) {
+                chips.push({
+                    id: 'selection',
+                    label: 'Selection — ' + (sel.path || 'code') + (sel.startLine ? ' lines ' + sel.startLine + '–' + sel.endLine : ''),
+                    unpin: 'selection'
+                });
+            }
             var probs = this.problems.filter(function (p) { return p.severity === 'error'; });
             if (probs.length) chips.push({ id: 'problems', label: probs.length + ' problems' });
-            (this.agent.contextPins || []).forEach(function (p) {
-                chips.push({ id: 'pin:' + p.path, label: '@' + p.path, path: p.path });
+            var pins = (this.contextEngine && this.contextEngine.pins) || [];
+            pins.forEach(function (path) {
+                chips.push({ id: 'pin:' + path, label: '@' + path, path: path, unpin: path });
             });
             box.innerHTML = chips.map(function (c) {
-                return '<span class="chip">' + escapeHtml(c.label) + (c.path ? ' <button type="button" data-unpin="' + escapeHtml(c.path) + '" aria-label="Remove">×</button>' : '') + '</span>';
+                return '<span class="chip">' + escapeHtml(c.label) + (c.unpin ? ' <button type="button" data-unpin="' + escapeHtml(c.unpin) + '" aria-label="Remove">×</button>' : '') + '</span>';
             }).join('') || '<span class="fs-note">No extra context attached.</span>';
+        },
+
+        getSelectionMeta: function () {
+            var text = this.getSelection();
+            if (!text) return null;
+            var sel = this.editor && this.editor.getSelection && this.editor.getSelection();
+            return {
+                path: this.currentPath() || '',
+                text: text,
+                startLine: sel && (sel.startLineNumber || sel.startLine) || 1,
+                endLine: sel && (sel.endLineNumber || sel.endLine) || 1
+            };
         },
 
         getSelection: function () {
@@ -837,7 +904,7 @@
             if (!el) return;
             var self = this;
             el.innerHTML = this.problems.length ? this.problems.map(function (p, i) {
-                return '<div class="problem-item ' + p.severity + '" data-file="' + escapeHtml(p.file) + '" data-line="' + p.line + '"><span>' + escapeHtml(p.file) + ':' + p.line + '</span> ' + escapeHtml(p.message) + ' <button type="button" class="studio-btn fix-aegis" data-fix="' + i + '">Fix with Aegis</button></div>';
+                return '<div class="problem-item ' + p.severity + '" data-file="' + escapeHtml(p.file) + '" data-line="' + p.line + '"><span>' + escapeHtml(p.file) + ':' + p.line + '</span> ' + escapeHtml(p.message) + ' <button type="button" class="studio-btn compact" data-explain="' + i + '">Explain</button> <button type="button" class="studio-btn fix-aegis" data-fix="' + i + '">Fix with Agent</button></div>';
             }).join('') : '<div class="fs-note">No problems.</div>';
         },
 
@@ -890,7 +957,7 @@
                 proposeTool: function (checked) { return self.proposeTool(checked); },
                 runTool: function (id, args) { return self.runTool(id, args); },
                 stopRuntime: function () { self.stopRuntime(); },
-                shouldVerify: function () { return self.agent && self.agent.mode === 'agent'; },
+                shouldVerify: function () { return self.agent && self.aiSurface === 'agent'; },
                 onState: function (state) { self.setAgentState(state); },
                 onMode: function () { self.syncModeUi(); },
                 onAutonomy: function (v) { self.layout.autonomy = v; setStorage(WS.STORAGE_LAYOUT, self.layout); },
@@ -900,42 +967,124 @@
                 onMessage: function (text, role) { self.appendMessage(text, role || 'assistant'); },
                 onDone: function (parsed) { self.onAgentDone(parsed); },
                 onStopped: function () { self.onAgentStopped(); },
+                onPaused: function (reason, extras) { self.onAgentPaused(reason, extras); },
+                onProviderFailure: function (message) { self.onAgentPaused(message, { actions: ['retry', 'review', 'revert'] }); },
                 onNeedContinue: function () {
                     self.appendMessage('Aegis paused after the step limit. Send “continue” to keep going.', 'assistant');
                 },
-                complete: function (payload) { return self.completeAgent(payload); }
+                onLiveEdit: function (id, args) { self.showLiveEdit(args && args.path); },
+                onAgentLog: function (line, kind) { self.appendAgentLog(line, kind); },
+                onCompanionMessage: function (text, role) { self.appendCompanionMessage(text, role); },
+                onCompanionDone: function () { self.sendLock = false; },
+                onCompanionError: function (message) { self.appendCompanionMessage(message, 'error'); self.sendLock = false; },
+                onCompanionStopped: function () { self.sendLock = false; },
+                onCompanionReset: function () {
+                    var thread = $('companion-thread');
+                    if (thread) thread.innerHTML = '';
+                },
+                makeAbort: function () { return new AbortController(); },
+                buildContext: function (extra) { return self.buildProjectContext(extra); },
+                complete: function (payload) { return self.completeAgent(payload); },
+                completeCompanion: function (payload) { return self.completeCompanion(payload); }
             };
+        },
+
+        buildProjectContext: function (extra) {
+            extra = extra || {};
+            this.flushCurrent();
+            if (this.contextEngine) {
+                this.contextEngine.ensure(this.workspace);
+                if (extra.selection || this.getSelection()) {
+                    var meta = this.getSelectionMeta();
+                    if (meta) this.contextEngine.setSelection(meta);
+                }
+                var built = this.contextEngine.build(this.workspace, {
+                    currentFile: extra.currentFile || this.currentFile(),
+                    problems: this.problems,
+                    previewErrors: this.previewErrors,
+                    related: extra.related || this.relatedFiles(),
+                    agentSummary: this.lastAgentSummary && JSON.stringify(this.lastAgentSummary)
+                });
+                this.lastContext = built.used;
+                this.updateContextChips();
+                return built;
+            }
+            return { text: '', used: [] };
+        },
+
+        setAiSurface: function (surface, opts) {
+            opts = opts || {};
+            this.aiSurface = surface === 'agent' ? 'agent' : 'companion';
+            this.layout.aiSurface = this.aiSurface;
+            setStorage(WS.STORAGE_LAYOUT, this.layout);
+            var root = $('studio-agent');
+            if (root) root.setAttribute('data-ai', this.aiSurface);
+            var companionBtn = $('surface-companion');
+            var agentBtn = $('surface-agent');
+            if (companionBtn) {
+                companionBtn.classList.toggle('active', this.aiSurface === 'companion');
+                companionBtn.setAttribute('aria-selected', this.aiSurface === 'companion' ? 'true' : 'false');
+            }
+            if (agentBtn) {
+                agentBtn.classList.toggle('active', this.aiSurface === 'agent');
+                agentBtn.setAttribute('aria-selected', this.aiSurface === 'agent' ? 'true' : 'false');
+            }
+            var kicker = $('ai-kicker');
+            if (kicker) kicker.textContent = this.aiSurface === 'agent' ? 'Aegis Agent' : 'Aegis Companion';
+            var hint = $('composer-hint');
+            if (hint) {
+                hint.textContent = this.aiSurface === 'agent'
+                    ? 'Describe an outcome. Agent will plan, edit, preview, and verify. Use @ to attach a file.'
+                    : 'Talk through the project. Companion will not edit files. Use @ to attach a file.';
+            }
+            var input = $('agent-input');
+            if (input) {
+                input.placeholder = this.aiSurface === 'agent'
+                    ? 'Build a responsive login page, add dark mode, or fix the preview…'
+                    : 'Ask about this file, review the layout, or talk through an error…';
+            }
+            var companionThread = $('companion-thread');
+            var agentThread = $('agent-thread');
+            if (companionThread) companionThread.hidden = this.aiSurface !== 'companion';
+            if (agentThread) agentThread.hidden = this.aiSurface !== 'agent';
+            var plan = $('agent-plan');
+            if (plan && this.aiSurface !== 'agent') plan.hidden = true;
+            $('btn-toggle-companion') && $('btn-toggle-companion').setAttribute('aria-pressed', this.aiSurface === 'companion' ? 'true' : 'false');
+            $('btn-toggle-agent') && $('btn-toggle-agent').setAttribute('aria-pressed', this.aiSurface === 'agent' ? 'true' : 'false');
+            document.body.classList.add('is-agent-open');
+            $('studio-workspace') && $('studio-workspace').classList.remove('is-agent-collapsed');
+            if (!opts.silent && input) input.focus();
+            if (this.aiSurface === 'companion') this.agent.setMode('agent');
+            this.syncModeUi();
         },
 
         setAgentState: function (state) {
             var el = $('agent-state');
             var st = $('status-agent');
             var stop = $('btn-stop');
-            var live = ['PLANNING', 'WORKING', 'RUNNING', 'VERIFYING'].indexOf(state) >= 0;
+            var live = ['UNDERSTANDING', 'PLANNING', 'WAITING_PERMISSION', 'EXECUTING', 'OBSERVING', 'REPAIRING', 'VERIFYING', 'WORKING', 'RUNNING'].indexOf(state) >= 0;
+            var label = state === 'IDLE' || state === 'COMPLETED' ? (this.aiSurface === 'companion' ? 'Ready' : 'Idle') : state.replace(/_/g, ' ').toLowerCase();
             if (el) {
-                el.textContent = state.replace(/_/g, ' ').toLowerCase();
+                el.textContent = label;
                 el.classList.toggle('is-live', live);
                 el.setAttribute('data-state', state);
             }
-            if (st) st.textContent = 'Agent ' + state.toLowerCase();
-            if (stop) stop.hidden = !live;
-            this.announce('Agent ' + state.toLowerCase());
+            if (st) st.textContent = (this.aiSurface === 'companion' ? 'Companion ' : 'Agent ') + label;
+            if (stop) stop.hidden = !live && !(this.companion && this.companion.busy);
+            if (live) this.announce('Agent ' + label);
         },
 
         syncModeUi: function () {
-            var mode = this.agent.mode;
-            document.querySelectorAll('.mode-btn').forEach(function (btn) {
-                btn.classList.toggle('active', btn.getAttribute('data-mode') === mode);
-            });
-            $('studio-autonomy').value = this.agent.autonomy;
-            this.layout.mode = mode;
+            if ($('studio-autonomy')) $('studio-autonomy').value = this.agent.autonomy;
+            this.layout.mode = this.agent.mode;
+            this.layout.aiSurface = this.aiSurface;
             setStorage(WS.STORAGE_LAYOUT, this.layout);
         },
 
         renderPlan: function (plan) {
             var el = $('agent-plan');
             if (!el) return;
-            el.hidden = !plan || !plan.length;
+            el.hidden = this.aiSurface !== 'agent' || !plan || !plan.length;
             if (!plan || !plan.length) {
                 el.innerHTML = '';
                 return;
@@ -948,34 +1097,54 @@
         renderActivity: function (item) {
             var el = $('agent-activity');
             if (el) {
-                el.hidden = false;
+                el.hidden = this.aiSurface !== 'agent';
                 el.textContent = item.text;
             }
+            this.appendAgentLog(item.text, item.kind);
+        },
+
+        appendAgentLog: function (text, kind) {
             var log = $('agent-log');
-            if (log) {
-                var row = document.createElement('div');
-                row.className = 'log-item';
-                row.textContent = item.text;
-                log.prepend(row);
-            }
+            if (!log) return;
+            while (log.children.length >= MAX_AGENT_LOG) log.removeChild(log.lastChild);
+            var row = document.createElement('div');
+            row.className = 'log-item' + (kind === 'error' ? ' error' : '');
+            row.textContent = text;
+            log.prepend(row);
         },
 
         appendMessage: function (text, role) {
-            var thread = $('agent-thread');
+            this.appendThreadMessage($('agent-thread'), text, role, 'Agent');
+        },
+
+        appendCompanionMessage: function (text, role) {
+            this.appendThreadMessage($('companion-thread'), text, role, 'Companion', true);
+        },
+
+        appendThreadMessage: function (thread, text, role, who, withActions) {
             if (!thread) return;
             var clean = String(text || '').trim();
             if (!clean) return;
             var last = thread.lastElementChild;
             if (last && last.getAttribute('data-text') === clean && last.classList.contains(role)) return;
             var div = document.createElement('div');
-            div.className = 'agent-msg ' + role;
+            div.className = 'agent-msg ' + role + (who === 'Companion' && role === 'assistant' ? ' companion' : '');
             div.setAttribute('data-text', clean);
-            var label = role === 'user' ? 'You' : (role === 'error' ? 'Needs attention' : 'Aegis');
-            div.innerHTML = '<span class="msg-role">' + label + '</span><div class="msg-body">' + this.formatMessage(clean) + '</div>';
+            var label = role === 'user' ? 'You' : (role === 'error' ? 'Needs attention' : who);
+            var actions = '';
+            if (withActions && role === 'assistant') {
+                actions = '<div class="msg-actions">' +
+                    '<button type="button" class="studio-btn compact" data-act="copy">Copy</button>' +
+                    '<button type="button" class="studio-btn compact" data-act="insert">Insert</button>' +
+                    '<button type="button" class="studio-btn compact" data-act="apply">Apply suggestion</button>' +
+                    '<button type="button" class="studio-btn compact" data-act="agent">Implement with Agent</button>' +
+                    '<button type="button" class="studio-btn compact" data-act="more">Explain more</button>' +
+                    '</div>';
+            }
+            div.innerHTML = '<span class="msg-role">' + label + '</span><div class="msg-body">' + this.formatMessage(clean) + '</div>' + actions;
             thread.appendChild(div);
             var body = $('agent-body');
             if (body) body.scrollTop = body.scrollHeight;
-            else thread.scrollTop = thread.scrollHeight;
         },
 
         formatMessage: function (raw) {
@@ -987,17 +1156,20 @@
 
         completeAgent: function (payload) {
             var self = this;
-            this.agent.abort = new AbortController();
+            this.agent.abort = payload.signal ? { signal: payload.signal, abort: function () {} } : new AbortController();
             return fetch('/api/code-studio', {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: { 'Content-Type': 'application/json' },
                 signal: payload.signal || this.agent.abort.signal,
                 body: JSON.stringify({
-                    mode: payload.mode,
+                    surface: 'agent',
+                    mode: payload.mode || 'agent',
                     messages: payload.conversation,
                     context: payload.context,
-                    max_tokens: 900
+                    taskId: payload.taskId,
+                    requestId: payload.requestId,
+                    max_tokens: 1100
                 })
             }).then(function (r) {
                 return r.text().then(function (text) {
@@ -1012,52 +1184,202 @@
                     }
                     if (!r.ok) throw new Error(data.error || 'Aegis Agent request failed.');
                     self.agent.providerOk = true;
-                    if (data.type) return JSON.stringify(data);
-                    return (data.message || '');
+                    return data;
                 });
             });
         },
 
-        sendAgent: function (text) {
+        completeCompanion: function (payload) {
             var self = this;
+            return fetch('/api/code-studio', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
+                signal: payload.signal,
+                body: JSON.stringify({
+                    surface: 'companion',
+                    mode: 'companion',
+                    stream: true,
+                    messages: payload.conversation,
+                    context: payload.context,
+                    requestId: payload.requestId,
+                    max_tokens: 900
+                })
+            }).then(function (r) {
+                var type = r.headers.get('content-type') || '';
+                if (r.status === 503) {
+                    return r.json().catch(function () { return {}; }).then(function (data) {
+                        throw new Error(data.error || 'Aegis Companion could not reach the AI service. Your project is safe.');
+                    });
+                }
+                if (r.status === 401) throw new Error('Sign in to use Aegis Companion. The editor and preview still work.');
+                if (!r.ok) {
+                    return r.json().catch(function () { return {}; }).then(function (data) {
+                        throw new Error(data.error || 'Aegis Companion request failed.');
+                    });
+                }
+                if (type.indexOf('text/event-stream') >= 0 && r.body && r.body.getReader) {
+                    return self.readCompanionStream(r);
+                }
+                return r.json().then(function (data) { return data; });
+            });
+        },
+
+        readCompanionStream: function (response) {
+            var reader = response.body.getReader();
+            var decoder = new TextDecoder();
+            var buffer = '';
+            var acc = '';
+            var thread = $('companion-thread');
+            var bubble = null;
+            function ensureBubble() {
+                if (bubble) return bubble;
+                bubble = document.createElement('div');
+                bubble.className = 'agent-msg assistant companion';
+                bubble.innerHTML = '<span class="msg-role">Companion</span><div class="msg-body"></div>';
+                if (thread) thread.appendChild(bubble);
+                return bubble;
+            }
+            var self = this;
+            function pump() {
+                return reader.read().then(function (result) {
+                    if (result.done) return { message: acc };
+                    buffer += decoder.decode(result.value, { stream: true });
+                    var parts = buffer.split('\n\n');
+                    buffer = parts.pop() || '';
+                    parts.forEach(function (chunk) {
+                        var line = chunk.trim();
+                        if (line.indexOf('data:') !== 0) return;
+                        try {
+                            var json = JSON.parse(line.slice(5).trim());
+                            if (json.delta) {
+                                acc += json.delta;
+                                var body = ensureBubble().querySelector('.msg-body');
+                                if (body) body.innerHTML = self.formatMessage(acc);
+                                var pane = $('agent-body');
+                                if (pane) pane.scrollTop = pane.scrollHeight;
+                            }
+                            if (json.done && json.message) acc = json.message;
+                        } catch (e) { /* ignore incomplete event */ }
+                    });
+                    return pump();
+                });
+            }
+            return pump().then(function (out) {
+                if (bubble) bubble.setAttribute('data-text', out.message || acc);
+                return { type: 'assistant_message', message: out.message || acc };
+            });
+        },
+
+        routeSend: function (text) {
             var raw = String(text || '').trim();
-            if (!raw) return;
+            if (!raw || this.sendLock) return;
+            this.lastUserPrompt = raw;
+            this.flushCurrent();
+            if (this.contextEngine) this.contextEngine.parseMentions(raw, this.workspace);
+            this.parseMentions(raw);
+            var classified = intentApi.classify(raw, {
+                surface: this.aiSurface,
+                hasProposal: !!(this.companion && this.companion.lastProposal)
+            });
             if (raw.charAt(0) === '/') {
                 var parts = raw.split(/\s+/);
                 var cmd = parts.shift().slice(1).toLowerCase();
                 var rest = parts.join(' ');
-                var map = {
-                    explain: { mode: 'ask', text: 'Explain ' + (rest || 'the current file') },
-                    fix: { mode: 'edit', text: 'Fix problems in ' + (rest || 'the current file') },
-                    refactor: { mode: 'edit', text: 'Refactor ' + (rest || 'the selected code') + ' while preserving behavior' },
-                    plan: { mode: 'agent', text: rest || 'Plan the next change without editing yet' },
-                    build: { mode: 'agent', text: rest || 'Build a complete, runnable frontend for this request' },
-                    test: { mode: 'edit', text: rest || 'Run validation and fix real failures only' }
-                };
-                if (map[cmd]) {
-                    this.agent.setMode(map[cmd].mode);
-                    this.syncModeUi();
-                    raw = map[cmd].text;
+                if (cmd === 'explain' || cmd === 'review') {
+                    classified = { surface: 'companion', launchTools: false, reason: 'slash' };
+                    raw = (cmd === 'review' ? 'Review ' : 'Explain ') + (rest || 'the current file');
+                } else if (cmd === 'fix' || cmd === 'build' || cmd === 'test') {
+                    classified = { surface: 'agent', launchTools: true, reason: 'slash' };
+                    raw = rest || (cmd === 'build' ? 'Build a complete, runnable frontend for this request' : cmd === 'test' ? 'Run validation and fix real failures only' : 'Fix problems in the current file');
+                } else if (cmd === 'preview') {
+                    this.showPreview(true);
+                    return;
+                } else if (cmd === 'changes') {
+                    this.showExplorer('changes');
+                    return;
+                } else if (cmd === 'revert') {
+                    this.revertTask();
+                    return;
                 }
+            }
+            if (classified.handoff && this.companion && this.companion.lastProposal) {
+                this.setAiSurface('agent');
+                this.sendAgent(raw, { handoff: this.companion.buildHandoff(raw) });
+                return;
+            }
+            if (classified.surface === 'companion' || classified.reason === 'greeting') {
+                this.setAiSurface('companion', { silent: true });
+                this.sendCompanion(raw);
+                return;
+            }
+            this.setAiSurface('agent');
+            this.sendAgent(raw);
+        },
+
+        sendCompanion: function (text) {
+            var self = this;
+            if (!this.companion || !this.companion.ask) {
+                this.appendCompanionMessage(text, 'user');
+                this.appendCompanionMessage('Companion is unavailable in this session.', 'error');
+                return;
+            }
+            if (intentApi.isGreeting && intentApi.isGreeting(text) && this.companion.localGreeting && !this.companion.conversation.length) {
+                this.appendCompanionMessage(text, 'user');
+                var greet = this.companion.localGreeting();
+                this.companion.conversation.push({ role: 'user', content: text });
+                this.companion.conversation.push({ role: 'assistant', content: greet });
+                this.appendCompanionMessage(greet, 'assistant');
+                this.companion.saveMemory();
+                return;
+            }
+            this.sendLock = true;
+            $('btn-stop').hidden = false;
+            var ctx = this.buildProjectContext({ selection: this.getSelection() });
+            this.companion.ask(text, { context: ctx.text }).then(function () {
+                self.sendLock = false;
+                $('btn-stop').hidden = true;
+            }).catch(function () {
+                self.sendLock = false;
+                $('btn-stop').hidden = true;
+            });
+        },
+
+        sendAgent: function (text, extras) {
+            var self = this;
+            var raw = String(text || '').trim();
+            if (!raw) return;
+            extras = extras || {};
+            if (this.agent && this.agent.isLive && this.agent.isLive()) {
+                this.appendMessage('Agent is already working. Stop the current task first.', 'error');
+                return;
             }
             this.appendMessage(raw, 'user');
             this.flushCurrent();
-            if (this.agent.mode !== 'ask') {
-                var cp = this.workspace.checkpoint(raw.slice(0, 80));
-                if (cp.ok) this.lastCheckpointId = cp.checkpoint.id;
-            }
+            var cp = this.workspace.checkpoint(raw.slice(0, 80));
+            if (cp.ok) this.lastCheckpointId = cp.checkpoint.id;
             $('btn-stop').hidden = false;
             this.workspace.beginChangeset(raw.slice(0, 120));
-            var extras = { selection: this.getSelection(), related: this.relatedFiles() };
+            this.sendLock = true;
+            var sel = this.getSelectionMeta();
+            var runExtras = {
+                selection: sel && sel.text,
+                related: this.relatedFiles(),
+                handoff: extras.handoff || null
+            };
             this.parseMentions(raw);
-            this.agent.run(raw, extras).then(function (result) {
+            this.agent.setMode('agent');
+            this.agent.run(raw, runExtras).then(function (result) {
+                self.sendLock = false;
                 self.persist();
                 self.renderAll();
                 self.refreshProblems();
+                if (result && result.paused) return;
                 if (result && result.ok === false && result.error) {
                     self.appendMessage(result.error, 'error');
                 }
             }).catch(function (err) {
+                self.sendLock = false;
                 self.appendMessage(err.message || 'Agent failed.', 'error');
             });
         },
@@ -1077,6 +1399,7 @@
             while ((m = re.exec(text))) {
                 var n = security.normalizeProjectPath(m[1]);
                 if (n.ok && self.workspace.findByPath(n.path)) {
+                    if (self.contextEngine) self.contextEngine.pinFile(n.path);
                     if (!self.agent.contextPins.some(function (p) { return p.path === n.path; })) {
                         self.agent.contextPins.push({ path: n.path });
                     }
@@ -1086,16 +1409,114 @@
         },
 
         onAgentDone: function (parsed) {
+            this.sendLock = false;
+            $('btn-stop').hidden = true;
+            $('agent-recovery').hidden = true;
             var cs = this.workspace.finishChangeset(this.testResults.length ? { results: this.testResults } : null);
             this.renderChanges();
-            if (cs) this.writeOutput('Changeset ' + cs.id + ': ' + (cs.created.length + cs.modified.length + cs.deleted.length) + ' file operations.');
-            this.appendMessage((parsed && parsed.message) || 'Task complete.', 'assistant');
-            if (this.layout.previewOn) this.refreshPreview();
+            var created = cs ? cs.created.length : 0;
+            var modified = cs ? cs.modified.length : 0;
+            var deleted = cs ? cs.deleted.length : 0;
+            if (cs) this.writeOutput('Changeset ' + cs.id + ': ' + created + ' created, ' + modified + ' changed, ' + deleted + ' deleted.');
+            var previewChecked = this.layout.previewOn;
+            var previewClean = previewChecked && this.previewErrors.length === 0;
+            var problemsNow = this.refreshProblems();
+            var errorCount = problemsNow.filter(function (p) { return p.severity === 'error'; }).length;
+            this.lastAgentSummary = {
+                task: (parsed && parsed.summary) || this.lastUserPrompt || 'Agent task',
+                result: 'Completed',
+                files: [].concat((cs && cs.created) || [], (cs && cs.modified) || []).map(function (x) { return x.path || x; }),
+                validation: {
+                    preview: previewChecked ? (previewClean ? 'checked' : 'errors') : 'not checked',
+                    problems: errorCount
+                }
+            };
+            var msg = (parsed && parsed.message) || '';
+            if (!msg) {
+                msg = 'Finished. ' + created + ' file' + (created === 1 ? '' : 's') + ' created, ' +
+                    modified + ' changed, ' + deleted + ' deleted. Preview: ' +
+                    (previewChecked ? (previewClean ? 'clean' : 'errors remain') : 'not opened') +
+                    '. Problems: ' + errorCount + '. You can review the diff or revert the task.';
+            }
+            this.appendMessage(msg, 'assistant');
+            if (this.companion) {
+                this.companion.lastProposal = null;
+                this.appendCompanionMessage('Agent finished. ' + msg, 'assistant');
+            }
+            if (this.layout.previewOn) this.schedulePreview();
+            this.showChangesetCard(cs);
+        },
+
+        showChangesetCard: function (cs) {
+            if (!cs) return;
+            var thread = $('agent-thread');
+            if (!thread) return;
+            var card = document.createElement('div');
+            card.className = 'action-card';
+            card.innerHTML = '<strong>' + cs.created.length + ' created · ' + cs.modified.length + ' changed · ' + cs.deleted.length + ' deleted</strong>' +
+                '<div class="composer-row">' +
+                '<button type="button" class="studio-btn" id="card-review">Review changes</button>' +
+                '<button type="button" class="studio-btn" id="card-preview">Open preview</button>' +
+                '<button type="button" class="studio-btn danger" id="card-revert">Revert task</button>' +
+                '</div>';
+            thread.appendChild(card);
+            var self = this;
+            card.querySelector('#card-review').onclick = function () { self.showExplorer('changes'); self.openLastDiff(); };
+            card.querySelector('#card-preview').onclick = function () { self.showPreview(true); };
+            card.querySelector('#card-revert').onclick = function () { self.revertTask(); };
+        },
+
+        openLastDiff: function () {
+            var hist = this.workspace.history[0];
+            if (!hist) return;
+            var path = (hist.modified && hist.modified[0]) || (hist.created && hist.created[0]);
+            if (!path) return;
+            var file = this.workspace.findByPath(path);
+            var snap = this.workspace.checkpoints[0];
+            var before = '';
+            if (snap) {
+                var old = snap.files.filter(function (f) { return (f.path || f.name) === path; })[0];
+                before = old ? old.content : '';
+            }
+            this.openDiffModal(path, before, file ? file.content : '', 'unified');
         },
 
         onAgentStopped: function () {
+            this.sendLock = false;
             this.writeOutput('Agent stopped. Project remains as last applied change.');
             $('btn-stop').hidden = true;
+            var cs = this.workspace.activeChangeset;
+            var n = cs ? (cs.created.length + cs.modified.length + cs.deleted.length) : 0;
+            if (n) this.appendMessage('Stopped. ' + n + ' file operation(s) were already applied. Review, retry, or revert.', 'assistant');
+        },
+
+        onAgentPaused: function (reason, extras) {
+            this.sendLock = false;
+            extras = extras || {};
+            var box = $('agent-recovery');
+            var copy = $('recovery-copy');
+            if (copy) copy.textContent = reason || 'Aegis Agent paused.';
+            if (box) box.hidden = false;
+            $('btn-stop').hidden = true;
+            this.appendMessage(reason || 'Aegis Agent paused.', 'error');
+            var cs = this.workspace.activeChangeset;
+            if (cs && (cs.created.length + cs.modified.length)) {
+                this.appendMessage((cs.created.length + cs.modified.length) + ' file(s) changed before interruption. Review, retry, or revert.', 'assistant');
+            }
+        },
+
+        showLiveEdit: function (path) {
+            var flag = $('live-edit-flag');
+            if (flag) {
+                flag.hidden = false;
+                flag.textContent = path ? ('Aegis editing ' + path + '…') : 'Aegis editing…';
+            }
+            if (path) {
+                var file = this.workspace.findByPath(path);
+                if (file) this.switchToFile(file.id);
+            }
+            var self = this;
+            setTimeout(function () { if (flag) flag.hidden = true; }, 1200);
         },
 
         proposeTool: function (checked) {
@@ -1276,6 +1697,27 @@
             if (id === 'runtime.getOutput') return { ok: true, output: this.outputLines.slice(-30), console: this.consoleLines.slice(-30) };
             if (id === 'tests.run') return this.runValidation();
             if (id === 'formatter.format') return this.formatDocument(path);
+            if (id === 'preview.start') {
+                this.showPreview(true);
+                return this.refreshPreview();
+            }
+            if (id === 'preview.inspect') {
+                return { ok: true, status: this.previewState, errors: this.previewErrors.slice() };
+            }
+            if (id === 'changes.createCheckpoint') {
+                var cp = this.workspace.checkpoint(args.label || 'Agent checkpoint');
+                if (cp.ok) this.lastCheckpointId = cp.checkpoint.id;
+                return cp;
+            }
+            if (id === 'changes.revertCheckpoint') {
+                var restored = this.workspace.restoreCheckpoint(args.id || this.lastCheckpointId);
+                if (restored.ok) {
+                    this.models = {};
+                    this.renderAll();
+                    if (this.workspace.currentFileId) this.switchToFile(this.workspace.currentFileId);
+                }
+                return restored;
+            }
             return { ok: false, error: 'Unknown tool' };
         },
 
@@ -1362,7 +1804,7 @@
             var root = $('studio-root');
             var ws = $('studio-workspace');
             ws.style.setProperty('--explorer-w', (this.layout.explorerW || 240) + 'px');
-            ws.style.setProperty('--agent-w', (this.layout.agentW || 360) + 'px');
+            ws.style.setProperty('--agent-w', (this.layout.agentW || 420) + 'px');
             $('studio-bottom').style.setProperty('--bottom-h', (this.layout.bottomH || 148) + 'px');
             if (this.layout.bottomCollapsed) $('studio-bottom').style.height = '';
             else $('studio-bottom').style.height = (this.layout.bottomH || 148) + 'px';
@@ -1405,17 +1847,26 @@
 
         attachResizer: function (el, onMove, onStop) {
             if (!el) return;
-            el.addEventListener('mousedown', function (e) {
+            el.addEventListener('pointerdown', function (e) {
                 e.preventDefault();
-                function move(ev) { onMove(ev); }
+                el.setPointerCapture && el.setPointerCapture(e.pointerId);
+                var frame = 0;
+                function move(ev) {
+                    if (frame) return;
+                    frame = requestAnimationFrame(function () {
+                        frame = 0;
+                        onMove(ev);
+                    });
+                }
                 function stop() {
-                    document.removeEventListener('mousemove', move);
-                    document.removeEventListener('mouseup', stop);
+                    el.removeEventListener('pointermove', move);
+                    el.removeEventListener('pointerup', stop);
                     document.body.classList.remove('studio-dragging', 'studio-dragging-row');
+                    if (frame) cancelAnimationFrame(frame);
                     if (onStop) onStop();
                 }
-                document.addEventListener('mousemove', move);
-                document.addEventListener('mouseup', stop);
+                el.addEventListener('pointermove', move);
+                el.addEventListener('pointerup', stop);
             });
         },
 
@@ -1440,7 +1891,8 @@
                 { id: 'run', label: 'Code Studio: Run', run: function () { self.runCode(); } },
                 { id: 'format', label: 'Code Studio: Format', run: function () { self.formatDocument(); } },
                 { id: 'preview', label: 'Code Studio: Toggle Preview', run: function () { self.showPreview(!self.layout.previewOn); } },
-                { id: 'ask', label: 'Code Studio: Ask Aegis', run: function () { self.agent.setMode('ask'); self.syncModeUi(); $('agent-input').focus(); } },
+                { id: 'ask', label: 'Code Studio: Companion', run: function () { self.setAiSurface('companion'); } },
+                { id: 'agent', label: 'Code Studio: Agent', run: function () { self.setAiSurface('agent'); } },
                 { id: 'review', label: 'Code Studio: Review Changes', run: function () { self.renderChanges(); self.showExplorer('changes'); } },
                 { id: 'search', label: 'Code Studio: Project Search', run: function () { self.showExplorer('search'); $('project-search').focus(); } },
                 { id: 'theme-dark', label: 'Theme: Aegis Dark', run: function () { self.applyTheme('aegis-dark'); } },
@@ -1606,6 +2058,95 @@
             });
         },
 
+        handleCompanionAction: function (act, text) {
+            var clean = String(text || '');
+            if (act === 'copy') {
+                if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(clean);
+                this.announce('Copied');
+                return;
+            }
+            if (act === 'insert') {
+                if (this.editor && this.editor.executeEdits) {
+                    var sel = this.editor.getSelection && this.editor.getSelection();
+                    if (sel) this.editor.executeEdits('companion-insert', [{ range: sel, text: clean }]);
+                }
+                return;
+            }
+            if (act === 'apply') {
+                this.applyCompanionSuggestion(clean);
+                return;
+            }
+            if (act === 'agent') {
+                this.setAiSurface('agent');
+                var handoff = this.companion && this.companion.buildHandoff ? this.companion.buildHandoff(clean) : { companionSummary: clean };
+                this.sendAgent('Implement the Companion recommendation.', { handoff: handoff });
+                return;
+            }
+            if (act === 'more') {
+                this.sendCompanion('Explain more, with more detail on the tradeoffs.');
+            }
+        },
+
+        applyCompanionSuggestion: function (text) {
+            var file = this.currentFile();
+            if (!file) {
+                this.dialog({ title: 'Apply suggestion', body: 'Open a file first. Companion will not mutate blindly.' });
+                return;
+            }
+            var match = /```(?:[\w-]+)?\n([\s\S]*?)```/.exec(text);
+            var suggestion = match ? match[1] : '';
+            if (!suggestion) {
+                this.dialog({ title: 'No code suggestion', body: 'That message does not contain a code block to apply safely.' });
+                return;
+            }
+            this.pendingProposal = {
+                id: 'project.editFile',
+                args: { path: file.path || file.name, content: suggestion },
+                permission: 'edit',
+                risk: 'write'
+            };
+            this.showDiffForProposal(this.pendingProposal);
+            this.agent.setState('WAITING_PERMISSION');
+        },
+
+        openPermissions: function () {
+            var modal = $('permissions-modal');
+            var list = $('perm-list');
+            if (!modal || !list) return;
+            var prefs = this.userPermissions || {};
+            var rows = [
+                { key: 'read', label: 'Read project', options: ['allowed'] },
+                { key: 'edit', label: 'Edit project', options: ['ask', 'allowed'] },
+                { key: 'create', label: 'Create files', options: ['ask', 'allowed'] },
+                { key: 'delete', label: 'Delete files', options: ['always_ask'] },
+                { key: 'preview', label: 'Run preview', options: ['allowed', 'ask'] },
+                { key: 'tests', label: 'Run tests', options: ['allowed', 'ask'] },
+                { key: 'network', label: 'Network actions', options: ['denied'] }
+            ];
+            list.innerHTML = rows.map(function (row) {
+                var current = prefs[row.key] || row.options[0];
+                var opts = row.options.map(function (opt) {
+                    return '<option value="' + opt + '"' + (opt === current ? ' selected' : '') + '>' + opt.replace(/_/g, ' ') + '</option>';
+                }).join('');
+                return '<label class="perm-row"><span>' + escapeHtml(row.label) + '</span><select data-perm="' + row.key + '"' + (row.options.length === 1 ? ' disabled' : '') + '>' + opts + '</select></label>';
+            }).join('');
+            modal.hidden = false;
+        },
+
+        savePermissions: function () {
+            var prefs = {};
+            document.querySelectorAll('#perm-list [data-perm]').forEach(function (sel) {
+                prefs[sel.getAttribute('data-perm')] = sel.value;
+            });
+            this.userPermissions = security.normalizeUserPermissions
+                ? security.normalizeUserPermissions(prefs)
+                : prefs;
+            setStorage(STORAGE_PERMISSIONS, this.userPermissions);
+            if (this.agent && this.agent.setPermissions) this.agent.setPermissions(this.userPermissions);
+            $('permissions-modal').hidden = true;
+            this.writeOutput('Agent permissions saved. High-risk deletes still always ask. There is no unrestricted mode.');
+        },
+
         /* ---------- Bindings ---------- */
         bindStudio: function () {
             var self = this;
@@ -1647,21 +2188,19 @@
             $('btn-theme').onclick = function () {
                 self.applyTheme(self.layout.theme === 'aegis-light' ? 'aegis-dark' : 'aegis-light');
             };
-            $('btn-permissions').onclick = function () {
-                self.dialog({
-                    title: 'Agent permissions',
-                    body: self.agent.permissionsForMode().join(' · ') + '. Autonomy: ' + (self.agent.autonomy === 'auto' ? 'Auto edit (still confirms high-risk).' : 'Review edits before applying.') + ' Aegis never gets a host shell or unrestricted filesystem.'
-                });
-            };
+            $('btn-permissions').onclick = function () { self.openPermissions(); };
             $('studio-autonomy').onchange = function () { self.agent.setAutonomy(this.value); };
-            document.querySelectorAll('.mode-btn').forEach(function (btn) {
-                btn.onclick = function () { self.agent.setMode(btn.getAttribute('data-mode')); self.syncModeUi(); };
+            document.querySelectorAll('.surface-switch [data-surface]').forEach(function (btn) {
+                btn.onclick = function (e) {
+                    e.stopPropagation();
+                    self.setAiSurface(btn.getAttribute('data-surface'));
+                };
             });
             $('btn-send').onclick = function () {
                 var text = $('agent-input').value.trim();
-                if (!text) return;
+                if (!text || self.sendLock) return;
                 $('agent-input').value = '';
-                self.sendAgent(text);
+                self.routeSend(text);
             };
             $('agent-input').addEventListener('keydown', function (e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -1670,7 +2209,54 @@
                 }
                 if (e.key === '@') self.showMentions();
             });
-            $('btn-stop').onclick = function () { self.agent.stop(); };
+            $('btn-stop').onclick = function () {
+                if (self.companion) self.companion.stop();
+                self.agent.stop();
+                self.sendLock = false;
+            };
+            if ($('btn-new-chat')) {
+                $('btn-new-chat').onclick = function () {
+                    if (self.companion) self.companion.reset();
+                    self.appendCompanionMessage("New conversation. What should we look at?", 'assistant');
+                };
+            }
+            ['recovery-retry', 'recovery-companion', 'recovery-cancel'].forEach(function (id) {
+                if (!$(id)) return;
+                $(id).onclick = function () {
+                    $('agent-recovery').hidden = true;
+                    if (id === 'recovery-retry' && self.lastUserPrompt) self.sendAgent(self.lastUserPrompt);
+                    else if (id === 'recovery-companion') self.setAiSurface('companion');
+                    else self.agent.setState('CANCELLED');
+                };
+            });
+            if ($('empty-build')) {
+                $('empty-build').onclick = function () {
+                    var prompt = $('empty-prompt').value.trim();
+                    self.setAiSurface('agent');
+                    self.routeSend(prompt || 'Create a simple responsive landing page.');
+                };
+                $('empty-new-file').onclick = function () { self.newFile(); };
+                $('empty-import').onclick = function () { $('open-input').click(); };
+            }
+            if ($('perm-close')) $('perm-close').onclick = function () { $('permissions-modal').hidden = true; };
+            if ($('perm-cancel')) $('perm-cancel').onclick = function () { $('permissions-modal').hidden = true; };
+            if ($('perm-save')) $('perm-save').onclick = function () { self.savePermissions(); };
+            if ($('companion-thread')) {
+                $('companion-thread').addEventListener('click', function (e) {
+                    var act = e.target.getAttribute('data-act');
+                    if (!act) return;
+                    var msg = e.target.closest('.agent-msg');
+                    var text = msg ? msg.getAttribute('data-text') : '';
+                    self.handleCompanionAction(act, text);
+                });
+            }
+            if ($('btn-layout-preview-focus')) {
+                $('btn-layout-preview-focus').onclick = function () {
+                    self.showPreview(true);
+                    $('studio-workspace').classList.add('is-explorer-collapsed');
+                    $('studio-workspace').classList.add('is-agent-collapsed');
+                };
+            }
             $('btn-search').onclick = function () { self.projectSearch(); };
             $('btn-replace-preview').onclick = function () { self.previewReplace(); };
             $('btn-revert-task').onclick = function () { self.revertTask(); };
@@ -1702,14 +2288,8 @@
                 $('btn-toggle-explorer').setAttribute('aria-pressed', on ? 'true' : 'false');
                 if (self.editor) try { self.editor.layout(); } catch (e) {}
             };
-            $('btn-toggle-agent').onclick = function () {
-                document.body.classList.toggle('is-agent-open');
-                $('studio-workspace').classList.toggle('is-agent-collapsed');
-                var on = !$('studio-workspace').classList.contains('is-agent-collapsed') || document.body.classList.contains('is-agent-open');
-                $('btn-toggle-agent').setAttribute('aria-pressed', on ? 'true' : 'false');
-                if (on) $('agent-input').focus();
-                if (self.editor) try { self.editor.layout(); } catch (e) {}
-            };
+            if ($('btn-toggle-companion')) $('btn-toggle-companion').onclick = function () { self.setAiSurface('companion'); };
+            if ($('btn-toggle-agent')) $('btn-toggle-agent').onclick = function () { self.setAiSurface('agent'); };
             $('btn-more').onclick = function (e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -1772,13 +2352,20 @@
             });
             $('problems-list').addEventListener('click', function (e) {
                 var fix = e.target.closest('[data-fix]');
+                var explain = e.target.closest('[data-explain]');
                 var item = e.target.closest('[data-file]');
-                if (fix) {
-                    var p = self.problems[Number(fix.getAttribute('data-fix'))];
+                if (fix || explain) {
+                    var idx = Number((fix || explain).getAttribute(fix ? 'data-fix' : 'data-explain'));
+                    var p = self.problems[idx];
                     if (!p) return;
-                    self.agent.setMode('edit');
-                    self.syncModeUi();
-                    self.sendAgent('Fix this problem only, without unrelated rewrites:\n' + p.file + ':' + p.line + ' ' + p.message);
+                    var payload = p.file + ':' + p.line + ' ' + p.message;
+                    if (explain) {
+                        self.setAiSurface('companion');
+                        self.sendCompanion('Explain this problem and what you would change:\n' + payload);
+                    } else {
+                        self.setAiSurface('agent');
+                        self.sendAgent('Fix this problem only, without unrelated rewrites:\n' + payload);
+                    }
                     return;
                 }
                 if (item) {
@@ -1803,16 +2390,37 @@
             $('context-chips').addEventListener('click', function (e) {
                 var unpin = e.target.getAttribute('data-unpin');
                 if (!unpin) return;
+                if (unpin === 'selection' && self.contextEngine) self.contextEngine.clearSelection();
+                else if (self.contextEngine) self.contextEngine.unpinFile(unpin);
                 self.agent.contextPins = self.agent.contextPins.filter(function (p) { return p.path !== unpin; });
                 self.updateContextChips();
+            });
+            $('console-list').addEventListener('click', function (e) {
+                var explain = e.target.closest('[data-explain-console]');
+                var fix = e.target.closest('[data-fix-console]');
+                if (!explain && !fix) return;
+                var idx = Number((explain || fix).getAttribute(explain ? 'data-explain-console' : 'data-fix-console'));
+                var line = self.consoleLines[idx];
+                if (!line) return;
+                if (explain) {
+                    self.setAiSurface('companion');
+                    self.sendCompanion('Explain this console error:\n' + line.text);
+                } else {
+                    self.setAiSurface('agent');
+                    self.sendAgent('Fix this console/preview error only:\n' + line.text);
+                }
             });
             document.querySelectorAll('#inline-ai [data-inline]').forEach(function (btn) {
                 btn.onclick = function () {
                     var act = btn.getAttribute('data-inline');
                     var sel = self.getSelection();
-                    self.agent.setMode(act === 'explain' ? 'ask' : 'edit');
-                    self.syncModeUi();
-                    self.sendAgent(act + ' the selected code:\n' + sel);
+                    if (act === 'explain') {
+                        self.setAiSurface('companion');
+                        self.sendCompanion('Explain the selected code:\n' + sel);
+                    } else {
+                        self.setAiSurface('agent');
+                        self.sendAgent(act + ' the selected code:\n' + sel);
+                    }
                 };
             });
 
@@ -1940,6 +2548,7 @@
                 if (!b) return;
                 var p = b.getAttribute('data-path');
                 $('agent-input').value += p + ' ';
+                if (self.contextEngine && !self.contextEngine.pins.some(function (x) { return x === p; })) self.contextEngine.pinFile(p);
                 if (!self.agent.contextPins.some(function (x) { return x.path === p; })) self.agent.contextPins.push({ path: p });
                 self.updateContextChips();
                 menu.hidden = true;
@@ -1977,7 +2586,7 @@
                 run: function () { Studio.runCode(); },
                 format: function () { Studio.formatDocument(); },
                 togglePreview: function () { Studio.showPreview(!Studio.layout.previewOn); },
-                askAegis: function () { document.body.classList.add('is-agent-open'); $('agent-input').focus(); },
+                askAegis: function () { Studio.setAiSurface('companion'); },
                 reviewChanges: function () { Studio.showExplorer('changes'); }
             };
             if ($('studio-root').hidden) this.enterStudio();
@@ -1996,6 +2605,7 @@
                     $('find-wrap').hidden = true;
                     $('mention-menu').hidden = true;
                     $('preview-large').hidden = true;
+                    if ($('permissions-modal')) $('permissions-modal').hidden = true;
                     return;
                 }
                 if (meta && e.shiftKey && (e.key === 'P' || e.key === 'p')) { e.preventDefault(); self.showPalette(true); return; }
@@ -2015,10 +2625,14 @@
                     return;
                 }
                 if (meta && e.key === 'Enter') { e.preventDefault(); self.runCode(); return; }
-                if (meta && (e.key === 'i' || e.key === 'I')) {
+                if (meta && (e.key === 'i' || e.key === 'I') && !e.shiftKey) {
                     e.preventDefault();
-                    document.body.classList.add('is-agent-open');
-                    $('agent-input').focus();
+                    self.setAiSurface('agent');
+                    return;
+                }
+                if (meta && e.shiftKey && (e.key === 'a' || e.key === 'A')) {
+                    e.preventDefault();
+                    self.setAiSurface('companion');
                 }
             });
         }

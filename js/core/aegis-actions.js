@@ -299,8 +299,8 @@
     });
     define({
         id: 'codestudio.askAegis',
-        title: 'Code Studio: Ask Aegis',
-        description: 'Focus the Aegis Agent composer in Code Studio',
+        title: 'Code Studio: Companion',
+        description: 'Focus Aegis Companion in Code Studio',
         application: 'code-editor',
         category: 'Workspace',
         keywords: ['ask aegis', 'agent', 'code'],

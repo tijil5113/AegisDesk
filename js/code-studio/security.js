@@ -191,14 +191,79 @@
                 properties: { path: { type: 'string' } },
                 additionalProperties: false
             }
+        },
+        'preview.start': {
+            description: 'Start the sandboxed live preview for the current frontend project.',
+            risk: 'run',
+            permission: 'preview',
+            args: { type: 'object', properties: {}, additionalProperties: false }
+        },
+        'preview.inspect': {
+            description: 'Inspect preview status and captured JavaScript or resource errors.',
+            risk: 'read',
+            permission: 'read',
+            args: { type: 'object', properties: {}, additionalProperties: false }
+        },
+        'changes.createCheckpoint': {
+            description: 'Create a bounded project checkpoint before mutations.',
+            risk: 'write',
+            permission: 'edit',
+            args: {
+                type: 'object',
+                properties: { label: { type: 'string' } },
+                additionalProperties: false
+            }
+        },
+        'changes.revertCheckpoint': {
+            description: 'Restore a previous project checkpoint. High-risk.',
+            risk: 'destructive',
+            permission: 'delete',
+            args: {
+                type: 'object',
+                properties: { id: { type: 'string' } },
+                additionalProperties: false
+            }
         }
     };
 
     var MODE_PERMISSIONS = {
+        companion: { read: true, create: false, edit: false, delete: false, preview: false, tests: false },
         ask: { read: true, create: false, edit: false, delete: false, preview: false, tests: false },
         edit: { read: true, create: true, edit: true, delete: false, preview: true, tests: true },
         agent: { read: true, create: true, edit: true, delete: true, preview: true, tests: true }
     };
+
+    var PERMISSION_LEVELS = {
+        read: ['allowed', 'denied'],
+        edit: ['ask', 'allowed'],
+        create: ['ask', 'allowed'],
+        delete: ['always_ask'],
+        preview: ['allowed', 'ask'],
+        tests: ['allowed', 'ask'],
+        network: ['denied']
+    };
+
+    var DEFAULT_USER_PERMISSIONS = {
+        read: 'allowed',
+        edit: 'ask',
+        create: 'ask',
+        delete: 'always_ask',
+        preview: 'allowed',
+        tests: 'allowed',
+        network: 'denied'
+    };
+
+    function normalizeUserPermissions(input) {
+        var out = {};
+        var key;
+        for (key in DEFAULT_USER_PERMISSIONS) {
+            if (!Object.prototype.hasOwnProperty.call(DEFAULT_USER_PERMISSIONS, key)) continue;
+            var allowed = PERMISSION_LEVELS[key] || ['denied'];
+            var value = input && typeof input[key] === 'string' ? input[key] : DEFAULT_USER_PERMISSIONS[key];
+            out[key] = allowed.indexOf(value) >= 0 ? value : DEFAULT_USER_PERMISSIONS[key];
+        }
+        return out;
+    }
 
     function asString(value, max) {
         if (typeof value !== 'string') return '';
@@ -288,7 +353,16 @@
         return { ok: true, args: obj };
     }
 
-    function validateToolCall(toolId, args, mode) {
+    function permissionDecision(userPerms, permission) {
+        var prefs = normalizeUserPermissions(userPerms);
+        var level = prefs[permission] || 'denied';
+        if (level === 'denied') return { ok: false, error: 'Permission denied: ' + permission, code: 'permission' };
+        if (level === 'always_ask') return { ok: true, ask: true, level: level };
+        if (level === 'ask') return { ok: true, ask: true, level: level };
+        return { ok: true, ask: false, level: level };
+    }
+
+    function validateToolCall(toolId, args, mode, userPerms) {
         var id = asString(toolId, 80);
         var def = TOOLS[id];
         if (!def) return { ok: false, error: 'Unknown tool', code: 'unknown_tool' };
@@ -297,6 +371,8 @@
         if (!perms[def.permission]) {
             return { ok: false, error: 'Tool not allowed in ' + m.toUpperCase() + ' mode', code: 'permission' };
         }
+        var user = permissionDecision(userPerms, def.permission);
+        if (!user.ok) return user;
         var checked = validateArgs(def.args, args || {});
         if (!checked.ok) return checked;
         var pathKeys = ['path', 'newPath'];
@@ -310,7 +386,16 @@
                 safeArgs[pathKeys[p]] = n.path;
             }
         }
-        return { ok: true, id: id, def: def, args: safeArgs, risk: def.risk, permission: def.permission };
+        return {
+            ok: true,
+            id: id,
+            def: def,
+            args: safeArgs,
+            risk: def.risk,
+            permission: def.permission,
+            ask: !!user.ask || def.risk === 'destructive',
+            userLevel: user.level
+        };
     }
 
     function toolCatalogForPrompt() {
@@ -344,6 +429,10 @@
         MAX_FILES: MAX_FILES,
         TOOLS: TOOLS,
         MODE_PERMISSIONS: MODE_PERMISSIONS,
+        PERMISSION_LEVELS: PERMISSION_LEVELS,
+        DEFAULT_USER_PERMISSIONS: DEFAULT_USER_PERMISSIONS,
+        normalizeUserPermissions: normalizeUserPermissions,
+        permissionDecision: permissionDecision,
         asString: asString,
         isSensitivePath: isSensitivePath,
         normalizeProjectPath: normalizeProjectPath,

@@ -13,6 +13,8 @@
     var STORAGE_META = 'codeStudioProjectMeta';
     var STORAGE_LAYOUT = 'codeStudioLayout';
     var STORAGE_HISTORY = 'codeStudioTaskHistory';
+    var STORAGE_PERMISSIONS = 'codeStudioPermissions';
+    var STORAGE_COMPANION = 'codeStudioCompanionMemory';
     var IDB_NAME = 'CodeEditorIDB';
     var IDB_STORE = 'project';
     var MAX_CHECKPOINTS = 5;
@@ -460,6 +462,8 @@
         STORAGE_META: STORAGE_META,
         STORAGE_LAYOUT: STORAGE_LAYOUT,
         STORAGE_HISTORY: STORAGE_HISTORY,
+        STORAGE_PERMISSIONS: STORAGE_PERMISSIONS,
+        STORAGE_COMPANION: STORAGE_COMPANION,
         IDB_NAME: IDB_NAME,
         IDB_STORE: IDB_STORE
     };

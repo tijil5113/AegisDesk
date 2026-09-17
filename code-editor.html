@@ -27,7 +27,7 @@
             </div>
             <p class="welcome-kicker">AegisDesk</p>
             <h1 id="welcome-title">Aegis Code Studio</h1>
-            <p class="welcome-lede">Describe what you want. Aegis inspects the project, plans, edits real files, previews the result, and repairs problems — without copy-paste.</p>
+            <p class="welcome-lede">Companion thinks with you. Agent inspects, plans, edits, previews, and repairs — in this browser, without copy-paste.</p>
             <div class="welcome-actions">
                 <button type="button" class="studio-btn primary" id="welcome-new">New project</button>
                 <button type="button" class="studio-btn" id="welcome-import">Import files</button>
@@ -61,12 +61,17 @@
                 <span class="studio-project-name" id="studio-project-name">Untitled project</span>
             </div>
             <div class="commandbar-center" role="toolbar" aria-label="Project commands">
-                <button type="button" class="studio-btn ghost" id="btn-toggle-explorer" title="Toggle explorer" aria-pressed="true">Files</button>
-                <button type="button" class="studio-btn ghost" id="btn-toggle-agent" title="Toggle Aegis Agent" aria-pressed="true">Agent</button>
+                <div class="bar-group" role="group" aria-label="Workspace">
+                    <button type="button" class="studio-btn ghost" id="btn-toggle-explorer" title="Toggle explorer" aria-pressed="true">Files</button>
+                    <button type="button" class="studio-btn ghost" id="btn-toggle-companion" title="Aegis Companion (Ctrl+Shift+A)" aria-pressed="false">Companion</button>
+                    <button type="button" class="studio-btn ghost" id="btn-toggle-agent" title="Aegis Agent (Ctrl+I)" aria-pressed="true">Agent</button>
+                    <button type="button" class="studio-btn" id="btn-preview" aria-pressed="false">Preview</button>
+                </div>
                 <span class="bar-sep"></span>
-                <button type="button" class="studio-btn" id="btn-save" title="Save (Ctrl+S)">Save</button>
-                <button type="button" class="studio-btn primary" id="btn-run" title="Run (Ctrl+Enter)">Run</button>
-                <button type="button" class="studio-btn" id="btn-preview" aria-pressed="false">Preview</button>
+                <div class="bar-group" role="group" aria-label="Run">
+                    <button type="button" class="studio-btn" id="btn-save" title="Save (Ctrl+S)">Save</button>
+                    <button type="button" class="studio-btn primary" id="btn-run" title="Run (Ctrl+Enter)">Run</button>
+                </div>
                 <div class="bar-more">
                     <button type="button" class="studio-btn" id="btn-more" aria-expanded="false" aria-controls="more-menu">More</button>
                     <div id="more-menu" class="more-menu" hidden>
@@ -76,6 +81,7 @@
                         <button type="button" id="btn-download">Download file</button>
                         <button type="button" id="btn-format">Format</button>
                         <button type="button" id="btn-export">Export ZIP</button>
+                        <button type="button" id="btn-layout-preview-focus">Preview focus</button>
                     </div>
                 </div>
             </div>
@@ -136,6 +142,18 @@
                 <div class="editor-tabs studio-scroll" id="editor-tabs" role="tablist" aria-label="Open files"></div>
                 <div class="editor-stage" id="editor-stage">
                     <div class="editor-column" id="editor-column">
+                        <div id="editor-empty" class="editor-empty" hidden>
+                            <p class="welcome-kicker">Start building</p>
+                            <h2>Describe something to Aegis</h2>
+                            <p>Companion will think with you. Agent can create the files, preview them, and repair errors.</p>
+                            <textarea id="empty-prompt" rows="3" placeholder="Create a premium travel website for South Korea."></textarea>
+                            <div class="welcome-actions">
+                                <button type="button" class="studio-btn primary" id="empty-build">Build with Aegis</button>
+                                <button type="button" class="studio-btn" id="empty-new-file">New file</button>
+                                <button type="button" class="studio-btn" id="empty-import">Import project</button>
+                            </div>
+                        </div>
+                        <div id="live-edit-flag" class="live-edit-flag" hidden>Aegis editing…</div>
                         <div id="monaco-container" class="monaco-container" role="region" aria-label="Editor"></div>
                         <div id="inline-ai" class="inline-ai" hidden>
                             <button type="button" data-inline="explain">Explain</button>
@@ -155,9 +173,10 @@
                             </div>
                             <div class="preview-tools">
                                 <div class="preview-devices" role="group" aria-label="Preview width">
-                                    <button type="button" class="studio-icon-btn active" data-device="desktop" title="Desktop">Desktop</button>
-                                    <button type="button" class="studio-icon-btn" data-device="tablet" title="Tablet">Tablet</button>
-                                    <button type="button" class="studio-icon-btn" data-device="mobile" title="Mobile">Mobile</button>
+                                    <button type="button" class="studio-icon-btn" data-device="responsive" title="Responsive">Fluid</button>
+                                    <button type="button" class="studio-icon-btn active" data-device="desktop" title="Desktop width, not device emulation">Desktop</button>
+                                    <button type="button" class="studio-icon-btn" data-device="tablet" title="Tablet width">Tablet</button>
+                                    <button type="button" class="studio-icon-btn" data-device="mobile" title="Mobile width">Mobile</button>
                                 </div>
                                 <button type="button" class="studio-icon-btn" id="preview-refresh" title="Refresh" aria-label="Refresh preview">↻</button>
                                 <button type="button" class="studio-icon-btn" id="preview-larger" title="Open larger" aria-label="Open larger preview">⤢</button>
@@ -171,29 +190,39 @@
                 </div>
             </main>
 
-            <div class="resizer col" id="resizer-agent" role="separator" aria-orientation="vertical" aria-label="Resize Aegis Agent"></div>
-            <aside class="studio-agent" id="studio-agent" aria-label="Aegis Agent">
-                <div class="agent-header">
+            <div class="resizer col" id="resizer-agent" role="separator" aria-orientation="vertical" aria-label="Resize Aegis AI workspace"></div>
+            <aside class="studio-agent studio-ai" id="studio-agent" data-ai="companion" aria-label="Aegis AI workspace">
+                <div class="agent-header ai-header">
                     <div>
-                        <p class="agent-kicker">Aegis Agent</p>
-                        <p class="agent-state" id="agent-state">Idle</p>
+                        <p class="agent-kicker" id="ai-kicker">Aegis Companion</p>
+                        <p class="agent-state" id="agent-state" data-state="IDLE">Ready</p>
                     </div>
-                    <div class="mode-switch" role="tablist" aria-label="Agent mode">
-                        <button type="button" class="mode-btn active" data-mode="ask">Ask</button>
-                        <button type="button" class="mode-btn" data-mode="edit">Edit</button>
-                        <button type="button" class="mode-btn" data-mode="agent">Agent</button>
+                    <div class="mode-switch surface-switch" role="tablist" aria-label="AI surface">
+                        <button type="button" class="mode-btn active" id="surface-companion" data-surface="companion" role="tab" aria-selected="true">Companion</button>
+                        <button type="button" class="mode-btn" id="surface-agent" data-surface="agent" role="tab" aria-selected="false">Agent</button>
+                    </div>
+                </div>
+                <div class="context-chips" id="context-chips" aria-label="Context Aegis is using"></div>
+                <div class="ai-safety" id="ai-safety">Workspace isolated · Secrets protected</div>
+                <div class="agent-plan" id="agent-plan" hidden></div>
+                <div class="agent-activity" id="agent-activity" hidden></div>
+                <div id="agent-recovery" class="agent-recovery" hidden>
+                    <p id="recovery-copy">Aegis Agent paused.</p>
+                    <div class="composer-row">
+                        <button type="button" class="studio-btn primary" id="recovery-retry">Retry</button>
+                        <button type="button" class="studio-btn" id="recovery-companion">Return to Companion</button>
+                        <button type="button" class="studio-btn danger" id="recovery-cancel">Cancel</button>
                     </div>
                 </div>
                 <div class="agent-body studio-scroll" id="agent-body">
-                    <div class="context-chips" id="context-chips" aria-label="Context Aegis is using"></div>
-                    <div class="agent-plan" id="agent-plan" hidden></div>
-                    <div class="agent-activity" id="agent-activity" hidden></div>
-                    <div class="agent-thread" id="agent-thread"></div>
+                    <div class="agent-thread companion-thread" id="companion-thread"></div>
+                    <div class="agent-thread" id="agent-thread" hidden></div>
                 </div>
                 <div class="agent-composer">
-                    <label class="composer-hint" for="agent-input">Describe an outcome. Use / for commands and @ to attach a file. Shift+Enter for a new line.</label>
-                    <textarea id="agent-input" rows="3" placeholder="Make the heading blue, add dark mode, or fix the preview…"></textarea>
+                    <label class="composer-hint" id="composer-hint" for="agent-input">Talk through the project. Use @ to attach a file. Shift+Enter for a new line. Ctrl+Enter runs the project.</label>
+                    <textarea id="agent-input" rows="3" placeholder="Ask Companion about this project, or describe an outcome for Agent…"></textarea>
                     <div class="composer-row">
+                        <button type="button" class="studio-btn ghost" id="btn-new-chat" title="New Companion conversation">New chat</button>
                         <button type="button" class="studio-btn danger" id="btn-stop" hidden>Stop</button>
                         <button type="button" class="studio-btn primary" id="btn-send">Send</button>
                     </div>
@@ -249,8 +278,9 @@
             <span id="status-language">Plain text</span>
             <span>UTF-8</span>
             <span id="status-dirty">Saved</span>
-            <span id="status-agent">Agent idle</span>
+            <span id="status-agent">Companion ready</span>
             <span id="status-preview">Preview stopped</span>
+            <span id="status-safety" title="Browser workspace only">Workspace isolated</span>
             <span id="status-autosave" title="Workspace is stored in this browser">Local workspace</span>
             <button type="button" class="status-btn" id="btn-theme">Theme</button>
         </footer>
@@ -315,6 +345,22 @@
         </div>
     </div>
 
+    <div id="permissions-modal" class="modal" hidden>
+        <div class="modal-panel compact" role="dialog" aria-modal="true" aria-labelledby="perm-title">
+            <header>
+                <h2 id="perm-title">Agent permissions</h2>
+                <button type="button" class="studio-icon-btn" id="perm-close" aria-label="Close">✕</button>
+            </header>
+            <p id="perm-intro">Aegis Agent may only use these project-local actions. There is no unrestricted mode and no host shell.</p>
+            <div id="perm-list" class="perm-list"></div>
+            <p class="fs-note">Workspace isolated · Secrets protected · High-risk deletes always ask</p>
+            <footer>
+                <button type="button" class="studio-btn" id="perm-cancel">Close</button>
+                <button type="button" class="studio-btn primary" id="perm-save">Save</button>
+            </footer>
+        </div>
+    </div>
+
     <input type="file" id="open-input" multiple hidden>
     <input type="file" id="upload-input" multiple hidden>
     <input type="file" id="zip-input" accept=".zip,application/zip" hidden>
@@ -322,9 +368,13 @@
     <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/loader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <script src="js/code-studio/security.js"></script>
+    <script src="js/code-studio/protocol.js"></script>
+    <script src="js/code-studio/intent.js"></script>
+    <script src="js/code-studio/context.js"></script>
     <script src="js/code-studio/diff.js"></script>
     <script src="js/code-studio/workspace.js"></script>
     <script src="js/code-studio/templates.js"></script>
+    <script src="js/code-studio/companion.js"></script>
     <script src="js/code-studio/agent.js"></script>
     <script src="js/code-editor-ide.js"></script>
 </body>
