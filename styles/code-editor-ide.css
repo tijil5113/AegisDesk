@@ -170,13 +170,22 @@ button { cursor: pointer; }
     min-width: 8.5rem;
 }
 
-/* Welcome */
+/* Welcome — must fill the iframe/window and scroll, or Dashboard is clipped */
 .studio-welcome {
-    min-height: 100vh;
-    overflow: auto;
     position: relative;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 }
-.welcome-bg { position: absolute; inset: 0; pointer-events: none; }
+.welcome-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+}
 .welcome-grid {
     position: absolute; inset: 0;
     background-image:
@@ -189,11 +198,13 @@ button { cursor: pointer; }
     position: absolute; width: 480px; height: 480px; left: 50%; top: -80px; transform: translateX(-50%);
     background: radial-gradient(circle, rgba(20,184,166,0.18), transparent 65%);
 }
-.welcome-top { position: relative; padding: 16px 24px; }
+.welcome-top { position: relative; z-index: 1; padding: 16px 24px; }
 .welcome-inner {
     position: relative;
+    z-index: 1;
     width: min(880px, calc(100% - 2rem));
-    margin: 24px auto 64px;
+    margin: 8px auto 0;
+    padding-bottom: 96px;
 }
 .welcome-kicker {
     letter-spacing: 0.16em;
